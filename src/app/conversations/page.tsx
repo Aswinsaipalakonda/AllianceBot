@@ -171,7 +171,7 @@ export default function ConversationsPage() {
                 <div className="flex-1 min-w-0 border-b border-alliance-border/50 group-hover:border-transparent group-[.bg-alliance-active]:border-transparent h-full flex flex-col justify-center pr-2">
                   <div className="flex justify-between items-baseline mb-0.5">
                     <span className="text-[15px] text-white truncate pr-2">{chat.name}</span>
-                    <span className={clsx("text-xs flex-shrink-0", chat.unread ? "text-[#25d366]" : "text-alliance-muted")}>{lastMsg?.time || chat.time}</span>
+                    <span className={clsx("text-xs flex-shrink-0", chat.unread ? "text-[#25d366]" : "text-alliance-muted")}>{lastMsg?.time || chat.created}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[13px] text-alliance-muted truncate pr-2">
