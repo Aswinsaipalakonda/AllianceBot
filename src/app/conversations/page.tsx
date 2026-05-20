@@ -278,9 +278,15 @@ function ConversationsContent() {
         <div className="h-[60px] px-4 flex items-center justify-between border-b border-alliance-border">
           <h1 className="text-white text-xl font-semibold">Chats</h1>
           <div className="flex items-center gap-3 text-alliance-muted">
-            <RefreshCw onClick={() => fetchLeads(activePhone || undefined)} className="h-4.5 w-4.5 hover:text-white cursor-pointer transition-all hover:rotate-180 duration-500" title="Sync Leads List" />
-            <MessageSquare onClick={() => { if (activePhone) { showToast('Opening WhatsApp...', 'info'); window.open('https://wa.me/' + activePhone, '_blank'); } }} className="h-5 w-5 hover:text-white cursor-pointer transition-colors" />
-            <MoreVertical onClick={() => showToast('Chat settings coming soon!', 'info')} className="h-5 w-5 hover:text-white cursor-pointer transition-colors" />
+            <button onClick={() => fetchLeads(activePhone || undefined)} title="Sync Leads List" className="cursor-pointer">
+              <RefreshCw className="h-4.5 w-4.5 hover:text-white transition-all hover:rotate-180 duration-500" />
+            </button>
+            <button onClick={() => { if (activePhone) { showToast('Opening WhatsApp...', 'info'); window.open('https://wa.me/' + activePhone, '_blank'); } }} title="Open in WhatsApp" className="cursor-pointer">
+              <MessageSquare className="h-5 w-5 hover:text-white transition-colors" />
+            </button>
+            <button onClick={() => showToast('Chat settings coming soon!', 'info')} title="More Options" className="cursor-pointer">
+              <MoreVertical className="h-5 w-5 hover:text-white transition-colors" />
+            </button>
           </div>
         </div>
 
