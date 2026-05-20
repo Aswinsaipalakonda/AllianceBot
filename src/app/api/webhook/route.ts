@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateOrAddLead, appendToSheet, getLeads } from '@/lib/googleSheets';
 import { classifyMessageAndRespond } from '@/lib/gemini';
 
+export const dynamic = 'force-dynamic';
+
 // GET verification for Meta Webhook setup
 export async function GET(req: NextRequest) {
   try {
@@ -12,8 +14,20 @@ export async function GET(req: NextRequest) {
 
     const verifyToken = process.env.META_VERIFY_TOKEN || 'alliance_secure_webhook_token_2025';
 
-    if (mode && token) {
-      if (mode === 'subscribe' && token === verifyToken) {
+    // Meta webhook verification request
+    if (mode || token || challenge) {
+      if (!mode || !token || !challenge) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Missing required webhook verification query params',
+            required: ['hub.mode', 'hub.verify_token', 'hub.challenge'],
+          },
+          { status: 400 }
+        );
+      }
+
+      if (mode === 'subscribe' && token.trim() === verifyToken.trim()) {
         console.log('Webhook verified successfully!');
         return new NextResponse(challenge, { status: 200 });
       } else {
@@ -21,7 +35,15 @@ export async function GET(req: NextRequest) {
         return new NextResponse('Forbidden', { status: 403 });
       }
     }
-    return new NextResponse('Bad Request', { status: 400 });
+
+    // Browser/manual health check
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'AllianceBot webhook is live. Awaiting Meta verification or incoming messages.',
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     console.error('Webhook GET error:', error.message);
     return new NextResponse('Internal Server Error', { status: 500 });
