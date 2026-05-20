@@ -1,5 +1,9 @@
 import { google } from 'googleapis';
 
+export function normalizePhone(phone: string): string {
+  return String(phone).replace(/\D/g, '');
+}
+
 function getSheetsClient() {
   let privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
   if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
@@ -67,7 +71,7 @@ export async function getLeads() {
         status: row[4] || 'New Lead',
         category: row[5] || 'Course Queries',
         lastMessage: row[6] || '',
-        aiEnabled: row[7] !== 'false', // Default to true if not explicitly 'false'
+        aiEnabled: row[7] !== undefined && String(row[7]).toLowerCase() === 'false' ? false : true,
         date: row[0] ? row[0].split(',')[0] : new Date().toLocaleDateString(),
         timestamp: row[0] || '',
       });
@@ -106,7 +110,7 @@ export async function updateOrAddLead(
 
     // Skip header row
     for (let i = 1; i < rows.length; i++) {
-      if (rows[i][2] === phone) {
+      if (normalizePhone(rows[i][2]) === normalizePhone(phone)) {
         rowIndex = i + 1; // 1-indexed for sheets
         existingAIStatus = rows[i][7] !== undefined ? rows[i][7] : 'true';
         break;
@@ -149,7 +153,7 @@ export async function toggleAIAutoReply(phone: string, enabled: boolean) {
     let rowIndex = -1;
 
     for (let i = 1; i < rows.length; i++) {
-      if (rows[i][2] === phone) {
+      if (normalizePhone(rows[i][2]) === normalizePhone(phone)) {
         rowIndex = i + 1;
         break;
       }
@@ -200,7 +204,7 @@ export async function getConversationHistory(phone: string) {
       });
       const rows = resp.data.values || [];
       rows.forEach((row, idx) => {
-        if (idx === 0 || row[1] !== phone) return;
+        if (idx === 0 || normalizePhone(row[1]) !== normalizePhone(phone)) return;
         const ts = row[0] || '';
         const timeVal = parseTimestamp(ts);
         // Add User Message
@@ -213,11 +217,20 @@ export async function getConversationHistory(phone: string) {
             sender: 'user',
           });
         }
-        // Add Bot Reply
+        // Add Bot Reply (with quick-reply buttons parser)
         if (row[4]) {
+          let botText = row[4];
+          let buttons: string[] = [];
+          const buttonMatch = botText.match(/\[Buttons:\s*(.*?)\]/);
+          if (buttonMatch) {
+            buttons = buttonMatch[1].split(',').map((b: string) => b.trim()).filter(Boolean);
+            botText = botText.replace(/\[Buttons:\s*(.*?)\]/, '').trim();
+          }
+
           messages.push({
             id: `cq-${idx}-bot-${timeVal}`,
-            text: row[4],
+            text: botText,
+            buttons: buttons.length > 0 ? buttons : undefined,
             time: ts.split(',')[1]?.trim() || ts,
             timestamp: timeVal + 1, // small offset to sort bot message after user message
             sender: 'bot',
@@ -237,7 +250,7 @@ export async function getConversationHistory(phone: string) {
       });
       const rows = resp.data.values || [];
       rows.forEach((row, idx) => {
-        if (idx === 0 || row[1] !== phone) return;
+        if (idx === 0 || normalizePhone(row[1]) !== normalizePhone(phone)) return;
         const ts = row[0] || '';
         const timeVal = parseTimestamp(ts);
         if (row[2]) {
@@ -250,9 +263,18 @@ export async function getConversationHistory(phone: string) {
           });
         }
         if (row[3]) {
+          let botText = row[3];
+          let buttons: string[] = [];
+          const buttonMatch = botText.match(/\[Buttons:\s*(.*?)\]/);
+          if (buttonMatch) {
+            buttons = buttonMatch[1].split(',').map((b: string) => b.trim()).filter(Boolean);
+            botText = botText.replace(/\[Buttons:\s*(.*?)\]/, '').trim();
+          }
+
           messages.push({
             id: `pq-${idx}-bot-${timeVal}`,
-            text: row[3],
+            text: botText,
+            buttons: buttons.length > 0 ? buttons : undefined,
             time: ts.split(',')[1]?.trim() || ts,
             timestamp: timeVal + 1,
             sender: 'bot',
@@ -272,7 +294,7 @@ export async function getConversationHistory(phone: string) {
       });
       const rows = resp.data.values || [];
       rows.forEach((row, idx) => {
-        if (idx === 0 || row[1] !== phone) return;
+        if (idx === 0 || normalizePhone(row[1]) !== normalizePhone(phone)) return;
         const ts = row[0] || '';
         const timeVal = parseTimestamp(ts);
         if (row[2]) {
@@ -285,9 +307,18 @@ export async function getConversationHistory(phone: string) {
           });
         }
         if (row[3]) {
+          let botText = row[3];
+          let buttons: string[] = [];
+          const buttonMatch = botText.match(/\[Buttons:\s*(.*?)\]/);
+          if (buttonMatch) {
+            buttons = buttonMatch[1].split(',').map((b: string) => b.trim()).filter(Boolean);
+            botText = botText.replace(/\[Buttons:\s*(.*?)\]/, '').trim();
+          }
+
           messages.push({
             id: `sq-${idx}-bot-${timeVal}`,
-            text: row[3],
+            text: botText,
+            buttons: buttons.length > 0 ? buttons : undefined,
             time: ts.split(',')[1]?.trim() || ts,
             timestamp: timeVal + 1,
             sender: 'bot',
@@ -309,7 +340,7 @@ export async function getConversationHistory(phone: string) {
       });
       const rows = resp.data.values || [];
       rows.forEach((row, idx) => {
-        if (idx === 0 || row[2] !== phone) return;
+        if (idx === 0 || normalizePhone(row[2]) !== normalizePhone(phone)) return;
         const ts = row[0] || '';
         const timeVal = parseTimestamp(ts);
         const notes = row[3] || '';
@@ -324,9 +355,18 @@ export async function getConversationHistory(phone: string) {
             sender: 'user',
           });
         } else if (notes === 'Counselor Reply') {
+          let botText = action || '';
+          let buttons: string[] = [];
+          const buttonMatch = botText.match(/\[Buttons:\s*(.*?)\]/);
+          if (buttonMatch) {
+            buttons = buttonMatch[1].split(',').map((b: string) => b.trim()).filter(Boolean);
+            botText = botText.replace(/\[Buttons:\s*(.*?)\]/, '').trim();
+          }
+
           messages.push({
             id: `hf-${idx}-counselor-${timeVal}`,
-            text: action,
+            text: botText,
+            buttons: buttons.length > 0 ? buttons : undefined,
             time: ts.split(',')[1]?.trim() || ts,
             timestamp: timeVal,
             sender: 'bot', // Display as counselor's bubble (aligned right, matching bot replies)
@@ -342,9 +382,10 @@ export async function getConversationHistory(phone: string) {
     messages.sort((a, b) => a.timestamp - b.timestamp);
 
     // Remove the temporary timestamp sorting key before returning
-    return messages.map(({ id, text, time, sender, read }) => ({
+    return messages.map(({ id, text, buttons, time, sender, read }) => ({
       id,
       text,
+      buttons,
       time,
       sender,
       read: read || false,
@@ -379,7 +420,7 @@ export async function logCounselorReply(phone: string, counselorName: string, me
     let currentAIStatus = 'false'; // Keep as human mode since counselor is manual replying
 
     for (let i = 1; i < rows.length; i++) {
-      if (rows[i][2] === phone) {
+      if (normalizePhone(rows[i][2]) === normalizePhone(phone)) {
         rowIndex = i + 1;
         currentName = rows[i][1] || currentName;
         currentCourse = rows[i][3] || currentCourse;

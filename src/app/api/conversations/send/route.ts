@@ -10,14 +10,27 @@ export async function POST(req: NextRequest) {
     }
 
     const senderName = counselorName || 'Admissions Counselor';
+    let delivered = true;
+    let metaWarning = '';
 
-    // 1. Send WhatsApp message using Meta Cloud API
-    await sendWhatsAppMessage(phone, message);
+    // 1. Send WhatsApp message using Meta Cloud API with safe error handling
+    try {
+      await sendWhatsAppMessage(phone, message);
+    } catch (metaErr: any) {
+      console.warn(`Meta WhatsApp API delivery failed, falling back to simulation: ${metaErr.message}`);
+      delivered = false;
+      metaWarning = metaErr.message;
+    }
 
-    // 2. Log manual counselor reply in Sheets
+    // 2. Log manual counselor reply in Sheets (ALWAYS log so it's saved in history)
     await logCounselorReply(phone, senderName, message);
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    return NextResponse.json({ 
+      success: true, 
+      delivered, 
+      warning: metaWarning || undefined 
+    }, { status: 200 });
+
   } catch (error: any) {
     console.error('Error in POST /api/conversations/send:', error.message);
     return NextResponse.json({ success: false, error: 'Internal Server Error', details: error.message }, { status: 500 });
@@ -63,6 +76,6 @@ async function sendWhatsAppMessage(to: string, text: string) {
     console.log(`Successfully sent manual WhatsApp message to ${to}`);
   } catch (error: any) {
     console.error('Error sending WhatsApp message:', error.message);
-    throw error; // Propagate error so client gets alerted if dispatch fails
+    throw error; // Propagate error to trigger the try/catch in the POST handler
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateOrAddLead, appendToSheet, getLeads } from '@/lib/googleSheets';
+import { updateOrAddLead, appendToSheet, getLeads, normalizePhone } from '@/lib/googleSheets';
 import { classifyMessageAndRespond } from '@/lib/gemini';
 
 export const dynamic = 'force-dynamic';
@@ -77,19 +77,32 @@ export async function POST(req: NextRequest) {
 
         const studentPhone = message.from;
         const studentName = contact.profile?.name || 'Prospective Student';
-        const messageText = message.text?.body || '';
+        
+        // Dynamically extract text content from standard text OR interactive button replies
+        let messageText = '';
+        if (message.type === 'text') {
+          messageText = message.text?.body || '';
+        } else if (message.type === 'interactive') {
+          messageText = message.interactive?.button_reply?.title || message.interactive?.list_reply?.title || '';
+        }
 
-        if (!messageText) continue;
+        if (!messageText) {
+          console.log(`Skipped empty or unsupported message type: "${message.type}"`);
+          continue;
+        }
 
-        console.log(`Processing message from ${studentName} (${studentPhone}): "${messageText}"`);
+        console.log(`Processing message from ${studentName} (${studentPhone}) [Type: ${message.type}]: "${messageText}"`);
 
         const timestamp = new Date().toLocaleString();
 
         // 1. Fetch current leads to check if Counselor Takeover is active (AI Auto-Reply disabled)
         const leads = await getLeads();
-        const existingLead = leads.find((l) => l.phone === studentPhone);
+        const existingLead = leads.find((l) => normalizePhone(l.phone) === normalizePhone(studentPhone));
 
-        if (existingLead && !existingLead.aiEnabled) {
+        // Normalize sheet Boolean string (checking case-insensitive or direct match)
+        const isAIEnabled = existingLead ? (existingLead.aiEnabled && String(existingLead.aiEnabled).toUpperCase() !== 'FALSE') : true;
+
+        if (existingLead && !isAIEnabled) {
           // --- HUMAN TAKEOVER ACTIVE ---
           console.log(`Human takeover active for ${studentName} (${studentPhone}). Bypassing Gemini Auto-Reply.`);
           
@@ -112,29 +125,41 @@ export async function POST(req: NextRequest) {
 
         // --- AUTOMATED AI MODE ACTIVE ---
         // 2. Process Gemini Classification & Conversational Reply
-        const { replyText, category, course, status } = await classifyMessageAndRespond(messageText);
+        const { replyText, suggestedButtons, category, course, status } = await classifyMessageAndRespond(messageText);
 
         console.log(`AI Reply: "${replyText}"`);
+        console.log(`Suggested Buttons:`, suggestedButtons);
         console.log(`Classification - Category: ${category}, Course: ${course}, Status: ${status}`);
 
         // A. Update/Add in overall "Admissions Leads" sheet
         await updateOrAddLead(studentPhone, studentName, course, status, category, messageText);
 
+        // Formulate the combined reply string with button suffixes to log in Sheets
+        const buttonsSuffix = suggestedButtons && suggestedButtons.length > 0
+          ? `\n\n[Buttons: ${suggestedButtons.join(', ')}]`
+          : '';
+        const replyTextForSheet = replyText + buttonsSuffix;
+
         // B. Log specifically to query category sheet
         if (category === 'Course Queries') {
-          await appendToSheet('Course Queries', [[timestamp, studentPhone, course, messageText, replyText]]);
+          await appendToSheet('Course Queries', [[timestamp, studentPhone, course, messageText, replyTextForSheet]]);
         } else if (category === 'Placement Queries') {
-          await appendToSheet('Placement Queries', [[timestamp, studentPhone, messageText, replyText]]);
+          await appendToSheet('Placement Queries', [[timestamp, studentPhone, messageText, replyTextForSheet]]);
         } else if (category === 'Scholarship Queries') {
-          await appendToSheet('Scholarship Queries', [[timestamp, studentPhone, messageText, replyText]]);
+          await appendToSheet('Scholarship Queries', [[timestamp, studentPhone, messageText, replyTextForSheet]]);
         } else if (category === 'Human Followups') {
+          // Log student message
           await appendToSheet('Human Followups', [
             [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
           ]);
+          // Log bot reply (so it shows in conversation history)
+          await appendToSheet('Human Followups', [
+            [timestamp, 'AI Assistant', studentPhone, 'Counselor Reply', replyTextForSheet],
+          ]);
         }
 
-        // C. Send message back using Meta Graph API
-        await sendWhatsAppMessage(studentPhone, replyText);
+        // C. Send message back using Meta Graph API (supports interactive quick reply buttons)
+        await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
       }
     }
 
@@ -145,8 +170,8 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Helper function to send WhatsApp message via Meta Cloud API
-async function sendWhatsAppMessage(to: string, text: string) {
+// Helper function to send WhatsApp message via Meta Cloud API (with support for interactive buttons)
+async function sendWhatsAppMessage(to: string, text: string, buttons?: string[]) {
   try {
     const phoneId = process.env.META_PHONE_NUMBER_ID;
     const token = process.env.META_PERMANENT_TOKEN;
@@ -158,22 +183,47 @@ async function sendWhatsAppMessage(to: string, text: string) {
 
     const url = `https://graph.facebook.com/v18.0/${phoneId}/messages`;
 
+    let bodyPayload: any = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to,
+    };
+
+    // If buttons are provided, format them as Meta interactive quick-replies (max 3 buttons, each max 20 chars)
+    if (buttons && buttons.length > 0) {
+      const formattedButtons = buttons.slice(0, 3).map((btn, idx) => ({
+        type: 'reply',
+        reply: {
+          id: `btn-${idx}-${Date.now()}`,
+          title: btn.substring(0, 20).trim(),
+        }
+      }));
+
+      bodyPayload.type = 'interactive';
+      bodyPayload.interactive = {
+        type: 'button',
+        body: {
+          text: text
+        },
+        action: {
+          buttons: formattedButtons
+        }
+      };
+    } else {
+      bodyPayload.type = 'text';
+      bodyPayload.text = {
+        preview_url: false,
+        body: text,
+      };
+    }
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to,
-        type: 'text',
-        text: {
-          preview_url: false,
-          body: text,
-        },
-      }),
+      body: JSON.stringify(bodyPayload),
     });
 
     const responseData = await response.json();
@@ -182,7 +232,7 @@ async function sendWhatsAppMessage(to: string, text: string) {
       throw new Error(`Meta API error: ${JSON.stringify(responseData)}`);
     }
 
-    console.log(`Successfully sent WhatsApp message to ${to}`);
+    console.log(`Successfully sent WhatsApp message to ${to} (Interactive: ${!!buttons?.length})`);
   } catch (error: any) {
     console.error('Error sending WhatsApp message:', error.message);
   }
