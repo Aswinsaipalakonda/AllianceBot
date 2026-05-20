@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateOrAddLead, appendToSheet } from '@/lib/googleSheets';
+import { updateOrAddLead, appendToSheet, getLeads } from '@/lib/googleSheets';
 import { classifyMessageAndRespond } from '@/lib/gemini';
 
 // GET verification for Meta Webhook setup
@@ -61,15 +61,40 @@ export async function POST(req: NextRequest) {
 
         console.log(`Processing message from ${studentName} (${studentPhone}): "${messageText}"`);
 
-        // 1. Process Gemini Classification & Conversational Reply
+        const timestamp = new Date().toLocaleString();
+
+        // 1. Fetch current leads to check if Counselor Takeover is active (AI Auto-Reply disabled)
+        const leads = await getLeads();
+        const existingLead = leads.find((l) => l.phone === studentPhone);
+
+        if (existingLead && !existingLead.aiEnabled) {
+          // --- HUMAN TAKEOVER ACTIVE ---
+          console.log(`Human takeover active for ${studentName} (${studentPhone}). Bypassing Gemini Auto-Reply.`);
+          
+          const category = 'Human Followups';
+          const course = existingLead.course;
+          const status = 'Follow-up';
+
+          // A. Log new incoming message under Admissions Leads (resets timestamp & shows new text)
+          await updateOrAddLead(studentPhone, studentName, course, status, category, messageText);
+
+          // B. Append to Human Followups sheet so counselor gets notified
+          await appendToSheet('Human Followups', [
+            [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
+          ]);
+
+          console.log(`Successfully logged incoming human-mode message from ${studentName} for counselor follow-up.`);
+          // Skip sending automatic reply
+          continue;
+        }
+
+        // --- AUTOMATED AI MODE ACTIVE ---
+        // 2. Process Gemini Classification & Conversational Reply
         const { replyText, category, course, status } = await classifyMessageAndRespond(messageText);
 
         console.log(`AI Reply: "${replyText}"`);
         console.log(`Classification - Category: ${category}, Course: ${course}, Status: ${status}`);
 
-        const timestamp = new Date().toLocaleString();
-
-        // 2. Log details in targeted Google Sheets based on classification
         // A. Update/Add in overall "Admissions Leads" sheet
         await updateOrAddLead(studentPhone, studentName, course, status, category, messageText);
 
@@ -81,10 +106,12 @@ export async function POST(req: NextRequest) {
         } else if (category === 'Scholarship Queries') {
           await appendToSheet('Scholarship Queries', [[timestamp, studentPhone, messageText, replyText]]);
         } else if (category === 'Human Followups') {
-          await appendToSheet('Human Followups', [[timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor']]);
+          await appendToSheet('Human Followups', [
+            [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
+          ]);
         }
 
-        // 3. Send message back using Meta Graph API
+        // C. Send message back using Meta Graph API
         await sendWhatsAppMessage(studentPhone, replyText);
       }
     }
@@ -113,7 +140,7 @@ async function sendWhatsAppMessage(to: string, text: string) {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         messaging_product: 'whatsapp',
@@ -122,9 +149,9 @@ async function sendWhatsAppMessage(to: string, text: string) {
         type: 'text',
         text: {
           preview_url: false,
-          body: text
-        }
-      })
+          body: text,
+        },
+      }),
     });
 
     const responseData = await response.json();

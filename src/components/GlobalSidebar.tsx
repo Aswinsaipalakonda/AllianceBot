@@ -2,17 +2,19 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquare, BarChart2, Settings, Users, FolderOpen } from 'lucide-react';
+import { MessageSquare, Users, FolderOpen, TrendingUp } from 'lucide-react';
 import clsx from 'clsx';
 
 export function GlobalSidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: 'Dashboard', href: '/', icon: BarChart2 },
+    { name: 'Dashboard', href: '/', icon: FolderOpen },
     { name: 'Conversations', href: '/conversations', icon: MessageSquare },
     { name: 'Leads Directory', href: '/leads', icon: Users },
+    { name: 'Analytics', href: '/analytics', icon: TrendingUp },
   ];
+
 
   return (
     <div className="w-16 md:w-[72px] bg-alliance-card border-r border-alliance-border flex flex-col items-center py-6 gap-6 flex-shrink-0">
