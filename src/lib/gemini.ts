@@ -46,11 +46,11 @@ export function generateOfflineReply(messageText: string) {
     text.includes('representative')
   ) {
     return {
-      replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nYou can reach our college staff and counseling desk directly at:\n\n• *Main Admissions Helpline*: +91 88850 66502\n• *Director Academics (Kartikeswar Panda)*: +91 88850 66502\n• *Principal (Boddeti Srinivas Rao)*: +91 88850 66502\n• *Email Support*: alliancesince2003@gmail.com\n\nWe are here to support your career journey. Would you like to review our courses or start your application?",
+      replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?",
       category: "Human Followups",
       course: "Undecided",
       status: "Follow-up",
-      suggestedButtons: ["Explore Courses", "Apply Now", "Scholarships"]
+      suggestedButtons: ["+91 88850 66502", "Email Admissions"]
     };
   }
 
@@ -184,9 +184,29 @@ export async function classifyMessageAndRespond(
     // ==========================================
     // 0. Programmatic Conversational Overrides
     // ==========================================
-    if (lowerMsg === 'talk to counselor' || lowerMsg === 'talk to us') {
+    if (lowerMsg === 'talk to counselor' || lowerMsg === 'talk to us' || lowerMsg === 'counselor') {
       return {
-        replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nYou can reach our college staff and counseling desk directly at:\n\n• *Main Admissions Helpline*: +91 88850 66502\n• *Director Academics (Kartikeswar Panda)*: +91 88850 66502\n• *Principal (Boddeti Srinivas Rao)*: +91 88850 66502\n• *Office Email*: alliancesince2003@gmail.com\n• *Campus Address*: Near SBI, Maddilipalem, Visakhapatnam - 530022\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?",
+        replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?",
+        suggestedButtons: ["+91 88850 66502", "Email Admissions"],
+        category: "Human Followups",
+        course: "Undecided",
+        status: "Follow-up"
+      };
+    }
+
+    if (lowerMsg === '+91 88850 66502' || lowerMsg.includes('88850') || lowerMsg.includes('helpline')) {
+      return {
+        replyText: "You can call us directly on our helpline at *+91 88850 66502* during working hours (9:00 AM - 5:00 PM). We are happy to help! Would you like to review our courses or start your application process?",
+        suggestedButtons: ["Explore Courses", "Apply Now", "Scholarships"],
+        category: "Human Followups",
+        course: "Undecided",
+        status: "Follow-up"
+      };
+    }
+
+    if (lowerMsg === 'email admissions' || lowerMsg === 'email support' || lowerMsg.includes('alliancesince2003')) {
+      return {
+        replyText: "You can write to us anytime at *alliancesince2003@gmail.com*. Our admissions team will get back to you promptly. Would you like to review our courses or start your application process?",
         suggestedButtons: ["Explore Courses", "Apply Now", "Scholarships"],
         category: "Human Followups",
         course: "Undecided",
@@ -316,10 +336,11 @@ Strict Guidelines to Follow:
    - "Diploma in Hotel Management (DHM)" (Duration is 1 Year)
    - "Post Graduate Diploma in Hotel Management (PGDHM)" (Duration is 1 Year)
    - "Post Graduate Diploma in Business Management (PGDBM)" (Duration is 2 Years)
-4. Intercept "Talk to Counselor": If the student clicks "Talk to Counselor" or asks to speak with a human/counselor/call/phone, you MUST output the actual administration/helpline contacts:
-   - Main Helpline: +91 88850 66502
-   - Principal (Boddeti Srinivas Rao), Director Academics (Kartikeswar Panda) Helpline: +91 88850 66502
-   - Office Email: alliancesince2003@gmail.com
+4. Intercept "Talk to Counselor": If the student clicks "Talk to Counselor" or asks to speak with a human/counselor/call/phone, you MUST output this exact message:
+   "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨
+
+Please feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?"
+   And you MUST suggest the interactive quick-reply buttons as exactly: ["+91 88850 66502", "Email Admissions"].
 5. Intercept "Apply Now": If the student clicks "Apply Now" or asks to apply/register, you MUST provide:
    - Application Form Link: https://forms.gle/FxpcHjSCLLrkhZkPA
    - Explain the 2-step process (fill form, upload certificates, submit) and explicitly mention that there is NO fee to pay.

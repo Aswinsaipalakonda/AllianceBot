@@ -158,77 +158,89 @@ export async function POST(req: NextRequest) {
           const course = existingLead.course;
           const status = 'Follow-up';
 
-          // A. Log new incoming message under Admissions Leads (resets timestamp & shows new text)
-          await updateOrAddLead(studentPhone, studentName, course, status, category, messageText);
+          // Safe, concurrent non-blocking logging in background
+          Promise.all([
+            updateOrAddLead(studentPhone, studentName, course, status, category, messageText),
+            appendToSheet('Human Followups', [
+              [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
+            ]),
+            logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course)
+          ]).then(() => {
+            console.log(`Successfully logged incoming human-mode message from ${studentName} for counselor follow-up.`);
+          }).catch(err => {
+            console.error(`Error logging human-mode message from ${studentName}:`, err.message);
+          });
 
-          // B. Append to Human Followups sheet so counselor gets notified
-          await appendToSheet('Human Followups', [
-            [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
-          ]);
-
-          // C. Log to unified Chat Log
-          await logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course);
-
-          console.log(`Successfully logged incoming human-mode message from ${studentName} for counselor follow-up.`);
           // Skip sending automatic reply
           continue;
         }
 
         // --- AUTOMATED AI MODE ACTIVE ---
-        // 2. Fetch conversation history context for state-aware Gemini classification
+        // 2. Determine if it is a programmatic override to skip loading conversation history from sheets (saves ~1-2 seconds)
+        const lowerMsg = messageText.toLowerCase().trim();
+        const isOverride = lowerMsg === 'talk to counselor' || lowerMsg === 'talk to us' || lowerMsg === 'counselor' ||
+                           lowerMsg === 'apply now' || lowerMsg === 'apply' ||
+                           lowerMsg === 'scholarships' || lowerMsg === 'scholarship' ||
+                           lowerMsg === 'explore courses' || lowerMsg === 'courses' ||
+                           lowerMsg === 'bhmct details' || lowerMsg === 'bhmct admissions' ||
+                           lowerMsg === 'bba details' || lowerMsg === 'bba admissions' ||
+                           lowerMsg.includes('88850') || lowerMsg.includes('helpline') ||
+                           lowerMsg === 'email admissions' || lowerMsg.includes('email support');
+
         let recentHistory: { role: 'user' | 'model'; parts: string[] }[] = [];
-        try {
-          const rawHistory = await getConversationHistory(studentPhone);
-          recentHistory = rawHistory.slice(-6).map((msg: any) => ({
-            role: msg.sender === 'user' ? 'user' as const : 'model' as const,
-            parts: [msg.text]
-          }));
-        } catch (histErr: any) {
-          console.warn("Failed to load history context for Gemini webhook:", histErr.message);
+        if (!isOverride) {
+          try {
+            const rawHistory = await getConversationHistory(studentPhone);
+            recentHistory = rawHistory.slice(-6).map((msg: any) => ({
+              role: msg.sender === 'user' ? 'user' as const : 'model' as const,
+              parts: [msg.text]
+            }));
+          } catch (histErr: any) {
+            console.warn("Failed to load history context for Gemini webhook:", histErr.message);
+          }
+        } else {
+          console.log(`Intercepted programmatic override: "${messageText}". Bypassing history retrieval.`);
         }
 
         // 3. Process Gemini Classification & Conversational Reply with history
         const { replyText, suggestedButtons, category, course, status } = await classifyMessageAndRespond(messageText, recentHistory);
 
-        // A. Log user's incoming message to unified Chat Log
-        await logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course);
+        // A. IMMEDIATELY send WhatsApp message back to minimize user delay
+        await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
 
-        // B. Log bot's outgoing reply to unified Chat Log
-        await logChatMessage(studentPhone, studentName, 'bot', replyText, suggestedButtons, category, course);
-
-        console.log(`AI Reply: "${replyText}"`);
-        console.log(`Suggested Buttons:`, suggestedButtons);
-        console.log(`Classification - Category: ${category}, Course: ${course}, Status: ${status}`);
-
-        // A. Update/Add in overall "Admissions Leads" sheet
-        await updateOrAddLead(studentPhone, studentName, course, status, category, messageText);
-
-        // Formulate the combined reply string with button suffixes to log in Sheets
+        // B. Perform all slow Google Sheets logging operations concurrently in the background
         const buttonsSuffix = suggestedButtons && suggestedButtons.length > 0
           ? `\n\n[Buttons: ${suggestedButtons.join(', ')}]`
           : '';
         const replyTextForSheet = replyText + buttonsSuffix;
 
-        // B. Log specifically to query category sheet
-        if (category === 'Course Queries') {
-          await appendToSheet('Course Queries', [[timestamp, studentPhone, course, messageText, replyTextForSheet]]);
-        } else if (category === 'Placement Queries') {
-          await appendToSheet('Placement Queries', [[timestamp, studentPhone, messageText, replyTextForSheet]]);
-        } else if (category === 'Scholarship Queries') {
-          await appendToSheet('Scholarship Queries', [[timestamp, studentPhone, messageText, replyTextForSheet]]);
-        } else if (category === 'Human Followups') {
-          // Log student message
-          await appendToSheet('Human Followups', [
-            [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
-          ]);
-          // Log bot reply (so it shows in conversation history)
-          await appendToSheet('Human Followups', [
-            [timestamp, 'AI Assistant', studentPhone, 'Counselor Reply', replyTextForSheet],
-          ]);
-        }
-
-        // C. Send message back using Meta Graph API (supports interactive quick reply buttons)
-        await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
+        Promise.all([
+          logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course).catch(e => console.error("Error logging user chat:", e.message)),
+          logChatMessage(studentPhone, studentName, 'bot', replyText, suggestedButtons, category, course).catch(e => console.error("Error logging bot chat:", e.message)),
+          updateOrAddLead(studentPhone, studentName, course, status, category, messageText).catch(e => console.error("Error updating lead:", e.message)),
+          (async () => {
+            try {
+              if (category === 'Course Queries') {
+                await appendToSheet('Course Queries', [[timestamp, studentPhone, course, messageText, replyTextForSheet]]);
+              } else if (category === 'Placement Queries') {
+                await appendToSheet('Placement Queries', [[timestamp, studentPhone, messageText, replyTextForSheet]]);
+              } else if (category === 'Scholarship Queries') {
+                await appendToSheet('Scholarship Queries', [[timestamp, studentPhone, messageText, replyTextForSheet]]);
+              } else if (category === 'Human Followups') {
+                await appendToSheet('Human Followups', [
+                  [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
+                  [timestamp, 'AI Assistant', studentPhone, 'Counselor Reply', replyTextForSheet],
+                ]);
+              }
+            } catch (e: any) {
+              console.error("Error appending to category sheet:", e.message);
+            }
+          })()
+        ]).then(() => {
+          console.log(`All sheets logging successfully completed in background for ${studentPhone}`);
+        }).catch(err => {
+          console.error("Background logging to Google Sheets failed:", err.message);
+        });
       }
     }
 
