@@ -151,8 +151,12 @@ export async function POST(req: NextRequest) {
                            lowerMsg === 'apply now' || lowerMsg === 'apply' ||
                            lowerMsg === 'scholarships' || lowerMsg === 'scholarship' ||
                            lowerMsg === 'explore courses' || lowerMsg === 'courses' ||
+                           lowerMsg === 'more courses' || lowerMsg === 'other courses' ||
                            lowerMsg === 'bhmct details' || lowerMsg === 'bhmct admissions' ||
                            lowerMsg === 'bba details' || lowerMsg === 'bba admissions' ||
+                           lowerMsg === 'dhm details' || lowerMsg === 'dhm admissions' ||
+                           lowerMsg === 'pgdhm details' || lowerMsg === 'pgdhm admissions' ||
+                           lowerMsg === 'pgdbm details' || lowerMsg === 'pgdbm admissions' ||
                            lowerMsg === 'career opportunities' || lowerMsg === 'careers' || lowerMsg === 'career' || lowerMsg === 'jobs' ||
                            lowerMsg.includes('88850') || lowerMsg.includes('helpline') ||
                            lowerMsg === 'email admissions' || lowerMsg.includes('email support');
@@ -216,7 +220,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 3. Process Gemini Classification & Conversational Reply with history
-        const { replyText, suggestedButtons, category, course, status, sendCareersImages } = await classifyMessageAndRespond(messageText, recentHistory) as any;
+        const { replyText, suggestedButtons, category, course, status, sendCareersImages, sendCourseImage } = await classifyMessageAndRespond(messageText, recentHistory) as any;
 
         // A. IMMEDIATELY send WhatsApp message back to minimize user delay
         if (sendCareersImages) {
@@ -229,6 +233,14 @@ export async function POST(req: NextRequest) {
           await sendWhatsAppMessage(studentPhone, "🏨 *Hotel Management Career Opportunities*:", undefined, `${baseUrl}/hotel.jpeg`);
           // Then send the interactive buttons with a clear prompt to ensure they always transmit and display
           await sendWhatsAppMessage(studentPhone, "Would you like to start your application process or explore further?", suggestedButtons);
+        } else if (sendCourseImage) {
+          const baseUrl = new URL(req.url).origin;
+          const imgName = sendCourseImage === 'bba' ? 'bba.jpeg' : 'hotel.jpeg';
+          const imgCaption = sendCourseImage === 'bba' ? '🎓 *Bachelor of Business Administration (BBA)*' : '🏨 *Hospitality & Hotel Management*';
+          // Send the image first
+          await sendWhatsAppMessage(studentPhone, imgCaption, undefined, `${baseUrl}/${imgName}`);
+          // Then send the main course text reply with suggested buttons
+          await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
         } else {
           await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
         }

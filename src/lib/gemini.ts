@@ -64,7 +64,7 @@ export function generateOfflineReply(messageText: string) {
     text.includes('registration')
   ) {
     return {
-      replyText: "Ready to launch your global career? 🚀 Admissions are open for the new batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link to fill the online application form:\n📝 *Apply Now*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\n💡 *Suggested Google Forms Setup*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for Alliance College of Hotel Management, Visakhapatnam (affiliated to Andhra University). Fill details, select course, upload certificates. Helpline: +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
+      replyText: "Ready to launch your global career? 🚀 Admissions are open for the new batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link to fill the online application form:\n📝 *Apply Now*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\nWould you like to explore our scholarships or speak to a counselor?",
       category: "Course Queries",
       course: "Undecided",
       status: "Applied",
@@ -96,15 +96,25 @@ export function generateOfflineReply(messageText: string) {
   const isDhm = text.includes('dhm') || text.includes('diploma in hotel') || text.includes('diploma in hospitality');
   const isPgdhm = text.includes('pgdhm') || text.includes('post graduate diploma in hotel');
   const isPgdbm = text.includes('pgdbm') || text.includes('post graduate diploma in business');
+  const isMoreCourses = text === 'more courses' || text === 'other courses' || text.includes('more courses');
 
-  if (text.includes('course') || text.includes('degree') || text.includes('program') || text.includes('eligibility') || text.includes('duration') || isBba || isBhmct || isDhm || isPgdhm || isPgdbm) {
-    if (isBba) {
+  if (text.includes('course') || text.includes('degree') || text.includes('program') || text.includes('eligibility') || text.includes('duration') || isBba || isBhmct || isDhm || isPgdhm || isPgdbm || isMoreCourses) {
+    if (isMoreCourses) {
+      return {
+        replyText: "Certainly! Here are our other highly popular diploma and postgraduate management programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n3. *Diploma in Hotel Management (DHM)* - 1 Year\n4. *Post Graduate Diploma in Hotel Management (PGDHM)* - 1 Year\n5. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or tell me your interests!",
+        category: "Course Queries",
+        course: "Undecided",
+        status: "Interested",
+        suggestedButtons: ["DHM Details", "PGDHM Details", "PGDBM Details"]
+      };
+    } else if (isBba) {
       return {
         replyText: "Our *Bachelor of Business Administration (BBA)* is a premium 3-year full-time undergraduate program at *Alliance College of Hotel Management* (affiliated to Andhra University). 💼\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) from any recognized board in any stream.\n• *Overview*: Focuses on business principles, marketing, finance, accounting, and human resource management.\n\nWould you like to start your application now or speak with a counselor?",
         category: "Course Queries",
         course: "BBA",
         status: "Interested",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"]
+        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        sendCourseImage: "bba"
       };
     } else if (isBhmct) {
       return {
@@ -112,7 +122,8 @@ export function generateOfflineReply(messageText: string) {
         category: "Course Queries",
         course: "BHMCT",
         status: "Interested",
-        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"]
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
+        sendCourseImage: "hotel"
       };
     } else if (isDhm) {
       return {
@@ -120,7 +131,8 @@ export function generateOfflineReply(messageText: string) {
         category: "Course Queries",
         course: "DHM",
         status: "Interested",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"]
+        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        sendCourseImage: "hotel"
       };
     } else if (isPgdhm) {
       return {
@@ -128,7 +140,8 @@ export function generateOfflineReply(messageText: string) {
         category: "Course Queries",
         course: "PGDHM",
         status: "Interested",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"]
+        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        sendCourseImage: "hotel"
       };
     } else if (isPgdbm) {
       return {
@@ -136,7 +149,8 @@ export function generateOfflineReply(messageText: string) {
         category: "Course Queries",
         course: "PGDBM",
         status: "Interested",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"]
+        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        sendCourseImage: "bba"
       };
     } else {
       return {
@@ -144,7 +158,7 @@ export function generateOfflineReply(messageText: string) {
         category: "Course Queries",
         course: "Undecided",
         status: "Interested",
-        suggestedButtons: ["BHMCT Details", "BBA Details", "Apply Now"]
+        suggestedButtons: ["BHMCT Details", "BBA Details", "More Courses"]
       };
     }
   }
@@ -192,6 +206,22 @@ export function generateOfflineReply(messageText: string) {
   };
 }
 
+export function stripGoogleFormsSetup(text: string): string {
+  if (!text) return text;
+  
+  // Replace the specific Google Forms Setup block including any bullet points
+  let cleaned = text.replace(/💡\s*Suggested\s*Google\s*Forms\s*Setup:[\s\S]*?(?=(Would you like|Explore our|Select from|How may I|What would you|$))/gi, '');
+  
+  // Also replace any standalone Form Name / Form Description bullet points just in case
+  cleaned = cleaned.replace(/[•*]\s*Form\s*Name:[\s\S]*?(?=(Would you like|Explore our|Select from|How may I|What would you|$))/gi, '');
+  cleaned = cleaned.replace(/[•*]\s*Form\s*Description:[\s\S]*?(?=(Would you like|Explore our|Select from|How may I|What would you|$))/gi, '');
+  
+  // Clean up duplicate newlines
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
+  
+  return cleaned;
+}
+
 export async function classifyMessageAndRespond(
   messageText: string,
   history: { role: 'user' | 'model'; parts: string[] }[] = []
@@ -234,7 +264,7 @@ export async function classifyMessageAndRespond(
     
     if (lowerMsg === 'apply now' || lowerMsg === 'apply') {
       return {
-        replyText: "Ready to launch your global career? 🚀 Admissions are open for the new batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link to fill the online application form:\n📝 *Apply Now*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\n💡 *Suggested Google Forms Setup*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for Alliance College of Hotel Management, Visakhapatnam (affiliated to Andhra University). Fill details, select course, upload certificates. Helpline: +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
+        replyText: "Ready to launch your global career? 🚀 Admissions are open for the new batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link to fill the online application form:\n📝 *Apply Now*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\nWould you like to explore our scholarships or speak to a counselor?",
         suggestedButtons: ["Explore Courses", "Scholarships", "Talk to Counselor"],
         category: "Course Queries",
         course: "Undecided",
@@ -266,30 +296,75 @@ export async function classifyMessageAndRespond(
     if (lowerMsg === 'explore courses' || lowerMsg === 'courses') {
       return {
         replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Bachelor of Hospitality Management & Catering Technology (BHMCT)*\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate)\n\n2. *Bachelor of Business Administration (BBA)*\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate)\n\n3. *Diploma in Hotel Management (DHM)*\n• *Duration*: 1 Year\n• *Eligibility*: Pass in 10th Class\n\n4. *Post Graduate Diploma in Hotel Management (PGDHM)*\n• *Duration*: 1 Year\n• *Eligibility*: Graduation (Any Degree)\n\n5. *Post Graduate Diploma in Business Management (PGDBM)*\n• *Duration*: 2 Years\n• *Eligibility*: Graduation (Any Degree)\n\nWhich program would you like to discuss in detail? Select a course or talk to us directly!",
-        suggestedButtons: ["BHMCT Details", "BBA Details", "Apply Now"],
+        suggestedButtons: ["BHMCT Details", "BBA Details", "More Courses"],
         category: "Course Queries",
         course: "Undecided",
         status: "Interested"
       };
     }
 
-    if (lowerMsg === 'bhmct details' || lowerMsg === 'bhmct admissions') {
+    if (lowerMsg === 'more courses' || lowerMsg === 'other courses' || lowerMsg.includes('more courses')) {
+      return {
+        replyText: "Certainly! Here are our other highly popular diploma and postgraduate management programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n3. *Diploma in Hotel Management (DHM)* - 1 Year\n4. *Post Graduate Diploma in Hotel Management (PGDHM)* - 1 Year\n5. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or tell me your interests!",
+        suggestedButtons: ["DHM Details", "PGDHM Details", "PGDBM Details"],
+        category: "Course Queries",
+        course: "Undecided",
+        status: "Interested"
+      };
+    }
+
+    if (lowerMsg === 'bhmct details' || lowerMsg === 'bhmct admissions' || lowerMsg.includes('bhmct details') || lowerMsg.includes('bhmct course')) {
       return {
         replyText: "Our *Bachelor of Hospitality Management & Catering Technology (BHMCT)* is a professional 3-year full-time degree at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏨🍳\n\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate) in any stream.\n• *Overview*: Comprehensive training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in luxury 5-star hotels.\n\nWould you like to check out placement partners or start your application?",
         suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         category: "Course Queries",
         course: "BHMCT",
-        status: "Interested"
+        status: "Interested",
+        sendCourseImage: "hotel"
       };
     }
     
-    if (lowerMsg === 'bba details' || lowerMsg === 'bba admissions') {
+    if (lowerMsg === 'bba details' || lowerMsg === 'bba admissions' || lowerMsg.includes('bba details') || lowerMsg.includes('bba course')) {
       return {
         replyText: "Our *Bachelor of Business Administration (BBA)* is a premium 3-year full-time undergraduate program at *Alliance College of Hotel Management* (affiliated to Andhra University). 💼\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) from any recognized board in any stream.\n• *Overview*: Focuses on business principles, marketing, finance, accounting, and human resource management.\n\nWould you like to start your application now or speak with a counselor?",
         suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
         category: "Course Queries",
         course: "BBA",
-        status: "Interested"
+        status: "Interested",
+        sendCourseImage: "bba"
+      };
+    }
+
+    if (lowerMsg === 'dhm details' || lowerMsg === 'dhm admissions' || lowerMsg.includes('dhm details') || lowerMsg.includes('dhm course')) {
+      return {
+        replyText: "Our *Diploma in Hotel Management (DHM)* is a practical-oriented 1-year course at *Alliance College of Hotel Management* (affiliated to Andhra University). 🍽️✨\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Pass in 10th standard.\n• *Overview*: Fast-track practical curriculum focusing on culinary arts, food production, housekeeping, and front office operations. Perfect for a quick, robust entry into the global hotel workforce.\n\nWould you like to apply now or speak with a counselor?",
+        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        category: "Course Queries",
+        course: "DHM",
+        status: "Interested",
+        sendCourseImage: "hotel"
+      };
+    }
+
+    if (lowerMsg === 'pgdhm details' || lowerMsg === 'pgdhm admissions' || lowerMsg.includes('pgdhm details') || lowerMsg.includes('pgdhm course')) {
+      return {
+        replyText: "Our *Post Graduate Diploma in Hotel Management (PGDHM)* is an advanced 1-year professional course at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏢🎓\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any recognized university in any stream.\n• *Overview*: Designed for graduates seeking leadership and specialized administration roles in global luxury hotels and catering industries.\n\nWould you like to start your application or speak with a counselor?",
+        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        category: "Course Queries",
+        course: "PGDHM",
+        status: "Interested",
+        sendCourseImage: "hotel"
+      };
+    }
+
+    if (lowerMsg === 'pgdbm details' || lowerMsg === 'pgdbm admissions' || lowerMsg.includes('pgdbm details') || lowerMsg.includes('pgdbm course')) {
+      return {
+        replyText: "Our *Post Graduate Diploma in Business Management (PGDBM)* is a premium 2-year post-graduate course at *Alliance College of Hotel Management* (affiliated to Andhra University). 📈✨\n\n• *Duration*: 2 Years (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any discipline.\n• *Specializations*: Finance, Marketing, HR, I.T., Operations Management, Retail Management, Foreign Trade.\n\nWould you like to start your application or speak with a counselor?",
+        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        category: "Course Queries",
+        course: "PGDBM",
+        status: "Interested",
+        sendCourseImage: "bba"
       };
     }
 
@@ -369,24 +444,25 @@ Strict Guidelines to Follow:
    "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨
 
 Please feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?"
-   And you MUST suggest the interactive quick-reply buttons as exactly: ["+91 88850 66502", "Email Admissions"].
 5. Intercept "Apply Now": If the student clicks "Apply Now" or asks to apply/register, you MUST provide:
    - Application Form Link: https://forms.gle/FxpcHjSCLLrkhZkPA
    - Explain the 2-step process (fill form, upload certificates, submit) and explicitly mention that there is NO fee to pay.
-   - Suggest setup details to copy into Google Forms in a highly concise way:
-     * Form Name: "Alliance College - Admission Application Form 2026-27"
-     * Form Description: "Official application form for Alliance College of Hotel Management, Visakhapatnam (affiliated to Andhra University). Fill details, select course, upload certificates. Helpline: +91 88850 66502."
-   - Keep your entire reply under 700 characters to ensure it successfully transmits through the Meta WhatsApp API.
+   - DO NOT suggest or include any Google Forms Setup/Form Name/Form Description instructions in the message as these are only for admins, not the student.
+   - Keep your entire reply under 600 characters to ensure it successfully transmits through the Meta WhatsApp API.
 6. Avoid Redundant Suggested Buttons:
    - If you are answering a query about Scholarships, do NOT include "Scholarships" in the suggested buttons.
    - If you are answering a query about Counselor/Helpline, do NOT include "Talk to Counselor" in the suggested buttons.
    - If you are answering a query about Application/Applying, do NOT include "Apply Now" in the suggested buttons.
-7. Provide up to 3 suggested interactive quick-reply buttons. Each button MUST be strictly 20 characters or less. Example buttons: ["Apply Now", "Explore Courses", "Scholarships", "Talk to Counselor"].
-
+7. Provide up to 3 suggested interactive quick-reply buttons. Each button MUST be strictly 20 characters or less.
+   - If the student is asking about BBA or PGDBM, suggest ["BBA Details", "Scholarships", "Apply Now"].
+   - If the student is asking about BHMCT, DHM, or PGDHM, suggest ["BHMCT Details", "DHM Details", "Apply Now"].
+   - If they ask about courses generally, suggest ["BHMCT Details", "BBA Details", "More Courses"].
+ 
 You MUST return a JSON object in this exact format:
 {
   "replyText": "Professional, warm response from Senior Admissions Officer based on context...",
-  "suggestedButtons": ["Explore Courses", "Scholarships", "Talk to Counselor"]
+  "suggestedButtons": ["Explore Courses", "Scholarships", "Talk to Counselor"],
+  "sendCourseImage": "bba" // String: Set strictly to "bba" if answering or providing details about BBA or PGDBM. Set strictly to "hotel" if answering or providing details about BHMCT, DHM, or PGDHM. Set to null otherwise.
 }
 `;
 
@@ -463,11 +539,12 @@ You MUST return a JSON object in this exact format:
     }
 
     return {
-      replyText: responseObj.replyText,
+      replyText: stripGoogleFormsSetup(responseObj.replyText),
       suggestedButtons: responseObj.suggestedButtons || [],
       category: classification.category,
       course: classification.course,
-      status: classification.status
+      status: classification.status,
+      sendCourseImage: (responseObj as any).sendCourseImage || null
     };
 
   } catch (error: any) {
