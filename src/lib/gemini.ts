@@ -64,7 +64,7 @@ export function generateOfflineReply(messageText: string) {
     text.includes('registration')
   ) {
     return {
-      replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam (Est. 2003, affiliated to Andhra University). Fill in your details, select your preferred course, and upload your certificates to secure your seat. For help, call +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
+      replyText: "Ready to launch your global career? 🚀 Admissions are open for the new batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link to fill the online application form:\n📝 *Apply Now*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\n💡 *Suggested Google Forms Setup*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for Alliance College of Hotel Management, Visakhapatnam (affiliated to Andhra University). Fill details, select course, upload certificates. Helpline: +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
       category: "Course Queries",
       course: "Undecided",
       status: "Applied",
@@ -234,7 +234,7 @@ export async function classifyMessageAndRespond(
     
     if (lowerMsg === 'apply now' || lowerMsg === 'apply') {
       return {
-        replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam (Est. 2003, affiliated to Andhra University). Fill in your details, select your preferred course, and upload your certificates to secure your seat. For help, call +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
+        replyText: "Ready to launch your global career? 🚀 Admissions are open for the new batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link to fill the online application form:\n📝 *Apply Now*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\n💡 *Suggested Google Forms Setup*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for Alliance College of Hotel Management, Visakhapatnam (affiliated to Andhra University). Fill details, select course, upload certificates. Helpline: +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
         suggestedButtons: ["Explore Courses", "Scholarships", "Talk to Counselor"],
         category: "Course Queries",
         course: "Undecided",
@@ -373,9 +373,10 @@ Please feel free to call us directly during working hours (9:00 AM - 5:00 PM) or
 5. Intercept "Apply Now": If the student clicks "Apply Now" or asks to apply/register, you MUST provide:
    - Application Form Link: https://forms.gle/FxpcHjSCLLrkhZkPA
    - Explain the 2-step process (fill form, upload certificates, submit) and explicitly mention that there is NO fee to pay.
-   - Suggest setup details to copy into Google Forms:
+   - Suggest setup details to copy into Google Forms in a highly concise way:
      * Form Name: "Alliance College - Admission Application Form 2026-27"
-     * Form Description: "Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam. Established in 2003, affiliated to Andhra University. Please fill in your personal details, select your preferred course, and upload your certificates to secure your seat. For assistance, contact +91 88850 66502."
+     * Form Description: "Official application form for Alliance College of Hotel Management, Visakhapatnam (affiliated to Andhra University). Fill details, select course, upload certificates. Helpline: +91 88850 66502."
+   - Keep your entire reply under 700 characters to ensure it successfully transmits through the Meta WhatsApp API.
 6. Avoid Redundant Suggested Buttons:
    - If you are answering a query about Scholarships, do NOT include "Scholarships" in the suggested buttons.
    - If you are answering a query about Counselor/Helpline, do NOT include "Talk to Counselor" in the suggested buttons.

@@ -225,8 +225,10 @@ export async function POST(req: NextRequest) {
           await sendWhatsAppMessage(studentPhone, replyText);
           // Then send BBA careers image
           await sendWhatsAppMessage(studentPhone, "💼 *BBA Career Opportunities*:", undefined, `${baseUrl}/bba.jpeg`);
-          // Then send Hotel Management careers image with suggested buttons
-          await sendWhatsAppMessage(studentPhone, "🏨 *Hotel Management Career Opportunities*:", suggestedButtons, `${baseUrl}/hotel.jpeg`);
+          // Then send Hotel Management careers image
+          await sendWhatsAppMessage(studentPhone, "🏨 *Hotel Management Career Opportunities*:", undefined, `${baseUrl}/hotel.jpeg`);
+          // Then send the interactive buttons with a clear prompt to ensure they always transmit and display
+          await sendWhatsAppMessage(studentPhone, "Would you like to start your application process or explore further?", suggestedButtons);
         } else {
           await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
         }
