@@ -23,6 +23,47 @@ export default function ConversationsPage() {
   );
 }
 
+// Client-side date and time formatting utilities
+function formatMessageTime(tsStr: string): string {
+  if (!tsStr) return '';
+  try {
+    const date = new Date(tsStr);
+    if (isNaN(date.getTime())) {
+      return tsStr;
+    }
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  } catch (e) {
+    return tsStr;
+  }
+}
+
+function formatSidebarDate(tsStr: string): string {
+  if (!tsStr) return '';
+  try {
+    const date = new Date(tsStr);
+    if (isNaN(date.getTime())) {
+      return tsStr.split(',')[0];
+    }
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    if (msgDate.getTime() === today.getTime()) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    } else if (msgDate.getTime() === yesterday.getTime()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+  } catch (e) {
+    return tsStr;
+  }
+}
+
 function ConversationsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -45,6 +86,7 @@ function ConversationsContent() {
   // References
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const prevPhoneRef = useRef<string | null>(null);
 
   const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToast({ message, type });
@@ -164,12 +206,31 @@ function ConversationsContent() {
     return () => clearInterval(interval);
   }, [activePhone]);
 
-  // Scroll to bottom when messages update
+  // Smart premium scroll management for conversations page
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (!scrollRef.current) return;
+    const container = scrollRef.current;
+    
+    const isNewConversation = activePhone !== prevPhoneRef.current;
+    prevPhoneRef.current = activePhone;
+    
+    if (isNewConversation) {
+      // Instantly snap to bottom on active phone transition
+      container.scrollTop = container.scrollHeight;
+    } else {
+      // In-chat polling update for same conversation: 
+      // Only scroll to bottom if the counselor is already looking at the latest messages.
+      // We check if the scrollbar is within 150px of the bottom.
+      const threshold = 150;
+      const isNearBottom = container.scrollHeight - container.clientHeight - container.scrollTop <= threshold;
+      if (isNearBottom) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
     }
-  }, [messages, loadingMessages]);
+  }, [messages, activePhone]);
 
   const activeChat = leads.find(l => l.phone === activePhone) || null;
 
@@ -194,16 +255,22 @@ function ConversationsContent() {
 
     // Optimized UX: Add message locally first so it feels immediate
     const tempId = `temp-${Date.now()}`;
-    const localTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const localMsg = {
       id: tempId,
       text: currentMsgText,
-      time: localTime,
+      time: new Date().toISOString(), // Standard standard ISO format
       sender: 'bot', //aligned right
       read: false,
       delivered: true // default
     };
     setMessages(prev => [...prev, localMsg]);
+
+    // Force scroll to bottom immediately on counselor manual send
+    setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }, 50);
 
     try {
       const res = await fetch('/api/conversations/send', {
@@ -385,7 +452,9 @@ function ConversationsContent() {
                 <div className="flex-1 min-w-0 h-full flex flex-col justify-center pr-1">
                   <div className="flex justify-between items-baseline mb-1">
                     <span className="text-[15px] text-white truncate pr-2 font-semibold tracking-wide">{lead.name}</span>
-                    <span className="text-[11px] flex-shrink-0 text-[#8696a0] font-medium">{lead.date}</span>
+                    <span className="text-[11px] flex-shrink-0 text-[#8696a0] font-medium">
+                      {formatSidebarDate(lead.timestamp || lead.date)}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[13px] text-[#8696a0] truncate pr-2 font-normal">
@@ -436,7 +505,11 @@ function ConversationsContent() {
           </div>
 
           {/* Messages scroll display */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-[6%] py-6 relative z-10 flex flex-col gap-1.5 custom-scrollbar bg-[#0b141a]/95">
+          <div 
+            ref={scrollRef} 
+            style={{ overscrollBehaviorY: 'contain' }}
+            className="flex-1 overflow-y-auto px-[6%] py-6 relative z-10 flex flex-col gap-1.5 custom-scrollbar bg-[#0b141a]/95"
+          >
             {loadingMessages && messages.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center gap-3">
                 <Loader2 className="h-9 w-9 text-[#00a884] animate-spin" />
@@ -482,7 +555,7 @@ function ConversationsContent() {
                       )}
                       
                       <div className="float-right mt-1.5 ml-3.5 flex items-center gap-1.5 text-[10.5px] text-[#8696a0]">
-                        <span>{msg.time}</span>
+                        <span>{formatMessageTime(msg.time)}</span>
                         {!isUser && (
                           <CheckCheck className={clsx(
                             "h-[15px] w-[15px]",

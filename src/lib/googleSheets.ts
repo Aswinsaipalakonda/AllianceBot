@@ -104,7 +104,7 @@ export async function updateOrAddLead(
     });
 
     const rows = response.data.values || [];
-    const timestamp = new Date().toLocaleString();
+    const timestamp = new Date().toISOString();
     let rowIndex = -1;
     let existingAIStatus = 'true'; // Default to true
 
@@ -180,13 +180,156 @@ export async function toggleAIAutoReply(phone: string, enabled: boolean) {
   }
 }
 
+let chatLogChecked = false;
+
+async function ensureChatLogSheetExists(sheets: any, spreadsheetId: string) {
+  if (chatLogChecked) return;
+  try {
+    const meta = await sheets.spreadsheets.get({ spreadsheetId });
+    const sheetExists = meta.data.sheets.some((s: any) => s.properties.title === 'Chat Log');
+    
+    if (!sheetExists) {
+      console.log('Chat Log sheet does not exist. Creating it...');
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [
+            {
+              addSheet: {
+                properties: {
+                  title: 'Chat Log',
+                },
+              },
+            },
+          ],
+        },
+      });
+      
+      // Add headers
+      const headers = [
+        ['Timestamp', 'Phone', 'Name', 'Sender', 'Message Text', 'Buttons', 'Category', 'Course']
+      ];
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'Chat Log!A1:H1',
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: headers,
+        },
+      });
+      console.log('Chat Log sheet created successfully with headers!');
+    }
+    chatLogChecked = true;
+  } catch (err: any) {
+    console.error('Failed to ensure Chat Log sheet exists:', err.message);
+  }
+}
+
+export async function logChatMessage(
+  phone: string,
+  name: string,
+  sender: 'user' | 'bot',
+  text: string,
+  buttons: string[] = [],
+  category: string = 'Course Queries',
+  course: string = 'Undecided'
+) {
+  try {
+    const sheets = getSheetsClient();
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    await ensureChatLogSheetExists(sheets, spreadsheetId!);
+    
+    const timestamp = new Date().toISOString(); // standard UTC ISO format
+    const buttonsStr = buttons.join(', ');
+    
+    const row = [timestamp, phone, name, sender, text, buttonsStr, category, course];
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Chat Log!A:H',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [row],
+      },
+    });
+    console.log(`Successfully logged message from ${sender} to Chat Log`);
+  } catch (error: any) {
+    console.error('Error logging to Chat Log:', error.message);
+  }
+}
+
 export async function getConversationHistory(phone: string) {
+  try {
+    const sheets = getSheetsClient();
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    
+    // Ensure the sheet exists before reading
+    await ensureChatLogSheetExists(sheets, spreadsheetId!);
+    
+    // Read from Chat Log
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Chat Log!A:H',
+    });
+    
+    const rows = response.data.values || [];
+    if (rows.length <= 1) {
+      // Fallback to the old multi-sheet slow logic if unified log is empty
+      return await getConversationHistoryFallback(phone);
+    }
+    
+    const messages = [];
+    const normalizedTarget = normalizePhone(phone);
+    
+    // Rows: Timestamp (0), Phone (1), Name (2), Sender (3), Message Text (4), Buttons (5), Category (6), Course (7)
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row[1] || normalizePhone(row[1]) !== normalizedTarget) continue;
+      
+      const ts = row[0] || '';
+      const sender = row[3] || 'user';
+      const text = row[4] || '';
+      const buttonsStr = row[5] || '';
+      
+      let buttons: string[] = [];
+      if (buttonsStr) {
+        buttons = buttonsStr.split(',').map((b: string) => b.trim()).filter(Boolean);
+      }
+      
+      messages.push({
+        id: `chatlog-${i}-${new Date(ts).getTime() || i}`,
+        text,
+        buttons: buttons.length > 0 ? buttons : undefined,
+        time: ts, // Return raw ISO string to be parsed on client
+        sender: sender === 'user' ? 'user' : 'bot',
+        read: true,
+        timestamp: new Date(ts).getTime() || i
+      });
+    }
+    
+    // Sort chronologically by timestamp
+    messages.sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Clean up temporary sorting properties before returning
+    return messages.map(({ id, text, buttons, time, sender, read }) => ({
+      id,
+      text,
+      buttons,
+      time,
+      sender,
+      read: read || false
+    }));
+  } catch (error: any) {
+    console.error('Error fetching conversation history from Chat Log, falling back:', error.message);
+    return await getConversationHistoryFallback(phone);
+  }
+}
+
+export async function getConversationHistoryFallback(phone: string) {
   try {
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
     const messages: any[] = [];
 
-    // Helper to safely parse localized timestamp strings to Date objects for sorting
     const parseTimestamp = (tsStr: string) => {
       try {
         const d = new Date(tsStr);
@@ -196,7 +339,7 @@ export async function getConversationHistory(phone: string) {
       }
     };
 
-    // 1. Read Course Queries: [Timestamp, Phone, Course, UserMessage, BotMessage]
+    // 1. Read Course Queries
     try {
       const resp = await sheets.spreadsheets.values.get({
         spreadsheetId,
@@ -207,17 +350,15 @@ export async function getConversationHistory(phone: string) {
         if (idx === 0 || normalizePhone(row[1]) !== normalizePhone(phone)) return;
         const ts = row[0] || '';
         const timeVal = parseTimestamp(ts);
-        // Add User Message
         if (row[3]) {
           messages.push({
             id: `cq-${idx}-user-${timeVal}`,
             text: row[3],
-            time: ts.split(',')[1]?.trim() || ts,
+            time: ts,
             timestamp: timeVal,
             sender: 'user',
           });
         }
-        // Add Bot Reply (with quick-reply buttons parser)
         if (row[4]) {
           let botText = row[4];
           let buttons: string[] = [];
@@ -231,8 +372,8 @@ export async function getConversationHistory(phone: string) {
             id: `cq-${idx}-bot-${timeVal}`,
             text: botText,
             buttons: buttons.length > 0 ? buttons : undefined,
-            time: ts.split(',')[1]?.trim() || ts,
-            timestamp: timeVal + 1, // small offset to sort bot message after user message
+            time: ts,
+            timestamp: timeVal + 1,
             sender: 'bot',
             read: true,
           });
@@ -242,7 +383,7 @@ export async function getConversationHistory(phone: string) {
       console.warn('Could not read Course Queries:', e.message);
     }
 
-    // 2. Read Placement Queries: [Timestamp, Phone, Query, BotResponse]
+    // 2. Read Placement Queries
     try {
       const resp = await sheets.spreadsheets.values.get({
         spreadsheetId,
@@ -257,7 +398,7 @@ export async function getConversationHistory(phone: string) {
           messages.push({
             id: `pq-${idx}-user-${timeVal}`,
             text: row[2],
-            time: ts.split(',')[1]?.trim() || ts,
+            time: ts,
             timestamp: timeVal,
             sender: 'user',
           });
@@ -275,7 +416,7 @@ export async function getConversationHistory(phone: string) {
             id: `pq-${idx}-bot-${timeVal}`,
             text: botText,
             buttons: buttons.length > 0 ? buttons : undefined,
-            time: ts.split(',')[1]?.trim() || ts,
+            time: ts,
             timestamp: timeVal + 1,
             sender: 'bot',
             read: true,
@@ -286,7 +427,7 @@ export async function getConversationHistory(phone: string) {
       console.warn('Could not read Placement Queries:', e.message);
     }
 
-    // 3. Read Scholarship Queries: [Timestamp, Phone, Query, BotResponse]
+    // 3. Read Scholarship Queries
     try {
       const resp = await sheets.spreadsheets.values.get({
         spreadsheetId,
@@ -301,7 +442,7 @@ export async function getConversationHistory(phone: string) {
           messages.push({
             id: `sq-${idx}-user-${timeVal}`,
             text: row[2],
-            time: ts.split(',')[1]?.trim() || ts,
+            time: ts,
             timestamp: timeVal,
             sender: 'user',
           });
@@ -319,7 +460,7 @@ export async function getConversationHistory(phone: string) {
             id: `sq-${idx}-bot-${timeVal}`,
             text: botText,
             buttons: buttons.length > 0 ? buttons : undefined,
-            time: ts.split(',')[1]?.trim() || ts,
+            time: ts,
             timestamp: timeVal + 1,
             sender: 'bot',
             read: true,
@@ -330,9 +471,7 @@ export async function getConversationHistory(phone: string) {
       console.warn('Could not read Scholarship Queries:', e.message);
     }
 
-    // 4. Read Human Followups: [Timestamp, CounselorName, StudentPhone, Notes, ActionTaken]
-    // Webhook log: [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor']
-    // Counselor log: [timestamp, 'Counselor Priya', studentPhone, 'Counselor Reply', counselorReplyText]
+    // 4. Read Human Followups
     try {
       const resp = await sheets.spreadsheets.values.get({
         spreadsheetId,
@@ -350,7 +489,7 @@ export async function getConversationHistory(phone: string) {
           messages.push({
             id: `hf-${idx}-user-${timeVal}`,
             text: notes.replace('Student Message:', '').trim(),
-            time: ts.split(',')[1]?.trim() || ts,
+            time: ts,
             timestamp: timeVal,
             sender: 'user',
           });
@@ -367,9 +506,9 @@ export async function getConversationHistory(phone: string) {
             id: `hf-${idx}-counselor-${timeVal}`,
             text: botText,
             buttons: buttons.length > 0 ? buttons : undefined,
-            time: ts.split(',')[1]?.trim() || ts,
+            time: ts,
             timestamp: timeVal,
-            sender: 'bot', // Display as counselor's bubble (aligned right, matching bot replies)
+            sender: 'bot',
             read: true,
           });
         }
@@ -378,10 +517,8 @@ export async function getConversationHistory(phone: string) {
       console.warn('Could not read Human Followups:', e.message);
     }
 
-    // Sort chronologically by timestamp
     messages.sort((a, b) => a.timestamp - b.timestamp);
 
-    // Remove the temporary timestamp sorting key before returning
     return messages.map(({ id, text, buttons, time, sender, read }) => ({
       id,
       text,
@@ -400,10 +537,9 @@ export async function logCounselorReply(phone: string, counselorName: string, me
   try {
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-    const timestamp = new Date().toLocaleString();
+    const timestamp = new Date().toISOString(); // Save standard ISO UTC string
 
     // 1. Log manual entry into Human Followups
-    // [Timestamp, CounselorName, StudentPhone, Notes, ActionTaken]
     await appendToSheet('Human Followups', [[timestamp, counselorName, phone, 'Counselor Reply', message]]);
 
     // 2. Fetch student's Name and Course to perform single-cell update on Admissions Leads
@@ -417,7 +553,7 @@ export async function logCounselorReply(phone: string, counselorName: string, me
     let currentCourse = 'Undecided';
     let currentStatus = 'Follow-up';
     let currentCategory = 'Human Followups';
-    let currentAIStatus = 'false'; // Keep as human mode since counselor is manual replying
+    let currentAIStatus = 'false';
 
     for (let i = 1; i < rows.length; i++) {
       if (normalizePhone(rows[i][2]) === normalizePhone(phone)) {
@@ -443,6 +579,9 @@ export async function logCounselorReply(phone: string, counselorName: string, me
       });
       console.log(`Updated last message for ${currentName} to: "${message}"`);
     }
+
+    // 3. Log to unified Chat Log
+    await logChatMessage(phone, currentName, 'bot', message, [], currentCategory, currentCourse);
 
     return true;
   } catch (error: any) {

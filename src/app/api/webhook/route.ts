@@ -1,6 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateOrAddLead, appendToSheet, getLeads, normalizePhone } from '@/lib/googleSheets';
+import { updateOrAddLead, appendToSheet, getLeads, normalizePhone, logChatMessage, getConversationHistory } from '@/lib/googleSheets';
 import { classifyMessageAndRespond } from '@/lib/gemini';
+
+function sanitizeButtonText(btn: string): string {
+  const text = btn.trim();
+  if (text.length <= 20) return text;
+  
+  const lower = text.toLowerCase();
+  if (lower.includes('industrial internship') || lower.includes('internship')) {
+    return 'Internship Info';
+  }
+  if (lower.includes('counselor') || lower.includes('talk to')) {
+    return 'Talk to Counselor';
+  }
+  if (lower.includes('bhmct admission') || lower.includes('register bhmct')) {
+    return 'BHMCT Admissions';
+  }
+  if (lower.includes('bba admission') || lower.includes('register bba')) {
+    return 'BBA Admissions';
+  }
+  if (lower.includes('dhm admission') || lower.includes('register dhm')) {
+    return 'DHM Admissions';
+  }
+  if (lower.includes('scholarship')) {
+    return 'Scholarships';
+  }
+  if (lower.includes('explore course') || lower.includes('show course')) {
+    return 'Explore Courses';
+  }
+  if (lower.includes('placement')) {
+    return 'Placements Info';
+  }
+  if (lower.includes('hostel')) {
+    return 'Hostel Info';
+  }
+  if (lower.includes('apply')) {
+    return 'Apply Now';
+  }
+  if (lower.includes('visit')) {
+    return 'Schedule Visit';
+  }
+  
+  // Fallback: smart word-boundary truncation
+  const cut = text.substring(0, 20);
+  const lastSpace = cut.lastIndexOf(' ');
+  if (lastSpace > 10) {
+    return cut.substring(0, lastSpace).trim();
+  }
+  return cut.trim();
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -118,14 +166,35 @@ export async function POST(req: NextRequest) {
             [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
           ]);
 
+          // C. Log to unified Chat Log
+          await logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course);
+
           console.log(`Successfully logged incoming human-mode message from ${studentName} for counselor follow-up.`);
           // Skip sending automatic reply
           continue;
         }
 
         // --- AUTOMATED AI MODE ACTIVE ---
-        // 2. Process Gemini Classification & Conversational Reply
-        const { replyText, suggestedButtons, category, course, status } = await classifyMessageAndRespond(messageText);
+        // 2. Fetch conversation history context for state-aware Gemini classification
+        let recentHistory: { role: 'user' | 'model'; parts: string[] }[] = [];
+        try {
+          const rawHistory = await getConversationHistory(studentPhone);
+          recentHistory = rawHistory.slice(-6).map((msg: any) => ({
+            role: msg.sender === 'user' ? 'user' as const : 'model' as const,
+            parts: [msg.text]
+          }));
+        } catch (histErr: any) {
+          console.warn("Failed to load history context for Gemini webhook:", histErr.message);
+        }
+
+        // 3. Process Gemini Classification & Conversational Reply with history
+        const { replyText, suggestedButtons, category, course, status } = await classifyMessageAndRespond(messageText, recentHistory);
+
+        // A. Log user's incoming message to unified Chat Log
+        await logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course);
+
+        // B. Log bot's outgoing reply to unified Chat Log
+        await logChatMessage(studentPhone, studentName, 'bot', replyText, suggestedButtons, category, course);
 
         console.log(`AI Reply: "${replyText}"`);
         console.log(`Suggested Buttons:`, suggestedButtons);
@@ -195,7 +264,7 @@ async function sendWhatsAppMessage(to: string, text: string, buttons?: string[])
         type: 'reply',
         reply: {
           id: `btn-${idx}-${Date.now()}`,
-          title: btn.substring(0, 20).trim(),
+          title: sanitizeButtonText(btn),
         }
       }));
 

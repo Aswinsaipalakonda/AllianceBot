@@ -33,7 +33,38 @@ export function generateOfflineReply(messageText: string) {
     };
   }
 
-  // 2. Course queries
+  // 2. Specific Course Admissions Process (Intercept BHMCT Admissions, BBA Admissions, DHM Admissions)
+  const isAdmissionQuery = text.includes('admission') || text.includes('apply') || text.includes('register') || text.includes('process') || text.includes('join');
+  
+  if (isAdmissionQuery) {
+    if (text.includes('bba')) {
+      return {
+        replyText: "Admissions for *BBA (Bachelor of Business Administration)* are currently open! 💼✨\n\n• *Eligibility*: 10+2 with minimum 50% marks in any stream.\n• *Process*: Fill out the application form, submit Intermediate/10+2 marksheet & ID proof, and attend direct physical counseling.\n\nWould you like to speak to an admissions counselor or start your application now?",
+        category: "Course Queries",
+        course: "BBA",
+        status: "Interested",
+        suggestedButtons: ["Apply Now", "Talk to Counselor", "BBA Details"]
+      };
+    } else if (text.includes('bhmct')) {
+      return {
+        replyText: "Admissions for *BHMCT (Bachelor of Hospitality Management & Catering Technology)* are currently open! 🏨🍳\n\n• *Eligibility*: 10+2 in any stream with minimum 45% marks.\n• *Process*: Apply online/offline, submit your 10+2 marksheet & ID proof, and pay the registration fee to secure your seat.\n\nWould you like to speak to an admissions counselor or start your application now?",
+        category: "Course Queries",
+        course: "BHMCT",
+        status: "Interested",
+        suggestedButtons: ["Apply Now", "Talk to Counselor", "BHMCT Details"]
+      };
+    } else if (text.includes('dhm') || text.includes('diploma')) {
+      return {
+        replyText: "Admissions for *DHM (Diploma in Hospitality Management)* are currently open! 🍽️✨\n\n• *Eligibility*: 10th standard pass with minimum 40% marks.\n• *Process*: Direct admission based on 10th standard marks. Submit your 10th marksheet & ID proof for quick seat allocation.\n\nWould you like to speak to an admissions counselor or start your application now?",
+        category: "Course Queries",
+        course: "DHM",
+        status: "Interested",
+        suggestedButtons: ["Apply Now", "Talk to Counselor", "DHM Details"]
+      };
+    }
+  }
+
+  // 3. General Course Details / Overview Queries
   if (text.includes('course') || text.includes('degree') || text.includes('program') || text.includes('bba') || text.includes('bhmct') || text.includes('dhm') || text.includes('eligibility')) {
     if (text.includes('bba')) {
       return {
@@ -49,7 +80,7 @@ export function generateOfflineReply(messageText: string) {
         category: "Course Queries",
         course: "BHMCT",
         status: "Interested",
-        suggestedButtons: ["BHMCT Admissions", "Industrial Internship", "Talk to Counselor"]
+        suggestedButtons: ["BHMCT Admissions", "Internship Info", "Talk to Counselor"]
       };
     } else if (text.includes('dhm') || text.includes('diploma')) {
       return {
@@ -70,10 +101,10 @@ export function generateOfflineReply(messageText: string) {
     }
   }
 
-  // 3. Placements
+  // 4. Placements & Internships
   if (text.includes('placement') || text.includes('job') || text.includes('recruit') || text.includes('company') || text.includes('salary') || text.includes('package') || text.includes('internship')) {
     return {
-      replyText: "Alliance College has a dedicated Training & Placement Cell providing *100% placement assistance*! 💼✈️\n\n• *Core Recrutiers*: Taj Hotels, Hyatt, Marriott, Radisson, Oberoi Group, ITC Hotels, Emirates Airlines, Hilton.\n• *Average Package*: 4.5 LPA\n• *Highest Package*: 12 LPA (International placement!)\n• Includes 6-month hands-on industrial internship in luxury 5-star hotels.",
+      replyText: "Alliance College has a dedicated Training & Placement Cell providing *100% placement assistance*! 💼✈️\n\n• *Core Recruiters*: Taj Hotels, Hyatt, Marriott, Radisson, Oberoi Group, ITC Hotels, Emirates Airlines, Hilton.\n• *Average Package*: 4.5 LPA\n• *Highest Package*: 12 LPA (International placement!)\n• Includes 6-month hands-on industrial internship in luxury 5-star hotels.",
       category: "Placement Queries",
       course: "Undecided",
       status: "Interested",
@@ -81,18 +112,18 @@ export function generateOfflineReply(messageText: string) {
     };
   }
 
-  // 4. Scholarships and Fees
+  // 5. Scholarships and Fees
   if (text.includes('scholarship') || text.includes('fee') || text.includes('discount') || text.includes('free') || text.includes('cost') || text.includes('price')) {
     return {
       replyText: "Alliance College offers fantastic *merit-based scholarships* to deserving students! 🌟\n\n• Mark-based tuition fee waivers are available (up to 50% waiver depending on Intermediate/10+2 scores).\n• Special sports and merit concessions are also offered during physical counseling sessions.\n\nWould you like to schedule a quick call with a counselor to check your eligibility?",
       category: "Scholarship Queries",
       course: "Undecided",
       status: "Interested",
-      suggestedButtons: ["Scholarship criteria", "Explore Courses", "Talk to Counselor"]
+      suggestedButtons: ["Scholarships", "Explore Courses", "Talk to Counselor"]
     };
   }
 
-  // 5. Hostels / Accommodation
+  // 6. Hostels / Accommodation
   if (text.includes('hostel') || text.includes('accommodation') || text.includes('mess') || text.includes('stay') || text.includes('room') || text.includes('food')) {
     return {
       replyText: "Yes! Alliance College offers safe, separate *hostel facilities* for both boys and girls close to the campus. 🏠🛌\n\n• *Features*: 24/7 high-speed Wi-Fi, laundry service, study halls, hot water, power backup.\n• *Mess Food*: Healthy, hygienic vegetarian and non-vegetarian meals served daily.\n\nWould you like to schedule a campus and hostel visit?",
@@ -103,8 +134,8 @@ export function generateOfflineReply(messageText: string) {
     };
   }
 
-  // 6. Admissions process
-  if (text.includes('admission') || text.includes('apply') || text.includes('register') || text.includes('process') || text.includes('join')) {
+  // 7. General Admissions Process (No course specified)
+  if (isAdmissionQuery) {
     return {
       replyText: "Admissions are currently OPEN for the new academic batch! 📝✨\n\nHere is our simple 3-step admissions process:\n1️⃣ Schedule a quick counseling session (WhatsApp or campus visit).\n2️⃣ Fill out the application form and submit documents (10th/12th marksheets, ID proof).\n3️⃣ Pay registration fee to secure your seat.\n\nWould you like to start your application now?",
       category: "Course Queries",
@@ -194,7 +225,7 @@ Instructions:
 2. Keep the answer extremely brief, engaging, and friendly (max 2-3 short paragraphs).
 3. Use emojis naturally to match a warm WhatsApp communication style.
 4. Format key details like course duration or eligibility criteria clearly with bullet points.
-5. Provide up to 3 suggested interactive quick-reply buttons under 20 characters each. Example: ["BBA Info", "Scholarships", "Talk to Us"].
+5. Provide up to 3 suggested interactive quick-reply buttons. Each button MUST be strictly 20 characters or less (including spaces). If a button is longer than 20 characters, it is critical that you shorten it to prevent truncation. Example: ["BBA Info", "Scholarships", "Talk to Us"]. Never exceed 20 characters.
 
 You MUST return a JSON object in this exact format:
 {
