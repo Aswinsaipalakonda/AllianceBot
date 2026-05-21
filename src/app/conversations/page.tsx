@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { 
   Search, MessageSquare, MoreVertical, MessageCircle,
   X, Paperclip, Smile, Mic, CheckCheck,
-  Send, Image as ImageIcon, Loader2, RefreshCw, AlertCircle, ShieldAlert
+  Send, Image as ImageIcon, Loader2, RefreshCw, AlertCircle, ShieldAlert, Info
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -75,7 +75,7 @@ function ConversationsContent() {
   const [messages, setMessages] = useState<any[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showRightPane, setShowRightPane] = useState(true);
+  const [showRightPane, setShowRightPane] = useState(false);
   const [loadingLeads, setLoadingLeads] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -243,6 +243,13 @@ function ConversationsContent() {
     if (activeTab === 'unread') return lead.status === 'New Lead'; // Map unread to new leads
     if (activeTab === 'takeover') return !lead.aiEnabled; // Leads where counselor has taken over
     return true;
+  });
+
+  // Sort leads dynamically so that the latest active chats (newest timestamp/date) are at the top
+  const sortedLeads = [...filteredLeads].sort((a, b) => {
+    const timeA = a.timestamp || a.date ? new Date(a.timestamp || a.date).getTime() : 0;
+    const timeB = b.timestamp || b.date ? new Date(b.timestamp || b.date).getTime() : 0;
+    return timeB - timeA;
   });
 
   // Handle manual reply dispatch
@@ -423,7 +430,7 @@ function ConversationsContent() {
 
         {/* Scrollable list of students */}
         <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#111b21]">
-          {filteredLeads.map(lead => {
+          {sortedLeads.map(lead => {
             const isActive = lead.phone === activePhone;
             const initials = lead.name.substring(0, 2).toUpperCase();
             const avatarGrad = getAvatarGradient(lead.name);
@@ -470,7 +477,7 @@ function ConversationsContent() {
               </div>
             )
           })}
-          {filteredLeads.length === 0 && (
+          {sortedLeads.length === 0 && (
             <div className="p-12 text-center text-sm text-[#8696a0] font-medium">No matching conversations found.</div>
           )}
         </div>
@@ -500,6 +507,7 @@ function ConversationsContent() {
             </div>
             <div className="flex items-center gap-5 text-[#aebac1]">
               <Search onClick={(e) => { e.stopPropagation(); showToast('Search within chat coming soon!', 'info'); }} className="h-5 w-5 hover:text-white transition-colors cursor-pointer" />
+              <Info onClick={(e) => { e.stopPropagation(); setShowRightPane(!showRightPane); }} className={clsx("h-5 w-5 hover:text-white transition-colors cursor-pointer", showRightPane && "text-[#00a884]")} />
               <MoreVertical onClick={(e) => { e.stopPropagation(); showToast('Chat options coming soon!', 'info'); }} className="h-5 w-5 hover:text-white transition-colors cursor-pointer" />
             </div>
           </div>
