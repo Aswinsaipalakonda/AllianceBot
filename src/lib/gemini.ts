@@ -25,7 +25,7 @@ export function generateOfflineReply(messageText: string) {
     text === 'good afternoon'
   ) {
     return {
-      replyText: "Welcome to *Alliance College of Management & Hotel Management*, Visakhapatnam (affiliated to Andhra University)! 🎓👋\n\nI am the Senior Admissions Officer here. We offer premium business and hotel management programs to launch your global career. How may I assist you today? Please select from the options below to get started!",
+      replyText: "Welcome to *Alliance College of Hotel Management*, Visakhapatnam (affiliated to Andhra University)! 🎓👋\n\nI am the Senior Admissions Officer here. We offer premium business and hotel management programs to launch your global career. How may I assist you today? Please select from the options below to get started!",
       category: "Course Queries",
       course: "Undecided",
       status: "New Lead",
@@ -46,7 +46,7 @@ export function generateOfflineReply(messageText: string) {
     text.includes('representative')
   ) {
     return {
-      replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Management & Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nYou can reach our college staff and counseling desk directly at:\n\n• *Main Admissions Helpline*: +91 88850 66502\n• *Director Academics (Kartikeswar Panda)*: +91 88850 66502\n• *Principal (Boddeti Srinivas Rao)*: +91 88850 66502\n• *Email Support*: alliancesince2003@gmail.com\n\nWe are here to support your career journey. Would you like to review our courses or start your application?",
+      replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nYou can reach our college staff and counseling desk directly at:\n\n• *Main Admissions Helpline*: +91 88850 66502\n• *Director Academics (Kartikeswar Panda)*: +91 88850 66502\n• *Principal (Boddeti Srinivas Rao)*: +91 88850 66502\n• *Email Support*: alliancesince2003@gmail.com\n\nWe are here to support your career journey. Would you like to review our courses or start your application?",
       category: "Human Followups",
       course: "Undecided",
       status: "Follow-up",
@@ -64,7 +64,7 @@ export function generateOfflineReply(messageText: string) {
     text.includes('registration')
   ) {
     return {
-      replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Management & Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission!\n*(Please note: There is no registration fee required to apply!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup (Copy-Paste Details)*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Management & Hotel Management, Visakhapatnam. Established in 2003, affiliated to Andhra University. Please fill in your personal details, select your preferred course, and upload your certificates to secure your seat. For assistance, contact +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
+      replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission!\n*(Please note: There is no registration fee required to apply!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup (Copy-Paste Details)*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam. Established in 2003, affiliated to Andhra University. Please fill in your personal details, select your preferred course, and upload your certificates to secure your seat. For assistance, contact +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
       category: "Course Queries",
       course: "Undecided",
       status: "Applied",
@@ -82,7 +82,7 @@ export function generateOfflineReply(messageText: string) {
   if (text.includes('course') || text.includes('degree') || text.includes('program') || text.includes('eligibility') || text.includes('duration') || isBba || isBhmct || isDhm || isPgdhm || isPgdbm) {
     if (isBba) {
       return {
-        replyText: "Our *Bachelor of Business Administration (BBA)* is a premium 3-year full-time undergraduate program at *Alliance College of Management & Hotel Management* (affiliated to Andhra University). 💼\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) from any recognized board in any stream.\n• *Overview*: Focuses on business principles, marketing, finance, accounting, and human resource management.\n\nWould you like to start your application now or speak with a counselor?",
+        replyText: "Our *Bachelor of Business Administration (BBA)* is a premium 3-year full-time undergraduate program at *Alliance College of Hotel Management* (affiliated to Andhra University). 💼\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) from any recognized board in any stream.\n• *Overview*: Focuses on business principles, marketing, finance, accounting, and human resource management.\n\nWould you like to start your application now or speak with a counselor?",
         category: "Course Queries",
         course: "BBA",
         status: "Interested",
@@ -90,7 +90,7 @@ export function generateOfflineReply(messageText: string) {
       };
     } else if (isBhmct) {
       return {
-        replyText: "Our *Bachelor of Hospitality Management & Catering Technology (BHMCT)* is a professional 3-year full-time degree at *Alliance College of Management & Hotel Management* (affiliated to Andhra University). 🏨🍳\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) in any stream.\n• *Overview*: Comprehensive training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in luxury 5-star hotels.\n\nWould you like to check out placement partners or start your application?",
+        replyText: "Our *Bachelor of Hospitality Management & Catering Technology (BHMCT)* is a professional 3-year full-time degree at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏨🍳\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) in any stream.\n• *Overview*: Comprehensive training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in luxury 5-star hotels.\n\nWould you like to check out placement partners or start your application?",
         category: "Course Queries",
         course: "BHMCT",
         status: "Interested",
@@ -98,7 +98,7 @@ export function generateOfflineReply(messageText: string) {
       };
     } else if (isDhm) {
       return {
-        replyText: "Our *Diploma in Hotel Management (DHM)* is a practical-oriented 1-year course at *Alliance College of Management & Hotel Management* (affiliated to Andhra University). 🍽️✨\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Pass in 10th standard.\n• *Overview*: Fast-track practical curriculum focusing on culinary arts, food production, housekeeping, and front office operations. Perfect for a quick, robust entry into the global hotel workforce.\n\nWould you like to apply now or speak with a counselor?",
+        replyText: "Our *Diploma in Hotel Management (DHM)* is a practical-oriented 1-year course at *Alliance College of Hotel Management* (affiliated to Andhra University). 🍽️✨\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Pass in 10th standard.\n• *Overview*: Fast-track practical curriculum focusing on culinary arts, food production, housekeeping, and front office operations. Perfect for a quick, robust entry into the global hotel workforce.\n\nWould you like to apply now or speak with a counselor?",
         category: "Course Queries",
         course: "DHM",
         status: "Interested",
@@ -106,7 +106,7 @@ export function generateOfflineReply(messageText: string) {
       };
     } else if (isPgdhm) {
       return {
-        replyText: "Our *Post Graduate Diploma in Hotel Management (PGDHM)* is an advanced 1-year professional course at *Alliance College of Management & Hotel Management* (affiliated to Andhra University). 🏢🎓\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any recognized university in any stream.\n• *Overview*: Designed for graduates seeking leadership and specialized administration roles in global luxury hotels and catering industries.\n\nWould you like to start your application or speak with a counselor?",
+        replyText: "Our *Post Graduate Diploma in Hotel Management (PGDHM)* is an advanced 1-year professional course at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏢🎓\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any recognized university in any stream.\n• *Overview*: Designed for graduates seeking leadership and specialized administration roles in global luxury hotels and catering industries.\n\nWould you like to start your application or speak with a counselor?",
         category: "Course Queries",
         course: "PGDHM",
         status: "Interested",
@@ -114,7 +114,7 @@ export function generateOfflineReply(messageText: string) {
       };
     } else if (isPgdbm) {
       return {
-        replyText: "Our *Post Graduate Diploma in Business Management (PGDBM)* is a premium 2-year post-graduate course at *Alliance College of Management & Hotel Management* (affiliated to Andhra University). 📈✨\n\n• *Duration*: 2 Years (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any discipline.\n• *Specializations*: Finance, Marketing, HR, I.T., Operations Management, Retail Management, Foreign Trade.\n\nWould you like to start your application or speak with a counselor?",
+        replyText: "Our *Post Graduate Diploma in Business Management (PGDBM)* is a premium 2-year post-graduate course at *Alliance College of Hotel Management* (affiliated to Andhra University). 📈✨\n\n• *Duration*: 2 Years (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any discipline.\n• *Specializations*: Finance, Marketing, HR, I.T., Operations Management, Retail Management, Foreign Trade.\n\nWould you like to start your application or speak with a counselor?",
         category: "Course Queries",
         course: "PGDBM",
         status: "Interested",
@@ -122,7 +122,7 @@ export function generateOfflineReply(messageText: string) {
       };
     } else {
       return {
-        replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Management & Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Bachelor of Hospitality Management & Catering Technology (BHMCT)* - 3 Years\n2. *Bachelor of Business Administration (BBA)* - 3 Years\n3. *Diploma in Hotel Management (DHM)* - 1 Year\n4. *Post Graduate Diploma in Hotel Management (PGDHM)* - 1 Year\n5. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or let me know your interests!",
+        replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Bachelor of Hospitality Management & Catering Technology (BHMCT)* - 3 Years\n2. *Bachelor of Business Administration (BBA)* - 3 Years\n3. *Diploma in Hotel Management (DHM)* - 1 Year\n4. *Post Graduate Diploma in Hotel Management (PGDHM)* - 1 Year\n5. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or let me know your interests!",
         category: "Course Queries",
         course: "Undecided",
         status: "Interested",
@@ -134,7 +134,7 @@ export function generateOfflineReply(messageText: string) {
   // 5. Placements & Internships
   if (text.includes('placement') || text.includes('job') || text.includes('recruit') || text.includes('company') || text.includes('salary') || text.includes('package') || text.includes('internship')) {
     return {
-      replyText: "*Alliance College of Management & Hotel Management* (affiliated to Andhra University) has a dedicated Training & Placement Cell offering *100% placement assistance*! 💼✈️\n\n• *Core Recruiters*: Taj Hotels, Hyatt, Marriott, Radisson, Oberoi Group, ITC Hotels, Emirates Airlines, Hilton.\n• *Salary Packages*: Average 4.5 LPA, highest international package up to 12 LPA.\n• Hands-on premium 6-month internships in luxury 5-star hotels are integrated into the courses.\n\nWould you like to see our courses or speak to a counselor?",
+      replyText: "*Alliance College of Hotel Management* (affiliated to Andhra University) has a dedicated Training & Placement Cell offering *100% placement assistance*! 💼✈️\n\n• *Core Recruiters*: Taj Hotels, Hyatt, Marriott, Radisson, Oberoi Group, ITC Hotels, Emirates Airlines, Hilton.\n• *Salary Packages*: Average 4.5 LPA, highest international package up to 12 LPA.\n• Hands-on premium 6-month internships in luxury 5-star hotels are integrated into the courses.\n\nWould you like to see our courses or speak to a counselor?",
       category: "Placement Queries",
       course: "Undecided",
       status: "Interested",
@@ -145,7 +145,7 @@ export function generateOfflineReply(messageText: string) {
   // 6. Scholarships and Fees
   if (text.includes('scholarship') || text.includes('fee') || text.includes('discount') || text.includes('free') || text.includes('cost') || text.includes('price')) {
     return {
-      replyText: "*Alliance College of Management & Hotel Management* (affiliated to Andhra University) offers fantastic *merit-based scholarships* and tuition fee concessions to deserving students! 🌟\n\n• *Mark-based fee waivers*: Up to 50% tuition fee waiver depending on your Intermediate/10+2 scores.\n• *Government Concessions*: Fee reimbursement and special A.P. state scholarships are available for eligible undergraduate candidates.\n• *Special Concessions*: Sports and special category concessions are offered during physical spot counseling sessions.\n\nWould you like to apply online now or talk to our admissions counselor to check your eligibility?",
+      replyText: "*Alliance College of Hotel Management* (affiliated to Andhra University) offers fantastic *merit-based scholarships* and tuition fee concessions to deserving students! 🌟\n\n• *Mark-based fee waivers*: Up to 50% tuition fee waiver depending on your Intermediate/10+2 scores.\n• *Government Concessions*: Fee reimbursement and special A.P. state scholarships are available for eligible undergraduate candidates.\n• *Special Concessions*: Sports and special category concessions are offered during physical spot counseling sessions.\n\nWould you like to apply online now or talk to our admissions counselor to check your eligibility?",
       category: "Scholarship Queries",
       course: "Undecided",
       status: "Interested",
@@ -156,7 +156,7 @@ export function generateOfflineReply(messageText: string) {
   // 7. Hostels / Accommodation
   if (text.includes('hostel') || text.includes('accommodation') || text.includes('mess') || text.includes('stay') || text.includes('room') || text.includes('food')) {
     return {
-      replyText: "Yes! *Alliance College of Management & Hotel Management* (affiliated to Andhra University) offers safe, separate *hostel facilities* for both boys and girls close to the campus. 🏠🛌\n\n• *Features*: 24/7 high-speed Wi-Fi, laundry service, study halls, hot water, power backup.\n• *Mess Food*: Healthy, hygienic vegetarian and non-vegetarian meals served daily.\n\nWould you like to apply now or speak with a counselor?",
+      replyText: "Yes! *Alliance College of Hotel Management* (affiliated to Andhra University) offers safe, separate *hostel facilities* for both boys and girls close to the campus. 🏠🛌\n\n• *Features*: 24/7 high-speed Wi-Fi, laundry service, study halls, hot water, power backup.\n• *Mess Food*: Healthy, hygienic vegetarian and non-vegetarian meals served daily.\n\nWould you like to apply now or speak with a counselor?",
       category: "Course Queries",
       course: "Undecided",
       status: "Interested",
@@ -166,7 +166,7 @@ export function generateOfflineReply(messageText: string) {
 
   // Default Fallback
   return {
-    replyText: "Thanks for reaching out to *Alliance College of Management & Hotel Management* (affiliated to Andhra University)! 🎓👋\n\nI am the Senior Admissions Officer. I can answer questions about our BBA, BHMCT, DHM, PGDHM, and PGDBM courses, placements, scholarship criteria, or hostel facilities.\n\nWhat would you like to know?",
+    replyText: "Thanks for reaching out to *Alliance College of Hotel Management* (affiliated to Andhra University)! 🎓👋\n\nI am the Senior Admissions Officer. I can answer questions about our BBA, BHMCT, DHM, PGDHM, and PGDBM courses, placements, scholarship criteria, or hostel facilities.\n\nWhat would you like to know?",
     category: "Course Queries",
     course: "Undecided",
     status: "New Lead",
@@ -186,7 +186,7 @@ export async function classifyMessageAndRespond(
     // ==========================================
     if (lowerMsg === 'talk to counselor' || lowerMsg === 'talk to us') {
       return {
-        replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Management & Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nYou can reach our college staff and counseling desk directly at:\n\n• *Main Admissions Helpline*: +91 88850 66502\n• *Director Academics (Kartikeswar Panda)*: +91 88850 66502\n• *Principal (Boddeti Srinivas Rao)*: +91 88850 66502\n• *Office Email*: alliancesince2003@gmail.com\n• *Campus Address*: Near SBI, Maddilipalem, Visakhapatnam - 530022\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?",
+        replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nYou can reach our college staff and counseling desk directly at:\n\n• *Main Admissions Helpline*: +91 88850 66502\n• *Director Academics (Kartikeswar Panda)*: +91 88850 66502\n• *Principal (Boddeti Srinivas Rao)*: +91 88850 66502\n• *Office Email*: alliancesince2003@gmail.com\n• *Campus Address*: Near SBI, Maddilipalem, Visakhapatnam - 530022\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?",
         suggestedButtons: ["Explore Courses", "Apply Now", "Scholarships"],
         category: "Human Followups",
         course: "Undecided",
@@ -196,7 +196,7 @@ export async function classifyMessageAndRespond(
     
     if (lowerMsg === 'apply now' || lowerMsg === 'apply') {
       return {
-        replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Management & Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission!\n*(Please note: There is no registration fee required to apply!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup (Copy-Paste Details)*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Management & Hotel Management, Visakhapatnam. Established in 2003, affiliated to Andhra University. Please fill in your personal details, select your preferred course, and upload your certificates to secure your seat. For assistance, contact +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
+        replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission!\n*(Please note: There is no registration fee required to apply!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup (Copy-Paste Details)*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam. Established in 2003, affiliated to Andhra University. Please fill in your personal details, select your preferred course, and upload your certificates to secure your seat. For assistance, contact +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
         suggestedButtons: ["Explore Courses", "Scholarships", "Talk to Counselor"],
         category: "Course Queries",
         course: "Undecided",
@@ -206,7 +206,7 @@ export async function classifyMessageAndRespond(
 
     if (lowerMsg === 'scholarships' || lowerMsg === 'scholarship') {
       return {
-        replyText: "*Alliance College of Management & Hotel Management* (affiliated to Andhra University) offers fantastic *merit-based scholarships* and tuition fee concessions to deserving students! 🌟\n\n• *Mark-based fee waivers*: Up to 50% tuition fee waiver depending on your Intermediate/10+2 scores.\n• *Government Concessions*: Fee reimbursement and special A.P. state scholarships are available for eligible undergraduate candidates.\n• *Special Concessions*: Sports and special category concessions are offered during physical spot counseling sessions.\n\nWould you like to apply online now or talk to our admissions counselor to check your eligibility?",
+        replyText: "*Alliance College of Hotel Management* (affiliated to Andhra University) offers fantastic *merit-based scholarships* and tuition fee concessions to deserving students! 🌟\n\n• *Mark-based fee waivers*: Up to 50% tuition fee waiver depending on your Intermediate/10+2 scores.\n• *Government Concessions*: Fee reimbursement and special A.P. state scholarships are available for eligible undergraduate candidates.\n• *Special Concessions*: Sports and special category concessions are offered during physical spot counseling sessions.\n\nWould you like to apply online now or talk to our admissions counselor to check your eligibility?",
         suggestedButtons: ["Apply Now", "Explore Courses", "Talk to Counselor"],
         category: "Scholarship Queries",
         course: "Undecided",
@@ -216,7 +216,7 @@ export async function classifyMessageAndRespond(
 
     if (lowerMsg === 'explore courses' || lowerMsg === 'courses') {
       return {
-        replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Management & Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Bachelor of Hospitality Management & Catering Technology (BHMCT)*\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate)\n\n2. *Bachelor of Business Administration (BBA)*\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate)\n\n3. *Diploma in Hotel Management (DHM)*\n• *Duration*: 1 Year\n• *Eligibility*: Pass in 10th Class\n\n4. *Post Graduate Diploma in Hotel Management (PGDHM)*\n• *Duration*: 1 Year\n• *Eligibility*: Graduation (Any Degree)\n\n5. *Post Graduate Diploma in Business Management (PGDBM)*\n• *Duration*: 2 Years\n• *Eligibility*: Graduation (Any Degree)\n\nWhich program would you like to discuss in detail? Select a course or talk to us directly!",
+        replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Bachelor of Hospitality Management & Catering Technology (BHMCT)*\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate)\n\n2. *Bachelor of Business Administration (BBA)*\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate)\n\n3. *Diploma in Hotel Management (DHM)*\n• *Duration*: 1 Year\n• *Eligibility*: Pass in 10th Class\n\n4. *Post Graduate Diploma in Hotel Management (PGDHM)*\n• *Duration*: 1 Year\n• *Eligibility*: Graduation (Any Degree)\n\n5. *Post Graduate Diploma in Business Management (PGDBM)*\n• *Duration*: 2 Years\n• *Eligibility*: Graduation (Any Degree)\n\nWhich program would you like to discuss in detail? Select a course or talk to us directly!",
         suggestedButtons: ["BHMCT Details", "BBA Details", "Apply Now"],
         category: "Course Queries",
         course: "Undecided",
@@ -226,7 +226,7 @@ export async function classifyMessageAndRespond(
 
     if (lowerMsg === 'bhmct details' || lowerMsg === 'bhmct admissions') {
       return {
-        replyText: "Our *Bachelor of Hospitality Management & Catering Technology (BHMCT)* is a professional 3-year full-time degree at *Alliance College of Management & Hotel Management* (affiliated to Andhra University). 🏨🍳\n\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate) in any stream.\n• *Overview*: Comprehensive training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in luxury 5-star hotels.\n\nWould you like to check out placement partners or start your application?",
+        replyText: "Our *Bachelor of Hospitality Management & Catering Technology (BHMCT)* is a professional 3-year full-time degree at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏨🍳\n\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate) in any stream.\n• *Overview*: Comprehensive training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in luxury 5-star hotels.\n\nWould you like to check out placement partners or start your application?",
         suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         category: "Course Queries",
         course: "BHMCT",
@@ -236,7 +236,7 @@ export async function classifyMessageAndRespond(
     
     if (lowerMsg === 'bba details' || lowerMsg === 'bba admissions') {
       return {
-        replyText: "Our *Bachelor of Business Administration (BBA)* is a premium 3-year full-time undergraduate program at *Alliance College of Management & Hotel Management* (affiliated to Andhra University). 💼\n\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate) from any recognized board in any stream.\n• *Overview*: Focuses on business principles, marketing, finance, accounting, and human resource management.\n\nWould you like to start your application now or speak with a counselor?",
+        replyText: "Our *Bachelor of Business Administration (BBA)* is a premium 3-year full-time undergraduate program at *Alliance College of Hotel Management* (affiliated to Andhra University). 💼\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) from any recognized board in any stream.\n• *Overview*: Focuses on business principles, marketing, finance, accounting, and human resource management.\n\nWould you like to start your application now or speak with a counselor?",
         suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
         category: "Course Queries",
         course: "BBA",
@@ -301,7 +301,7 @@ Return JSON format:
     });
 
     const systemPrompt = `
-You are the Senior Admissions Officer at Alliance College of Management and Hotel Management, Visakhapatnam.
+You are the Senior Admissions Officer at Alliance College of Hotel Management, Visakhapatnam.
 Your goal is to assist prospective students who contact us on WhatsApp with absolute authority, professional warmth, and clarity. Keep interactions simple and easy to understand.
 
 Here is the official Brochure context:
@@ -309,7 +309,7 @@ ${ALLIANCE_BROCHURE_TEXT}
 
 Strict Guidelines to Follow:
 1. Speak as the Senior Admissions Officer: Be helpful, warm, concise, and highly professional. Avoid repetitive answers.
-2. Highlighting College Name: When writing the college name in highlights, write it exactly as: *Alliance College of Management & Hotel Management* (affiliated to Andhra University).
+2. Highlighting College Name: When writing the college name in highlights, write it exactly as: *Alliance College of Hotel Management* (affiliated to Andhra University).
 3. Full Course Names: When mentioning courses, always show the full course name first followed by the abbreviation in brackets. For example:
    - "Bachelor of Hospitality Management & Catering Technology (BHMCT)" (Duration is 3 Years)
    - "Bachelor of Business Administration (BBA)" (Duration is 3 Years)
@@ -325,7 +325,7 @@ Strict Guidelines to Follow:
    - Explain the 2-step process (fill form, upload certificates, submit) and explicitly mention that there is NO fee to pay.
    - Suggest setup details to copy into Google Forms:
      * Form Name: "Alliance College - Admission Application Form 2026-27"
-     * Form Description: "Official application form for admissions into Alliance College of Management & Hotel Management, Visakhapatnam. Established in 2003, affiliated to Andhra University. Please fill in your personal details, select your preferred course, and upload your certificates to secure your seat. For assistance, contact +91 88850 66502."
+     * Form Description: "Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam. Established in 2003, affiliated to Andhra University. Please fill in your personal details, select your preferred course, and upload your certificates to secure your seat. For assistance, contact +91 88850 66502."
 6. Avoid Redundant Suggested Buttons:
    - If you are answering a query about Scholarships, do NOT include "Scholarships" in the suggested buttons.
    - If you are answering a query about Counselor/Helpline, do NOT include "Talk to Counselor" in the suggested buttons.

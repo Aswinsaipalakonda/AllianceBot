@@ -1,5 +1,5 @@
 export const ALLIANCE_BROCHURE_TEXT = `
-ALLIANCE COLLEGE OF MANAGEMENT AND HOTEL MANAGEMENT
+ALLIANCE COLLEGE OF HOTEL MANAGEMENT
 Visakhapatnam, Andhra Pradesh (Established in 2003)
 Helpline: +91 88850 66502
 Email: alliancesince2003@gmail.com
