@@ -126,12 +126,14 @@ export async function POST(req: NextRequest) {
         const studentPhone = message.from;
         const studentName = contact.profile?.name || 'Prospective Student';
         
-        // Dynamically extract text content from standard text OR interactive button replies
+        // Dynamically extract text content from standard text, interactive button replies, or template buttons
         let messageText = '';
         if (message.type === 'text') {
           messageText = message.text?.body || '';
         } else if (message.type === 'interactive') {
           messageText = message.interactive?.button_reply?.title || message.interactive?.list_reply?.title || '';
+        } else if (message.type === 'button') {
+          messageText = message.button?.text || '';
         }
 
         if (!messageText) {
@@ -151,6 +153,7 @@ export async function POST(req: NextRequest) {
                            lowerMsg === 'explore courses' || lowerMsg === 'courses' ||
                            lowerMsg === 'bhmct details' || lowerMsg === 'bhmct admissions' ||
                            lowerMsg === 'bba details' || lowerMsg === 'bba admissions' ||
+                           lowerMsg === 'career opportunities' || lowerMsg === 'careers' || lowerMsg === 'career' || lowerMsg === 'jobs' ||
                            lowerMsg.includes('88850') || lowerMsg.includes('helpline') ||
                            lowerMsg === 'email admissions' || lowerMsg.includes('email support');
 
@@ -213,10 +216,20 @@ export async function POST(req: NextRequest) {
         }
 
         // 3. Process Gemini Classification & Conversational Reply with history
-        const { replyText, suggestedButtons, category, course, status } = await classifyMessageAndRespond(messageText, recentHistory);
+        const { replyText, suggestedButtons, category, course, status, sendCareersImages } = await classifyMessageAndRespond(messageText, recentHistory) as any;
 
         // A. IMMEDIATELY send WhatsApp message back to minimize user delay
-        await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
+        if (sendCareersImages) {
+          const baseUrl = new URL(req.url).origin;
+          // Send the text introduction first
+          await sendWhatsAppMessage(studentPhone, replyText);
+          // Then send BBA careers image
+          await sendWhatsAppMessage(studentPhone, "💼 *BBA Career Opportunities*:", undefined, `${baseUrl}/bba.jpeg`);
+          // Then send Hotel Management careers image with suggested buttons
+          await sendWhatsAppMessage(studentPhone, "🏨 *Hotel Management Career Opportunities*:", suggestedButtons, `${baseUrl}/hotel.jpeg`);
+        } else {
+          await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
+        }
 
         // B. Perform all slow Google Sheets logging operations concurrently in the background
         const buttonsSuffix = suggestedButtons && suggestedButtons.length > 0
@@ -269,8 +282,8 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Helper function to send WhatsApp message via Meta Cloud API (with support for interactive buttons)
-async function sendWhatsAppMessage(to: string, text: string, buttons?: string[]) {
+// Helper function to send WhatsApp message via Meta Cloud API (with support for interactive buttons and media images)
+async function sendWhatsAppMessage(to: string, text: string, buttons?: string[], imageUrl?: string) {
   try {
     const phoneId = process.env.META_PHONE_NUMBER_ID;
     const token = process.env.META_PERMANENT_TOKEN;
@@ -288,8 +301,15 @@ async function sendWhatsAppMessage(to: string, text: string, buttons?: string[])
       to,
     };
 
-    // If buttons are provided, format them as Meta interactive quick-replies (max 3 buttons, each max 20 chars)
-    if (buttons && buttons.length > 0) {
+    if (imageUrl) {
+      // Send image message with an optional caption
+      bodyPayload.type = 'image';
+      bodyPayload.image = {
+        link: imageUrl,
+        caption: text || undefined
+      };
+    } else if (buttons && buttons.length > 0) {
+      // If buttons are provided, format them as Meta interactive quick-replies (max 3 buttons, each max 20 chars)
       const formattedButtons = buttons.slice(0, 3).map((btn, idx) => ({
         type: 'reply',
         reply: {
@@ -309,6 +329,7 @@ async function sendWhatsAppMessage(to: string, text: string, buttons?: string[])
         }
       };
     } else {
+      // Otherwise, send a standard text message
       bodyPayload.type = 'text';
       bodyPayload.text = {
         preview_url: false,
@@ -331,7 +352,7 @@ async function sendWhatsAppMessage(to: string, text: string, buttons?: string[])
       throw new Error(`Meta API error: ${JSON.stringify(responseData)}`);
     }
 
-    console.log(`Successfully sent WhatsApp message to ${to} (Interactive: ${!!buttons?.length})`);
+    console.log(`Successfully sent WhatsApp message to ${to} (Type: ${imageUrl ? 'image' : (buttons?.length ? 'interactive' : 'text')})`);
   } catch (error: any) {
     console.error('Error sending WhatsApp message:', error.message);
   }

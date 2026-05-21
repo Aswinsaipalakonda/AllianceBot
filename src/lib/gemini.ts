@@ -64,11 +64,29 @@ export function generateOfflineReply(messageText: string) {
     text.includes('registration')
   ) {
     return {
-      replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission!\n*(Please note: There is no registration fee required to apply!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup (Copy-Paste Details)*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam. Established in 2003, affiliated to Andhra University. Please fill in your personal details, select your preferred course, and upload your certificates to secure your seat. For assistance, contact +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
+      replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam (Est. 2003, affiliated to Andhra University). Fill in your details, select your preferred course, and upload your certificates to secure your seat. For help, call +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
       category: "Course Queries",
       course: "Undecided",
       status: "Applied",
       suggestedButtons: ["Explore Courses", "Scholarships", "Talk to Counselor"]
+    };
+  }
+
+  // 3.5 Career Opportunities / Careers
+  if (
+    text.includes('career') || 
+    text.includes('job') || 
+    text.includes('opportunity') || 
+    text.includes('opportunities') || 
+    text.includes('path')
+  ) {
+    return {
+      replyText: "Here are the fantastic career opportunities awaiting you at *Alliance College of Hotel Management* (affiliated to Andhra University) for both our Business Administration (BBA) and Hotel/Hospitality Management programs! 💼✨",
+      category: "Placement Queries",
+      course: "Undecided",
+      status: "Interested",
+      suggestedButtons: ["Explore Courses", "Apply Now", "Talk to Counselor"],
+      sendCareersImages: true
     };
   }
 
@@ -216,11 +234,22 @@ export async function classifyMessageAndRespond(
     
     if (lowerMsg === 'apply now' || lowerMsg === 'apply') {
       return {
-        replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission!\n*(Please note: There is no registration fee required to apply!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup (Copy-Paste Details)*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam. Established in 2003, affiliated to Andhra University. Please fill in your personal details, select your preferred course, and upload your certificates to secure your seat. For assistance, contact +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
+        replyText: "Ready to launch your global career? 🚀 Admissions are officially open for the new academic batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link below and fill out the online application form.\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) directly inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\n📝 *Admissions Application Link*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n💡 *Suggested Google Forms Setup*:\n• *Form Name*: Alliance College - Admission Application Form 2026-27\n• *Form Description*: Official application form for admissions into Alliance College of Hotel Management, Visakhapatnam (Est. 2003, affiliated to Andhra University). Fill in your details, select your preferred course, and upload your certificates to secure your seat. For help, call +91 88850 66502.\n\nWould you like to explore our scholarships or speak to a counselor?",
         suggestedButtons: ["Explore Courses", "Scholarships", "Talk to Counselor"],
         category: "Course Queries",
         course: "Undecided",
         status: "Applied"
+      };
+    }
+
+    if (lowerMsg === 'career opportunities' || lowerMsg === 'careers' || lowerMsg === 'career' || lowerMsg === 'jobs') {
+      return {
+        replyText: "Here are the fantastic career opportunities awaiting you at *Alliance College of Hotel Management* (affiliated to Andhra University) for both our Business Administration (BBA) and Hotel/Hospitality Management programs! 💼✨",
+        suggestedButtons: ["Explore Courses", "Apply Now", "Talk to Counselor"],
+        category: "Placement Queries",
+        course: "Undecided",
+        status: "Interested",
+        sendCareersImages: true
       };
     }
 
