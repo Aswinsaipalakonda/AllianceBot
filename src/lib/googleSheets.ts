@@ -90,7 +90,8 @@ export async function updateOrAddLead(
   course: string,
   status: string,
   category: string,
-  lastMessage: string
+  lastMessage: string,
+  forceAIEnabled?: boolean
 ) {
   try {
     const sheets = getSheetsClient();
@@ -117,21 +118,23 @@ export async function updateOrAddLead(
       }
     }
 
+    const finalAIStatus = forceAIEnabled !== undefined ? String(forceAIEnabled) : existingAIStatus;
+
     if (rowIndex !== -1) {
-      // Update existing lead row (keep the existing AI toggle status)
+      // Update existing lead row (keep the existing AI toggle status or override it)
       await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: `${sheetName}!A${rowIndex}:H${rowIndex}`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
-          values: [[timestamp, name, phone, course, status, category, lastMessage, existingAIStatus]],
+          values: [[timestamp, name, phone, course, status, category, lastMessage, finalAIStatus]],
         },
       });
-      console.log(`Updated lead for ${name} at row ${rowIndex}`);
+      console.log(`Updated lead for ${name} at row ${rowIndex} (AI Status: ${finalAIStatus})`);
     } else {
-      // Append new lead with default AI Auto Reply as 'true'
-      await appendToSheet(sheetName, [[timestamp, name, phone, course, status, category, lastMessage, 'true']]);
-      console.log(`Added new lead for ${name}`);
+      // Append new lead with default or forced AI Auto Reply status
+      await appendToSheet(sheetName, [[timestamp, name, phone, course, status, category, lastMessage, finalAIStatus]]);
+      console.log(`Added new lead for ${name} (AI Status: ${finalAIStatus})`);
     }
   } catch (error: any) {
     console.error('Error updating/adding lead:', error.message);

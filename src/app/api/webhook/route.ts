@@ -142,6 +142,27 @@ export async function POST(req: NextRequest) {
         console.log(`Processing message from ${studentName} (${studentPhone}) [Type: ${message.type}]: "${messageText}"`);
 
         const timestamp = new Date().toLocaleString();
+        const lowerMsg = messageText.toLowerCase().trim();
+
+        // Determine if it is a programmatic override to bypass human takeover check & history retrieval
+        const isOverride = lowerMsg === 'talk to counselor' || lowerMsg === 'talk to us' || lowerMsg === 'counselor' ||
+                           lowerMsg === 'apply now' || lowerMsg === 'apply' ||
+                           lowerMsg === 'scholarships' || lowerMsg === 'scholarship' ||
+                           lowerMsg === 'explore courses' || lowerMsg === 'courses' ||
+                           lowerMsg === 'bhmct details' || lowerMsg === 'bhmct admissions' ||
+                           lowerMsg === 'bba details' || lowerMsg === 'bba admissions' ||
+                           lowerMsg.includes('88850') || lowerMsg.includes('helpline') ||
+                           lowerMsg === 'email admissions' || lowerMsg.includes('email support');
+
+        // Check if this is a standard bot interactive re-engagement (which should turn AI back ON if it was off)
+        const isBotReEngagement = isOverride && 
+                                  lowerMsg !== 'talk to counselor' && 
+                                  lowerMsg !== 'talk to us' && 
+                                  lowerMsg !== 'counselor' &&
+                                  !lowerMsg.includes('88850') && 
+                                  !lowerMsg.includes('helpline') &&
+                                  lowerMsg !== 'email admissions' && 
+                                  !lowerMsg.includes('email support');
 
         // 1. Fetch current leads to check if Counselor Takeover is active (AI Auto-Reply disabled)
         const leads = await getLeads();
@@ -150,7 +171,7 @@ export async function POST(req: NextRequest) {
         // Normalize sheet Boolean string (checking case-insensitive or direct match)
         const isAIEnabled = existingLead ? (existingLead.aiEnabled && String(existingLead.aiEnabled).toUpperCase() !== 'FALSE') : true;
 
-        if (existingLead && !isAIEnabled) {
+        if (existingLead && !isAIEnabled && !isOverride) {
           // --- HUMAN TAKEOVER ACTIVE ---
           console.log(`Human takeover active for ${studentName} (${studentPhone}). Bypassing Gemini Auto-Reply.`);
           
@@ -175,18 +196,7 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        // --- AUTOMATED AI MODE ACTIVE ---
-        // 2. Determine if it is a programmatic override to skip loading conversation history from sheets (saves ~1-2 seconds)
-        const lowerMsg = messageText.toLowerCase().trim();
-        const isOverride = lowerMsg === 'talk to counselor' || lowerMsg === 'talk to us' || lowerMsg === 'counselor' ||
-                           lowerMsg === 'apply now' || lowerMsg === 'apply' ||
-                           lowerMsg === 'scholarships' || lowerMsg === 'scholarship' ||
-                           lowerMsg === 'explore courses' || lowerMsg === 'courses' ||
-                           lowerMsg === 'bhmct details' || lowerMsg === 'bhmct admissions' ||
-                           lowerMsg === 'bba details' || lowerMsg === 'bba admissions' ||
-                           lowerMsg.includes('88850') || lowerMsg.includes('helpline') ||
-                           lowerMsg === 'email admissions' || lowerMsg.includes('email support');
-
+        // --- AUTOMATED AI MODE / PROGRAMMATIC OVERRIDE ACTIVE ---
         let recentHistory: { role: 'user' | 'model'; parts: string[] }[] = [];
         if (!isOverride) {
           try {
@@ -217,7 +227,15 @@ export async function POST(req: NextRequest) {
         Promise.all([
           logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course).catch(e => console.error("Error logging user chat:", e.message)),
           logChatMessage(studentPhone, studentName, 'bot', replyText, suggestedButtons, category, course).catch(e => console.error("Error logging bot chat:", e.message)),
-          updateOrAddLead(studentPhone, studentName, course, status, category, messageText).catch(e => console.error("Error updating lead:", e.message)),
+          updateOrAddLead(
+            studentPhone, 
+            studentName, 
+            course, 
+            status, 
+            category, 
+            messageText, 
+            isBotReEngagement ? true : undefined
+          ).catch(e => console.error("Error updating lead:", e.message)),
           (async () => {
             try {
               if (category === 'Course Queries') {
