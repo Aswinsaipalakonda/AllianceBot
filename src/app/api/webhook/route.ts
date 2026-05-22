@@ -236,11 +236,8 @@ export async function POST(req: NextRequest) {
         } else if (sendCourseImage) {
           const baseUrl = new URL(req.url).origin;
           const imgName = sendCourseImage === 'bba' ? 'bba.jpeg' : 'hotel.jpeg';
-          const imgCaption = sendCourseImage === 'bba' ? '🎓 *Bachelor of Business Administration (BBA)*' : '🏨 *Hospitality & Hotel Management*';
-          // Send the image first
-          await sendWhatsAppMessage(studentPhone, imgCaption, undefined, `${baseUrl}/${imgName}`);
-          // Then send the main course text reply with suggested buttons
-          await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
+          // Send a single WhatsApp message with image header, rich text body, and action buttons
+          await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons, `${baseUrl}/${imgName}`);
         } else {
           await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
         }
@@ -315,7 +312,33 @@ async function sendWhatsAppMessage(to: string, text: string, buttons?: string[],
       to,
     };
 
-    if (imageUrl) {
+    if (imageUrl && buttons && buttons.length > 0) {
+      // Send interactive message with image header, text body, and quick-reply buttons
+      const formattedButtons = buttons.slice(0, 3).map((btn, idx) => ({
+        type: 'reply',
+        reply: {
+          id: `btn-${idx}-${Date.now()}`,
+          title: sanitizeButtonText(btn),
+        }
+      }));
+
+      bodyPayload.type = 'interactive';
+      bodyPayload.interactive = {
+        type: 'button',
+        header: {
+          type: 'image',
+          image: {
+            link: imageUrl
+          }
+        },
+        body: {
+          text: text
+        },
+        action: {
+          buttons: formattedButtons
+        }
+      };
+    } else if (imageUrl) {
       // Send image message with an optional caption
       bodyPayload.type = 'image';
       bodyPayload.image = {

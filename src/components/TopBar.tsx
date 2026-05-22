@@ -11,6 +11,9 @@ export function TopBar() {
   const [showProfile, setShowProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [badgeCount, setBadgeCount] = useState(0);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -62,11 +65,83 @@ export function TopBar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const mockNotifications = [
-    { id: 1, title: 'New lead incoming', desc: 'Rahul Sharma has sent an admission query.', time: '5 mins ago', type: 'inquiry' },
-    { id: 2, title: 'Gemini Auto-replied', desc: 'Brochure links sent to Priya Patel.', time: '15 mins ago', type: 'bot' },
-    { id: 3, title: 'Counselor follow-up needed', desc: 'Amit Kumar requested fees discount details.', time: '1 hour ago', type: 'escalation' },
-  ];
+  // Helper to format timestamp into modern relative text
+  const formatNotifTime = (tsStr: string): string => {
+    if (!tsStr) return 'Just now';
+    try {
+      const date = new Date(tsStr);
+      if (isNaN(date.getTime())) return tsStr;
+      const diffMs = Date.now() - date.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    } catch (e) {
+      return tsStr;
+    }
+  };
+
+  // Fetch dynamic, live notifications from Google Sheets API
+  useEffect(() => {
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/api/leads');
+        const json = await res.json();
+        if (json.success && json.leads) {
+          // Sort leads by their timestamp descending
+          const sorted = [...json.leads].sort((a: any, b: any) => {
+            const tA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const tB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return tB - tA;
+          });
+
+          // Map the 5 latest activity items
+          const mapped = sorted.slice(0, 5).map((lead: any, index: number) => {
+            let title = 'Active Conversation';
+            let desc = `Chat with ${lead.name} is open.`;
+            let type = 'inquiry';
+            
+            if (lead.status === 'New Lead') {
+              title = 'New Lead Incoming';
+              desc = `${lead.name} has initiated an admission query.`;
+              type = 'inquiry';
+            } else if (lead.status === 'Follow-up' || lead.category === 'Human Followups') {
+              title = 'Counselor follow-up needed';
+              desc = `${lead.name} requires human assistance for ${lead.course}.`;
+              type = 'escalation';
+            } else if (lead.aiEnabled) {
+              title = 'Gemini Auto-replied';
+              desc = `AI agent responded to ${lead.name} regarding ${lead.course}.`;
+              type = 'bot';
+            }
+            
+            return {
+              id: lead.phone || String(index),
+              title,
+              desc,
+              time: lead.timestamp ? formatNotifTime(lead.timestamp) : 'Just now',
+              type,
+              phone: lead.phone
+            };
+          });
+          
+          setNotifications(mapped);
+
+          // Badge count counts follow-ups and new leads
+          const activeCount = sorted.filter((l: any) => l.status === 'New Lead' || l.status === 'Follow-up' || l.category === 'Human Followups').length;
+          setBadgeCount(activeCount);
+        }
+      } catch (err) {
+        console.error('Failed to sync dynamic notifications:', err);
+      }
+    }
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="h-16 border-b border-alliance-border bg-alliance-card px-4 flex items-center justify-between shadow-sm z-50 sticky top-0">
@@ -117,38 +192,52 @@ export function TopBar() {
             aria-haspopup="true"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+            {badgeCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
+                {badgeCount}
+              </span>
+            )}
           </button>
 
           {showNotifications && (
             <div className="absolute right-0 mt-3 w-80 bg-alliance-card border border-alliance-border rounded-xl shadow-2xl py-2 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 py-2 border-b border-alliance-border flex justify-between items-center bg-alliance-dark/30">
                 <span className="text-white font-semibold text-xs uppercase tracking-wider">Recent Activity Alerts</span>
-                <span className="text-[10px] text-alliance-green font-bold bg-[#092b1d] border border-alliance-green/20 px-1.5 py-0.5 rounded">3 NEW</span>
+                {badgeCount > 0 && (
+                  <span className="text-[10px] text-alliance-green font-bold bg-[#092b1d] border border-alliance-green/20 px-1.5 py-0.5 rounded">
+                    {badgeCount} ACTIVE
+                  </span>
+                )}
               </div>
               <div className="max-h-[300px] overflow-y-auto divide-y divide-alliance-border/50">
-                {mockNotifications.map((notif) => (
-                  <div key={notif.id} className="p-3.5 hover:bg-alliance-hover/50 transition-colors flex gap-3 cursor-pointer" onClick={() => {
-                      setShowNotifications(false);
-                      router.push(notif.type === 'inquiry' ? '/leads' : '/conversations');
-                    }}>
-                    <div className={clsx(
-                      "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold",
-                      notif.type === 'inquiry' && "bg-alliance-green/10 text-alliance-green",
-                      notif.type === 'bot' && "bg-[#53bdeb]/10 text-[#53bdeb]",
-                      notif.type === 'escalation' && "bg-amber-500/10 text-amber-400"
-                    )}>
-                      {notif.type === 'inquiry' && <User className="h-4 w-4" />}
-                      {notif.type === 'bot' && <MessageCircle className="h-4 w-4" />}
-                      {notif.type === 'escalation' && <Shield className="h-4 w-4" />}
+                {notifications.length > 0 ? (
+                  notifications.map((notif) => (
+                    <div key={notif.id} className="p-3.5 hover:bg-alliance-hover/50 transition-colors flex gap-3 cursor-pointer" onClick={() => {
+                        setShowNotifications(false);
+                        router.push(`/conversations?phone=${encodeURIComponent(notif.phone)}`);
+                      }}>
+                      <div className={clsx(
+                        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold",
+                        notif.type === 'inquiry' && "bg-alliance-green/10 text-alliance-green",
+                        notif.type === 'bot' && "bg-[#53bdeb]/10 text-[#53bdeb]",
+                        notif.type === 'escalation' && "bg-amber-500/10 text-amber-400"
+                      )}>
+                        {notif.type === 'inquiry' && <User className="h-4 w-4" />}
+                        {notif.type === 'bot' && <MessageCircle className="h-4 w-4" />}
+                        {notif.type === 'escalation' && <Shield className="h-4 w-4" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-white truncate leading-snug">{notif.title}</div>
+                        <div className="text-xs text-alliance-muted mt-0.5 leading-relaxed">{notif.desc}</div>
+                        <div className="text-[10px] text-alliance-muted mt-1 font-medium">{notif.time}</div>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-white truncate leading-snug">{notif.title}</div>
-                      <div className="text-xs text-alliance-muted mt-0.5 leading-relaxed">{notif.desc}</div>
-                      <div className="text-[10px] text-alliance-muted mt-1 font-medium">{notif.time}</div>
-                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 text-center text-xs text-alliance-muted font-medium">
+                    No active admissions alerts logged.
                   </div>
-                ))}
+                )}
               </div>
               <div className="px-4 py-2 border-t border-alliance-border/50 text-center bg-alliance-dark/20 rounded-b-xl">
                 <button

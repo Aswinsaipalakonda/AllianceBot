@@ -369,55 +369,11 @@ export async function classifyMessageAndRespond(
     }
 
     // ==========================================
-    // 1. Classification Step via Gemini
+    // 1. Unified Classification & Response Generation via Gemini
     // ==========================================
+    console.log("Generating AI classification and reply using Gemini...");
     const genAI = getGeminiClient();
-    const classificationModel = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      generationConfig: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const classificationPrompt = `
-You are an advanced classification engine for the Alliance College Admissions CRM.
-Analyze the student's incoming message and categorize it accurately.
-
-Incoming Message: "${messageText}"
-
-You must return a JSON object with the following fields:
-1. "category": One of "Course Queries", "Placement Queries", "Scholarship Queries", or "Human Followups".
-   - If the student is sending a greeting (e.g. "Hi", "Hello", "Hii", "Hey") or asking about eligibility, courses, or syllabus, set to "Course Queries". Greetings MUST be categorized as "Course Queries" to welcome them!
-   - If asking about companies, packages, placements, set to "Placement Queries".
-   - If asking about discounts, scholarships, free admission, set to "Scholarship Queries".
-   - If the student is angry, explicitly asking for a real person/counselor, or has complex off-topic requests, set to "Human Followups".
-2. "course": One of "BHMCT", "BBA", "DHM", "PGDHM", "PGDBM", or "Undecided". (Identify the course mentioned, default to "Undecided" if none).
-3. "status": One of "New Lead", "Interested", "Follow-up", "Applied", "Converted". (Defaults to "Interested" unless it is a simple greeting which is "New Lead").
-
-Return JSON format:
-{
-  "category": "Course Queries",
-  "course": "BHMCT",
-  "status": "Interested"
-}
-`;
-
-    console.log("Classifying message...");
-    const classificationResult = await classificationModel.generateContent(classificationPrompt);
-    const resultText = classificationResult.response.text();
-    let classification = { category: 'Course Queries', course: 'Undecided', status: 'New Lead' };
-    
-    try {
-      classification = JSON.parse(resultText);
-    } catch (e) {
-      console.error("Failed to parse classification JSON, using defaults:", resultText);
-    }
-
-    // ==========================================
-    // 2. Reply Generation Step via Gemini
-    // ==========================================
-    console.log("Generating AI reply using Gemini...");
-    const chatModel = genAI.getGenerativeModel({ 
+    const model = genAI.getGenerativeModel({ 
       model: 'gemini-1.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
@@ -427,11 +383,21 @@ Return JSON format:
     const systemPrompt = `
 You are the Senior Admissions Officer at Alliance College of Hotel Management, Visakhapatnam.
 Your goal is to assist prospective students who contact us on WhatsApp with absolute authority, professional warmth, and clarity. Keep interactions simple and easy to understand.
+Also, classify the incoming message and the student's status for our CRM.
 
 Here is the official Brochure context:
 ${ALLIANCE_BROCHURE_TEXT}
 
-Strict Guidelines to Follow:
+Strict Guidelines to Follow for CRM Classification:
+1. "category": One of "Course Queries", "Placement Queries", "Scholarship Queries", or "Human Followups".
+   - If the student is sending a greeting (e.g. "Hi", "Hello", "Hii", "Hey") or asking about eligibility, courses, or syllabus, set to "Course Queries". Greetings MUST be categorized as "Course Queries" to welcome them!
+   - If asking about companies, packages, placements, set to "Placement Queries".
+   - If asking about discounts, scholarships, free admission, set to "Scholarship Queries".
+   - If the student is angry, explicitly asking for a real person/counselor, or has complex off-topic requests, set to "Human Followups".
+2. "course": One of "BHMCT", "BBA", "DHM", "PGDHM", "PGDBM", or "Undecided". (Identify the course mentioned, default to "Undecided" if none).
+3. "status": One of "New Lead", "Interested", "Follow-up", "Applied", "Converted". (Defaults to "Interested" unless it is a simple greeting which is "New Lead").
+
+Strict Guidelines to Follow for WhatsApp Reply:
 1. Speak as the Senior Admissions Officer: Be helpful, warm, concise, and highly professional. Avoid repetitive answers.
 2. Highlighting College Name: When writing the college name in highlights, write it exactly as: *Alliance College of Hotel Management* (affiliated to Andhra University).
 3. Full Course Names: When mentioning courses, always show the full course name first followed by the abbreviation in brackets. For example:
@@ -457,9 +423,12 @@ Please feel free to call us directly during working hours (9:00 AM - 5:00 PM) or
    - If the student is asking about BBA or PGDBM, suggest ["BBA Details", "Scholarships", "Apply Now"].
    - If the student is asking about BHMCT, DHM, or PGDHM, suggest ["BHMCT Details", "DHM Details", "Apply Now"].
    - If they ask about courses generally, suggest ["BHMCT Details", "BBA Details", "More Courses"].
- 
+
 You MUST return a JSON object in this exact format:
 {
+  "category": "Course Queries",
+  "course": "BBA",
+  "status": "Interested",
   "replyText": "Professional, warm response from Senior Admissions Officer based on context...",
   "suggestedButtons": ["Explore Courses", "Scholarships", "Talk to Counselor"],
   "sendCourseImage": "bba" // String: Set strictly to "bba" if answering or providing details about BBA or PGDBM. Set strictly to "hotel" if answering or providing details about BHMCT, DHM, or PGDHM. Set to null otherwise.
@@ -472,7 +441,7 @@ You MUST return a JSON object in this exact format:
       parts: [{ text: h.parts.join('\n') }]
     }));
 
-    const chat = chatModel.startChat({
+    const chat = model.startChat({
       history: geminiHistory,
       systemInstruction: systemPrompt
     });
@@ -480,19 +449,30 @@ You MUST return a JSON object in this exact format:
     const responseResult = await chat.sendMessage(messageText);
     const replyJSONText = responseResult.response.text();
     
-    let responseObj = { replyText: '', suggestedButtons: [] as string[] };
+    let responseObj = { 
+      replyText: '', 
+      suggestedButtons: [] as string[],
+      category: 'Course Queries',
+      course: 'Undecided',
+      status: 'Interested',
+      sendCourseImage: null as string | null
+    };
     try {
       responseObj = JSON.parse(replyJSONText);
     } catch (e) {
       console.error("Failed to parse reply JSON, falling back to text:", replyJSONText);
       responseObj = {
         replyText: replyJSONText,
-        suggestedButtons: ["Explore Courses", "Scholarships", "Talk to Counselor"]
+        suggestedButtons: ["Explore Courses", "Scholarships", "Talk to Counselor"],
+        category: 'Course Queries',
+        course: 'Undecided',
+        status: 'Interested',
+        sendCourseImage: null
       };
     }
 
     // ==========================================
-    // 3. Programmatic Button Redundancy Pruner
+    // 2. Programmatic Button Redundancy Pruner
     // ==========================================
     if (responseObj.suggestedButtons && Array.isArray(responseObj.suggestedButtons)) {
       const lowerReply = responseObj.replyText.toLowerCase();
@@ -541,10 +521,10 @@ You MUST return a JSON object in this exact format:
     return {
       replyText: stripGoogleFormsSetup(responseObj.replyText),
       suggestedButtons: responseObj.suggestedButtons || [],
-      category: classification.category,
-      course: classification.course,
-      status: classification.status,
-      sendCourseImage: (responseObj as any).sendCourseImage || null
+      category: responseObj.category || 'Course Queries',
+      course: responseObj.course || 'Undecided',
+      status: responseObj.status || 'Interested',
+      sendCourseImage: responseObj.sendCourseImage || null
     };
 
   } catch (error: any) {

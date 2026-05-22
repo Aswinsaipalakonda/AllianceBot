@@ -33,7 +33,7 @@ export default function RootLayout({
         <TopBar />
         <div className="flex-1 flex overflow-hidden">
           <GlobalSidebar />
-          <main className="flex-1 overflow-auto flex flex-col">
+          <main className="flex-1 overflow-auto flex flex-col pb-16 md:pb-0">
             {children}
           </main>
         </div>

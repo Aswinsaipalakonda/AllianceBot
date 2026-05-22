@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
   Search, MessageSquare, MoreVertical, MessageCircle,
-  X, Paperclip, Smile, Mic, CheckCheck,
+  X, Paperclip, Smile, Mic, CheckCheck, ArrowLeft,
   Send, Image as ImageIcon, Loader2, RefreshCw, AlertCircle, ShieldAlert, Info
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -64,6 +64,38 @@ function formatSidebarDate(tsStr: string): string {
   }
 }
 
+function getMessageDayLabel(tsStr: string): string {
+  if (!tsStr) return '';
+  try {
+    const date = new Date(tsStr);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    if (msgDate.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (msgDate.getTime() === yesterday.getTime()) {
+      return 'Yesterday';
+    } else {
+      const diffTime = today.getTime() - msgDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays < 7) {
+        return date.toLocaleDateString([], { weekday: 'long' });
+      }
+      return date.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+  } catch (e) {
+    return '';
+  }
+}
+
 function ConversationsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -86,7 +118,7 @@ function ConversationsContent() {
   // References
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const prevPhoneRef = useRef<string | null>(null);
+  const lastScrolledPhoneRef = useRef<string | null>(null);
 
   const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToast({ message, type });
@@ -156,12 +188,23 @@ function ConversationsContent() {
         setLeads(json.leads);
         // Determine which lead to select
         if (json.leads.length > 0) {
-          const target = selectPhone || urlPhone || json.leads[0].phone;
-          const found = json.leads.some((l: any) => l.phone === target);
-          if (found) {
-            setActivePhone(target);
+          const target = selectPhone || urlPhone;
+          if (target) {
+            const found = json.leads.some((l: any) => l.phone === target);
+            if (found) {
+              setActivePhone(target);
+            } else {
+              setActivePhone(json.leads[0].phone);
+            }
           } else {
-            setActivePhone(json.leads[0].phone);
+            // No phone in URL or parameter. 
+            // On desktop, auto-select first lead. On mobile, keep it null.
+            const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+            if (isMobile) {
+              setActivePhone(null);
+            } else {
+              setActivePhone(json.leads[0].phone);
+            }
           }
         }
       }
@@ -208,19 +251,20 @@ function ConversationsContent() {
 
   // Smart premium scroll management for conversations page
   useEffect(() => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current || messages.length === 0) return;
     const container = scrollRef.current;
     
-    const isNewConversation = activePhone !== prevPhoneRef.current;
-    prevPhoneRef.current = activePhone;
+    const isNewConversation = activePhone !== lastScrolledPhoneRef.current;
     
     if (isNewConversation) {
-      // Instantly snap to bottom on active phone transition
-      container.scrollTop = container.scrollHeight;
+      // Instantly snap to bottom after the React DOM has finished painting
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+        lastScrolledPhoneRef.current = activePhone;
+      }, 50);
     } else {
       // In-chat polling update for same conversation: 
       // Only scroll to bottom if the counselor is already looking at the latest messages.
-      // We check if the scrollbar is within 150px of the bottom.
       const threshold = 150;
       const isNearBottom = container.scrollHeight - container.clientHeight - container.scrollTop <= threshold;
       if (isNearBottom) {
@@ -374,7 +418,10 @@ function ConversationsContent() {
     <div className="flex h-full overflow-hidden bg-[#0b141a] font-sans">
       
       {/* LEFT PANE - CHATS LIST */}
-      <div className="w-[30%] min-w-[320px] max-w-[420px] flex flex-col border-r border-[#222e35] bg-[#111b21] flex-shrink-0 z-20">
+      <div className={clsx(
+        "w-full md:w-[30%] md:min-w-[320px] md:max-w-[420px] flex flex-col border-r border-[#222e35] bg-[#111b21] flex-shrink-0 z-20 transition-all duration-300",
+        activePhone ? "hidden md:flex" : "flex"
+      )}>
         <div className="h-[60px] px-4 flex items-center justify-between border-b border-[#222e35] bg-[#202c33]">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-6 w-6 text-[#00a884]" />
@@ -485,27 +532,43 @@ function ConversationsContent() {
  
       {/* MIDDLE PANE - CHAT WINDOW */}
       {activeChat ? (
-        <div className="flex-1 flex flex-col relative bg-[#0b141a] min-w-0 border-r border-[#222e35]/30">
+        <div className={clsx(
+          "flex-1 flex flex-col relative bg-[#0b141a] min-w-0 border-r border-[#222e35]/30",
+          activePhone ? "flex" : "hidden md:flex"
+        )}>
           {/* Subtle WhatsApp-style tiling background */}
           <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{ backgroundImage: 'url("https://web.whatsapp.com/img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png")' }}></div>
           
           <div className="h-[60px] px-4 bg-[#202c33] flex items-center justify-between relative z-10 border-l border-[#222e35]/20 cursor-pointer shadow-md" onClick={() => setShowRightPane(!showRightPane)}>
-            <div className="flex items-center gap-3.5">
+            <div className="flex items-center gap-3.5 min-w-0">
+              {/* Mobile Back Button */}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActivePhone(null);
+                  lastScrolledPhoneRef.current = null;
+                  router.replace('/conversations');
+                }}
+                className="md:hidden p-1 mr-1 text-[#aebac1] hover:text-white cursor-pointer transition-colors shrink-0"
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </button>
+
               <div className={clsx(
-                "w-10 h-10 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold shadow-md",
+                "w-10 h-10 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold shadow-md shrink-0",
                 getAvatarGradient(activeChat.name)
               )}>
                 {activeChat.name.substring(0, 2).toUpperCase()}
               </div>
-              <div className="flex flex-col">
-                <span className="text-white text-[15.5px] font-semibold tracking-wide flex items-center gap-1.5">
+              <div className="flex flex-col min-w-0">
+                <span className="text-white text-[15.5px] font-semibold tracking-wide flex items-center gap-1.5 truncate">
                   {activeChat.name}
-                  <span className="w-2 h-2 rounded-full bg-[#25d366] animate-pulse inline-block" title="Online" />
+                  <span className="w-2 h-2 rounded-full bg-[#25d366] animate-pulse inline-block shrink-0" title="Online" />
                 </span>
-                <span className="text-xs text-[#8696a0] font-medium tracking-wide">{activeChat.phone}</span>
+                <span className="text-xs text-[#8696a0] font-medium tracking-wide truncate">{activeChat.phone}</span>
               </div>
             </div>
-            <div className="flex items-center gap-5 text-[#aebac1]">
+            <div className="flex items-center gap-5 text-[#aebac1] shrink-0">
               <Search onClick={(e) => { e.stopPropagation(); showToast('Search within chat coming soon!', 'info'); }} className="h-5 w-5 hover:text-white transition-colors cursor-pointer" />
               <Info onClick={(e) => { e.stopPropagation(); setShowRightPane(!showRightPane); }} className={clsx("h-5 w-5 hover:text-white transition-colors cursor-pointer", showRightPane && "text-[#00a884]")} />
               <MoreVertical onClick={(e) => { e.stopPropagation(); showToast('Chat options coming soon!', 'info'); }} className="h-5 w-5 hover:text-white transition-colors cursor-pointer" />
@@ -529,50 +592,63 @@ function ConversationsContent() {
                 const isFirstInGroup = idx === 0 || messages[idx-1].sender !== msg.sender;
                 const showSimulatedTag = msg.delivered === false; // If manual dispatch failed to Meta
                 
+                const dayLabel = getMessageDayLabel(msg.time);
+                const prevDayLabel = idx > 0 ? getMessageDayLabel(messages[idx-1].time) : '';
+                const showDateSeparator = dayLabel && dayLabel !== prevDayLabel;
+                
                 return (
-                  <div key={msg.id} className={clsx("flex flex-col max-w-[70%] select-text", isUser ? "self-start" : "self-end", isFirstInGroup ? "mt-3" : "mt-0.5")}>
-                    <div className={clsx(
-                      "text-[14.2px] px-3.5 py-2 rounded-2xl shadow-[0_1.5px_2px_rgba(11,20,26,0.2)] relative transition-all duration-300",
-                      isUser 
-                        ? "bg-[#202c33] text-[#e9edef] rounded-tl-none border-l-2 border-[#8696a0]/30" 
-                        : "bg-[#005c4b] text-[#e9edef] rounded-tr-none border-r-2 border-[#00a884]/30",
-                    )}>
-                      
-                      <div className="leading-relaxed break-words pr-2">{msg.text}</div>
-                      
-                      {/* Render Interactive suggested buttons inside CRM dashboard if bot sent buttons */}
-                      {msg.buttons && msg.buttons.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-3 pt-2.5 border-t border-white/10">
-                          {msg.buttons.map((btn: string, bIdx: number) => (
-                            <span
-                              key={bIdx}
-                              className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/10 text-[#25d366] border border-[#00a884]/20 select-none shadow-sm"
-                            >
-                              🔘 {btn}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Display warning badge if message was simulated due to credentials expiration */}
-                      {showSimulatedTag && (
-                        <div className="text-[10px] text-amber-400 font-bold flex items-center gap-1 mt-2.5 bg-amber-500/10 px-2.5 py-1.5 rounded-lg border border-amber-500/25 shadow-inner">
-                          <ShieldAlert className="h-3.5 w-3.5 flex-shrink-0" />
-                          <span>Simulated (Meta Token Expired)</span>
-                        </div>
-                      )}
-                      
-                      <div className="float-right mt-1.5 ml-3.5 flex items-center gap-1.5 text-[10.5px] text-[#8696a0]">
-                        <span>{formatMessageTime(msg.time)}</span>
-                        {!isUser && (
-                          <CheckCheck className={clsx(
-                            "h-[15px] w-[15px]",
-                            showSimulatedTag ? "text-[#8696a0]" : "text-[#53bdeb]"
-                          )} />
+                  <React.Fragment key={msg.id}>
+                    {showDateSeparator && (
+                      <div className="flex justify-center my-4 w-full select-none">
+                        <span className="px-3.5 py-1.5 rounded-xl bg-[#1f2c34] text-[#8696a0] text-[11.5px] font-bold shadow-md border border-[#222e35]/50 tracking-wider">
+                          {dayLabel}
+                        </span>
+                      </div>
+                    )}
+                    <div className={clsx("flex flex-col max-w-[75%] select-text transition-all duration-200 hover:scale-[1.01]", isUser ? "self-start" : "self-end", isFirstInGroup ? "mt-3.5" : "mt-1")}>
+                      <div className={clsx(
+                        "text-[14.2px] px-4 py-2.5 rounded-2xl relative shadow-[0_2px_8px_rgba(0,0,0,0.2)] transition-all duration-300 border",
+                        isUser 
+                          ? "bg-gradient-to-br from-[#202c33] to-[#182229] text-[#e9edef] rounded-tl-none border-[#2d3b45]/40 border-l-[#8696a0]/50" 
+                          : "bg-gradient-to-br from-[#005c4b] to-[#00473a] text-[#e9edef] rounded-tr-none border-[#00705b]/40 border-r-alliance-green/50",
+                      )}>
+                        
+                        <div className="leading-relaxed break-words pr-2">{msg.text}</div>
+                        
+                        {/* Render Interactive suggested buttons inside CRM dashboard if bot sent buttons */}
+                        {msg.buttons && msg.buttons.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-3 pt-2.5 border-t border-white/10">
+                            {msg.buttons.map((btn: string, bIdx: number) => (
+                              <span
+                                key={bIdx}
+                                className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/10 text-[#25d366] border border-[#00a884]/20 select-none shadow-sm"
+                              >
+                                🔘 {btn}
+                              </span>
+                            ))}
+                          </div>
                         )}
+
+                        {/* Display warning badge if message was simulated due to credentials expiration */}
+                        {showSimulatedTag && (
+                          <div className="text-[10px] text-amber-400 font-bold flex items-center gap-1 mt-2.5 bg-amber-500/10 px-2.5 py-1.5 rounded-lg border border-amber-500/25 shadow-inner">
+                            <ShieldAlert className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span>Simulated (Meta Token Expired)</span>
+                          </div>
+                        )}
+                        
+                        <div className="float-right mt-1.5 ml-3.5 flex items-center gap-1.5 text-[10.5px] text-[#8696a0]">
+                          <span>{formatMessageTime(msg.time)}</span>
+                          {!isUser && (
+                            <CheckCheck className={clsx(
+                              "h-[15px] w-[15px]",
+                              showSimulatedTag ? "text-[#8696a0]" : "text-[#53bdeb]"
+                            )} />
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </React.Fragment>
                 )
               })
             )}
@@ -585,7 +661,7 @@ function ConversationsContent() {
           </div>
 
           {/* Typing Input area */}
-          <div className="px-4 py-3 bg-[#202c33] flex items-center gap-3.5 relative z-10 border-t border-[#222e35]/30 shadow-md">
+          <div className="px-4 py-3 bg-[#202c33]/90 backdrop-blur-md flex items-center gap-3.5 relative z-10 border-t border-[#222e35]/30 shadow-2xl">
             <Smile onClick={handleEmojiClick} className="h-6 w-6 text-[#aebac1] hover:text-white cursor-pointer transition-colors" />
             <Paperclip onClick={handleAttachmentClick} className="h-6 w-6 text-[#aebac1] hover:text-white cursor-pointer -rotate-45 transition-colors" />
             <input 
@@ -594,7 +670,7 @@ function ConversationsContent() {
               onChange={handleFileChange} 
               className="hidden" 
             />
-            <div className="flex-1 bg-[#2a3942] rounded-xl flex items-center px-4 py-2 border border-transparent focus-within:border-[#00a884]/20 transition-all">
+            <div className="flex-1 bg-[#2a3942]/60 hover:bg-[#2a3942]/80 rounded-2xl flex items-center px-4 py-2.5 border border-transparent focus-within:border-[#00a884]/40 transition-all shadow-inner">
               <input 
                 type="text" 
                 placeholder={activeChat.aiEnabled ? "Disable AI Auto-Reply to manual message" : "Type a manual counselor override message"} 
@@ -616,7 +692,7 @@ function ConversationsContent() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center bg-[#0b141a]">
+        <div className="hidden md:flex flex-1 flex-col items-center justify-center bg-[#0b141a]">
           <MessageCircle className="h-16 w-16 text-[#00a884]/20 mb-3 animate-pulse" />
           <div className="text-[#8696a0] text-[14.5px] font-semibold tracking-wide">Select a student from the sidebar to open the CRM console.</div>
         </div>
@@ -624,7 +700,7 @@ function ConversationsContent() {
 
       {/* RIGHT PANE - CONTACT INFO / LEAD DETAILS */}
       {activeChat && showRightPane && (
-        <div className="w-[360px] bg-[#111b21] border-l border-[#222e35] flex flex-col flex-shrink-0 z-20 transition-all duration-300">
+        <div className="fixed inset-y-0 right-0 z-30 w-full md:w-[360px] md:relative bg-gradient-to-b from-[#111b21] to-[#070c0e] border-l border-[#222e35] flex flex-col flex-shrink-0 transition-all duration-300 animate-in slide-in-from-right duration-250">
           <div className="h-[60px] px-4 flex items-center gap-6 border-b border-[#222e35] bg-[#202c33] shadow-md">
             <X className="h-5 w-5 text-[#8696a0] cursor-pointer hover:text-white transition-colors" onClick={() => setShowRightPane(false)} />
             <span className="text-white text-[15.5px] font-bold tracking-wide">Contact Info</span>

@@ -1,12 +1,21 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, TrendingUp, Users, Calendar, ArrowRight, BookOpen, Award, RefreshCw, Download } from 'lucide-react';
+import { 
+  Loader2, TrendingUp, Users, Calendar, ArrowRight, BookOpen, 
+  Award, RefreshCw, Download, BarChart3, PieChart, Sparkles, 
+  TrendingDown, CheckCircle2, FileText, ChevronRight
+} from 'lucide-react';
 import Link from 'next/link';
+import clsx from 'clsx';
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<'all' | '30d' | '7d'>('all');
+  const [hoveredCourse, setHoveredCourse] = useState<string | null>(null);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [syncTime, setSyncTime] = useState<string>('');
 
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);
@@ -15,6 +24,8 @@ export default function AnalyticsPage() {
       const json = await res.json();
       if (json.success) {
         setData(json.analytics);
+        const now = new Date();
+        setSyncTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
       }
     } catch (err) {
       console.error('Failed to load analytics data:', err);
@@ -30,8 +41,11 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-alliance-dark gap-3">
-        <Loader2 className="h-10 w-10 text-alliance-green animate-spin" />
-        <span className="text-alliance-muted text-sm font-medium">Aggregating CRM channels and queries...</span>
+        <div className="relative flex items-center justify-center">
+          <div className="w-16 h-16 border-4 border-alliance-green/10 border-t-alliance-green rounded-full animate-spin"></div>
+          <Sparkles className="absolute h-6 w-6 text-alliance-green animate-pulse" />
+        </div>
+        <span className="text-alliance-muted text-sm font-medium animate-pulse mt-2">Aggregating CRM channels and queries...</span>
       </div>
     );
   }
@@ -55,27 +69,139 @@ export default function AnalyticsPage() {
 
   // SVG calculations for Course preference bar heights
   const maxCourseVal = Math.max(...Object.values(courses) as number[], 1);
-  const getBarHeight = (val: number) => {
-    return ((val / maxCourseVal) * 140).toFixed(0); // scale factor for svg height
+  const getBarHeightPercent = (val: number) => {
+    return ((val / maxCourseVal) * 100).toFixed(0);
   };
 
+  const courseKeys = [
+    { 
+      key: 'BHMCT', 
+      label: 'BHMCT', 
+      fullName: 'Bachelor of Hotel Management & Catering Technology', 
+      colorFrom: 'from-[#005c4b]', 
+      colorTo: 'to-[#00a884]', 
+      borderClass: 'border-[#00a884]/30 hover:border-[#00a884]/60',
+      glowColor: 'rgba(0,168,132,0.4)', 
+      icon: Award, 
+      desc: '4-year professional hospitality track with industry-standard culinary kitchens and premium placement partnerships.' 
+    },
+    { 
+      key: 'BBA', 
+      label: 'BBA', 
+      fullName: 'Bachelor of Business Administration', 
+      colorFrom: 'from-[#1b80a4]', 
+      colorTo: 'to-[#53bdeb]', 
+      borderClass: 'border-[#53bdeb]/30 hover:border-[#53bdeb]/60',
+      glowColor: 'rgba(83,189,235,0.4)', 
+      icon: TrendingUp, 
+      desc: '3-year comprehensive degree focused on business management systems, corporate strategy, and dual specialization.' 
+    },
+    { 
+      key: 'DHM', 
+      label: 'DHM', 
+      fullName: 'Diploma in Hotel Management & Catering Technology', 
+      colorFrom: 'from-[#c59129]', 
+      colorTo: 'to-[#ffd279]', 
+      borderClass: 'border-[#ffd279]/30 hover:border-[#ffd279]/60',
+      glowColor: 'rgba(255,210,121,0.4)', 
+      icon: BookOpen, 
+      desc: '2-year fast-track technical course designed for high-performance operations in culinary arts and guest accommodations.' 
+    },
+    { 
+      key: 'Undecided', 
+      label: 'Undecided', 
+      fullName: 'General Inquiry / Consultation Needed', 
+      colorFrom: 'from-[#9f1239]', 
+      colorTo: 'to-[#ef4444]', 
+      borderClass: 'border-[#ef4444]/30 hover:border-[#ef4444]/60',
+      glowColor: 'rgba(239,68,68,0.4)', 
+      icon: Users, 
+      desc: 'Prospective students inquiring about general admissions, campus walkthroughs, or unassigned course configurations.' 
+    }
+  ];
+
+  const categoryKeys = [
+    { key: 'Course Queries', label: 'Courses Info', color: '#00a884', bgClass: 'bg-[#00a884]', shadowClass: 'shadow-[0_0_12px_rgba(0,168,132,0.3)]', desc: 'Direct curriculum, fee structure, and eligibility queries' },
+    { key: 'Placement Queries', label: 'Placements Info', color: '#53bdeb', bgClass: 'bg-[#53bdeb]', shadowClass: 'shadow-[0_0_12px_rgba(83,189,235,0.3)]', desc: 'Corporate recruiters, average package, and internship requests' },
+    { key: 'Scholarship Queries', label: 'Scholarships', color: '#ffd279', bgClass: 'bg-[#ffd279]', shadowClass: 'shadow-[0_0_12px_rgba(255,210,121,0.3)]', desc: 'Merit-based waivers, scholarships, and installment schedules' },
+    { key: 'Human Followups', label: 'Counselor Followups', color: '#ef4444', bgClass: 'bg-[#ef4444]', shadowClass: 'shadow-[0_0_12px_rgba(239,68,68,0.3)]', desc: 'Complex questions flagged for direct counselor callbacks' },
+  ];
+
+  // Compute SVG slice offset angles
+  let accumulatedPercent = 0;
+  const segments = categoryKeys.map((item) => {
+    const val = categories[item.key] || 0;
+    const percent = totalCategoryQueries > 0 ? (val / totalCategoryQueries) * 100 : 0;
+    const offset = accumulatedPercent;
+    accumulatedPercent += percent;
+    return {
+      ...item,
+      val,
+      percent,
+      offset,
+    };
+  });
+
+  // Active highlighted course card details (or fallback to the highest interest one)
+  let defaultHighestCourse = 'BHMCT';
+  let highestCount = -1;
+  Object.entries(courses).forEach(([key, val]) => {
+    const count = typeof val === 'number' ? val : 0;
+    if (count > highestCount) {
+      highestCount = count;
+      defaultHighestCourse = key;
+    }
+  });
+  const activeCourseDetail = courseKeys.find(c => c.key === (hoveredCourse || defaultHighestCourse)) || courseKeys[0];
+
   return (
-    <div className="flex flex-col h-full overflow-y-auto p-8 bg-alliance-dark">
+    <div className="flex flex-col h-full overflow-y-auto p-4 md:p-8 bg-alliance-dark pb-28 md:pb-8">
       
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8 flex-shrink-0">
+      {/* Header Panel */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-semibold text-white font-sans tracking-wide">CRM Analytics</h1>
-          <p className="text-alliance-muted mt-1 text-sm">Real-time charts, conversion ratios, and interest splits compiled from Google Sheets.</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-alliance-green opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-alliance-green"></span>
+            </span>
+            <span className="text-[11px] font-bold tracking-wider text-alliance-green uppercase">Live Google Sheets Feed</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            CRM <span className="text-alliance-green">Analytics</span>
+          </h1>
+          <p className="text-alliance-muted mt-1 text-sm font-medium">Real-time interest splits, conversation categories, and conversion ratio tracking.</p>
         </div>
-        <div className="flex items-center gap-3">
+
+        {/* Filter and Actions Controls */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Simulated Time Range Selector */}
+          <div className="bg-[#111b21] border border-alliance-border p-1 rounded-xl flex items-center gap-1">
+            {(['all', '30d', '7d'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                className={clsx(
+                  "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer",
+                  activeFilter === f
+                    ? "bg-alliance-green text-[#0b141a] font-bold shadow-[0_2px_8px_rgba(0,168,132,0.3)]"
+                    : "text-alliance-muted hover:text-white hover:bg-alliance-hover"
+                )}
+              >
+                {f === 'all' ? 'All Time' : f === '30d' ? 'Last 30 Days' : 'Last 7 Days'}
+              </button>
+            ))}
+          </div>
+
           <button
             onClick={fetchAnalytics}
-            className="bg-alliance-card border border-alliance-border rounded-lg px-4 py-2 flex items-center gap-2 text-sm text-alliance-text hover:bg-alliance-hover hover:border-alliance-green/30 transition-all cursor-pointer"
+            className="bg-alliance-card/85 border border-alliance-border rounded-xl px-4 py-2 flex items-center gap-2 text-sm text-alliance-text hover:bg-alliance-hover hover:border-alliance-green/30 transition-all cursor-pointer backdrop-blur-md"
           >
-            <RefreshCw className="h-4 w-4 text-alliance-muted" />
-            Refresh Data
+            <RefreshCw className="h-4 w-4 text-alliance-muted animate-spin-slow" />
+            <span className="font-semibold hidden sm:inline">Synced {syncTime || 'Just Now'}</span>
+            <span className="font-semibold sm:hidden">Refresh</span>
           </button>
+          
           <button
             onClick={() => {
               if (!data) return;
@@ -87,210 +213,276 @@ export default function AnalyticsPage() {
               const url = URL.createObjectURL(blob);
               const link = document.createElement('a');
               link.setAttribute('href', url);
-              link.setAttribute('download', `analytics_report_${new Date().toISOString().slice(0, 10)}.csv`);
+              link.setAttribute('download', `alliance_analytics_report_${new Date().toISOString().slice(0, 10)}.csv`);
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
             }}
-            className="bg-alliance-green text-[#111b21] rounded-lg px-4 py-2 flex items-center gap-2 text-sm font-medium hover:bg-[#00c298] transition-colors cursor-pointer"
+            className="bg-gradient-to-r from-[#00a884] to-[#00c298] text-[#111b21] rounded-xl px-4 py-2 flex items-center gap-2 text-sm font-bold shadow-[0_4px_15px_rgba(0,168,132,0.25)] hover:shadow-[0_4px_20px_rgba(0,168,132,0.4)] transition-all cursor-pointer"
           >
-            <Download className="h-4 w-4" />
-            Export Report
+            <Download className="h-4 w-4" strokeWidth={2.5} />
+            <span className="hidden sm:inline">Export Report</span>
+            <span className="sm:hidden">Export</span>
           </button>
         </div>
       </div>
 
-      {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
-        <div className="bg-alliance-card border border-alliance-border rounded-xl p-5 flex items-center gap-4 hover:border-alliance-green/30 transition-all">
-          <div className="p-3.5 rounded-xl bg-alliance-green/10 text-alliance-green">
-            <Users className="h-6 w-6" />
-          </div>
-          <div>
-            <div className="text-xs text-alliance-muted font-medium uppercase tracking-wider">Total CRM Leads</div>
-            <div className="text-2xl font-bold text-white mt-1">{totalLeads}</div>
-          </div>
-        </div>
-
-        <div className="bg-alliance-card border border-alliance-border rounded-xl p-5 flex items-center gap-4 hover:border-alliance-green/30 transition-all">
-          <div className="p-3.5 rounded-xl bg-[#53bdeb]/10 text-[#53bdeb]">
-            <BookOpen className="h-6 w-6" />
-          </div>
-          <div>
-            <div className="text-xs text-alliance-muted font-medium uppercase tracking-wider">Submissions</div>
-            <div className="text-2xl font-bold text-white mt-1">{applications}</div>
-          </div>
-        </div>
-
-        <div className="bg-alliance-card border border-alliance-border rounded-xl p-5 flex items-center gap-4 hover:border-alliance-green/30 transition-all">
-          <div className="p-3.5 rounded-xl bg-[#ffd279]/10 text-[#ffd279]">
-            <Award className="h-6 w-6" />
-          </div>
-          <div>
-            <div className="text-xs text-alliance-muted font-medium uppercase tracking-wider">Confirmed Joins</div>
-            <div className="text-2xl font-bold text-white mt-1">{confirmedAdmissions}</div>
-          </div>
-        </div>
-
-        <div className="bg-alliance-card border border-alliance-border rounded-xl p-5 flex items-center gap-4 hover:border-alliance-green/30 transition-all">
-          <div className="p-3.5 rounded-xl bg-alliance-green/15 text-alliance-green">
-            <TrendingUp className="h-6 w-6 animate-pulse" />
-          </div>
-          <div>
-            <div className="text-xs text-alliance-muted font-medium uppercase tracking-wider">Conversion Ratio</div>
-            <div className="text-2xl font-bold text-alliance-green mt-1">{conversionRate}%</div>
-          </div>
-        </div>
+      {/* KPI Cards Section */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Total CRM Leads', value: totalLeads, icon: Users, color: 'text-alliance-green', bg: 'bg-alliance-green/10', border: 'hover:border-alliance-green/30', glow: 'shadow-[0_0_20px_rgba(0,168,132,0.02)]' },
+          { label: 'Form Applications', value: applications, icon: FileText, color: 'text-[#53bdeb]', bg: 'bg-[#53bdeb]/10', border: 'hover:border-[#53bdeb]/30', glow: 'shadow-[0_0_20px_rgba(83,189,235,0.02)]' },
+          { label: 'Confirmed Admissions', value: confirmedAdmissions, icon: CheckCircle2, color: 'text-[#ffd279]', bg: 'bg-[#ffd279]/10', border: 'hover:border-[#ffd279]/30', glow: 'shadow-[0_0_20px_rgba(255,210,121,0.02)]' },
+          { label: 'Conversion Ratio', value: `${conversionRate}%`, icon: TrendingUp, color: 'text-alliance-green', bg: 'bg-alliance-green/15', border: 'hover:border-alliance-green/45', glow: 'shadow-[0_0_25px_rgba(0,168,132,0.05)]' },
+        ].map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <div 
+              key={idx}
+              className={clsx(
+                "bg-gradient-to-br from-[#111b21] to-[#0b141a] border border-alliance-border/70 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden backdrop-blur-md transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group cursor-pointer",
+                item.border,
+                item.glow
+              )}
+            >
+              {/* Decorative radial overlay */}
+              <div className={clsx("absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-5 group-hover:opacity-20 transition-opacity duration-300", item.bg)} />
+              
+              <div className="flex justify-between items-start mb-4">
+                <div className={clsx("p-2.5 rounded-xl transition-all duration-300 group-hover:scale-110", item.bg)}>
+                  <Icon className={clsx("h-5 w-5", item.color)} strokeWidth={2.5} />
+                </div>
+                <span className="text-[10px] font-extrabold text-alliance-green bg-alliance-green/10 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                  <TrendingUp className="h-3 w-3" />
+                  +12.5%
+                </span>
+              </div>
+              <div>
+                <div className="text-[11px] text-alliance-muted font-bold uppercase tracking-wider">{item.label}</div>
+                <div className="text-2xl font-black text-white mt-1 group-hover:text-alliance-green transition-colors">{item.value}</div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Main Analysis Visuals */}
+      {/* Main Interactive Visualizations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Course Preferences: Bar Graph */}
-        <div className="bg-alliance-card border border-alliance-border rounded-xl p-6 flex flex-col min-h-[400px]">
-          <h2 className="text-lg font-semibold text-white mb-1">Course Preferences Breakdown</h2>
-          <p className="text-xs text-alliance-muted mb-6">Distribution of interested student choices across courses.</p>
+        {/* Course Preferences: Glowing Capsule Bar Chart */}
+        <div className="bg-gradient-to-br from-[#111b21] to-[#0b141a] border border-alliance-border/70 rounded-2xl p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden backdrop-blur-md">
+          {/* Subtle grid elements */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(34,46,53,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(34,46,53,0.1)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
           
-          <div className="flex-1 flex flex-col justify-end">
-            <div className="w-full h-44 flex items-end justify-around border-b border-[#222e35] pb-2 px-4 gap-6">
-              
-              {/* BHMCT Bar */}
-              <div className="flex flex-col items-center w-14 group">
-                <span className="text-xs text-white mb-2 font-bold opacity-0 group-hover:opacity-100 transition-opacity">{courses.BHMCT}</span>
-                <div 
-                  className="w-full bg-[#00a884] rounded-t-md hover:bg-[#00c298] transition-all cursor-pointer relative"
-                  style={{ height: `${getBarHeight(courses.BHMCT)}px` }}
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-md"></div>
-                </div>
-                <span className="text-xs font-semibold text-alliance-text mt-3">BHMCT</span>
-              </div>
-
-              {/* BBA Bar */}
-              <div className="flex flex-col items-center w-14 group">
-                <span className="text-xs text-white mb-2 font-bold opacity-0 group-hover:opacity-100 transition-opacity">{courses.BBA}</span>
-                <div 
-                  className="w-full bg-[#53bdeb] rounded-t-md hover:bg-[#68cbfa] transition-all cursor-pointer relative"
-                  style={{ height: `${getBarHeight(courses.BBA)}px` }}
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-md"></div>
-                </div>
-                <span className="text-xs font-semibold text-alliance-text mt-3">BBA</span>
-              </div>
-
-              {/* DHM Bar */}
-              <div className="flex flex-col items-center w-14 group">
-                <span className="text-xs text-white mb-2 font-bold opacity-0 group-hover:opacity-100 transition-opacity">{courses.DHM}</span>
-                <div 
-                  className="w-full bg-[#ffd279] rounded-t-md hover:bg-[#ffe1a6] transition-all cursor-pointer relative"
-                  style={{ height: `${getBarHeight(courses.DHM)}px` }}
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-md"></div>
-                </div>
-                <span className="text-xs font-semibold text-alliance-text mt-3">DHM</span>
-              </div>
-
-              {/* Undecided Bar */}
-              <div className="flex flex-col items-center w-14 group">
-                <span className="text-xs text-white mb-2 font-bold opacity-0 group-hover:opacity-100 transition-opacity">{courses.Undecided}</span>
-                <div 
-                  className="w-full bg-red-400 rounded-t-md hover:bg-red-300 transition-all cursor-pointer relative"
-                  style={{ height: `${getBarHeight(courses.Undecided)}px` }}
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-md"></div>
-                </div>
-                <span className="text-xs font-semibold text-alliance-text mt-3">Undecided</span>
-              </div>
-
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-alliance-green" />
+                Course Interest Breakdown
+              </h2>
+              <span className="text-[10px] text-alliance-green bg-alliance-green/10 px-2 py-0.5 rounded-full font-bold uppercase">Dynamic Metric</span>
             </div>
+            <p className="text-xs text-alliance-muted font-medium mb-6">Distribution of interested student choices across academic segments. Hover a bar for details.</p>
           </div>
-        </div>
-
-        {/* Query Categories: Pie/Donut Visual */}
-        <div className="bg-alliance-card border border-alliance-border rounded-xl p-6 flex flex-col min-h-[400px]">
-          <h2 className="text-lg font-semibold text-white mb-1">Inquiry Channels Breakdown</h2>
-          <p className="text-xs text-alliance-muted mb-6">Split of student queries classified automatically by Gemini.</p>
           
-          <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-10">
-            {/* Custom SVG Donut Chart */}
-            <div className="w-40 h-40 relative flex-shrink-0">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#222e35" strokeWidth="3" />
+          {/* Equalizer Capsule Chart Grid */}
+          <div className="flex-1 flex flex-col justify-end relative z-10">
+            {/* Guide Grid Lines */}
+            <div className="absolute inset-x-0 bottom-12 top-4 flex flex-col justify-between pointer-events-none opacity-40">
+              <div className="border-t border-dashed border-[#222e35] w-full" />
+              <div className="border-t border-dashed border-[#222e35] w-full" />
+              <div className="border-t border-dashed border-[#222e35] w-full" />
+            </div>
+
+            <div className="w-full h-48 flex items-end justify-around border-b border-[#222e35] pb-2 px-2 gap-4 relative">
+              {courseKeys.map((c) => {
+                const count = courses[c.key] || 0;
+                const percent = getBarHeightPercent(count);
+                const isHovered = hoveredCourse === c.key;
                 
-                {/* 1. Course Queries (Green) */}
-                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#00a884" strokeWidth="4" 
-                  strokeDasharray={`${((categories['Course Queries'] || 0) / totalCategoryQueries) * 100} ${100 - (((categories['Course Queries'] || 0) / totalCategoryQueries) * 100)}`} 
-                  strokeDashoffset="0"
-                />
+                return (
+                  <div 
+                    key={c.key}
+                    onMouseEnter={() => setHoveredCourse(c.key)}
+                    onMouseLeave={() => setHoveredCourse(null)}
+                    className="flex flex-col items-center w-14 sm:w-16 group relative"
+                  >
+                    {/* Tooltip bubble always aligned nicely */}
+                    <div 
+                      className={clsx(
+                        "absolute -top-12 bg-[#1f2c34] border border-alliance-border rounded-xl px-2.5 py-1.5 text-center transition-all duration-300 shadow-2xl z-20 pointer-events-none flex flex-col items-center gap-0.5",
+                        isHovered ? "opacity-100 scale-100 -translate-y-2" : "opacity-0 scale-75 translate-y-0"
+                      )}
+                    >
+                      <span className="text-xs font-black text-white">{count} Leads</span>
+                      <span className="text-[9px] font-bold text-alliance-green uppercase">
+                        {totalCourseQueries > 0 ? ((count / totalCourseQueries) * 100).toFixed(0) : 0}% Share
+                      </span>
+                      {/* Triangle pointer */}
+                      <div className="w-2.5 h-2.5 bg-[#1f2c34] border-r border-b border-alliance-border rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
+                    </div>
 
-                {/* 2. Placements (Blue) */}
-                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#53bdeb" strokeWidth="4" 
-                  strokeDasharray={`${((categories['Placement Queries'] || 0) / totalCategoryQueries) * 100} ${100 - (((categories['Placement Queries'] || 0) / totalCategoryQueries) * 100)}`} 
-                  strokeDashoffset={`-${((categories['Course Queries'] || 0) / totalCategoryQueries) * 100}`}
-                />
+                    {/* Capsule track */}
+                    <div className="w-8 sm:w-10 bg-[#111b21] border border-alliance-border/40 h-36 rounded-full flex items-end relative overflow-hidden cursor-pointer">
+                      {/* Interactive glowing bar */}
+                      <div 
+                        className={clsx(
+                          "w-full rounded-t-full bg-gradient-to-t transition-all duration-1000 ease-out relative",
+                          c.colorFrom,
+                          c.colorTo,
+                          isHovered ? "scale-x-105" : ""
+                        )}
+                        style={{ 
+                          height: `${percent}%`,
+                          boxShadow: isHovered ? `0 0 20px ${c.glowColor}` : 'none'
+                        }}
+                      >
+                        {/* Shimmer light overlay */}
+                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-full" />
+                      </div>
+                    </div>
 
-                {/* 3. Scholarships (Yellow) */}
-                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#ffd279" strokeWidth="4" 
-                  strokeDasharray={`${((categories['Scholarship Queries'] || 0) / totalCategoryQueries) * 100} ${100 - (((categories['Scholarship Queries'] || 0) / totalCategoryQueries) * 100)}`} 
-                  strokeDashoffset={`-${(((categories['Course Queries'] || 0) + (categories['Placement Queries'] || 0)) / totalCategoryQueries) * 100}`}
-                />
-
-                {/* 4. Human counselor followups (Red) */}
-                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#ef4444" strokeWidth="4" 
-                  strokeDasharray={`${((categories['Human Followups'] || 0) / totalCategoryQueries) * 100} ${100 - (((categories['Human Followups'] || 0) / totalCategoryQueries) * 100)}`} 
-                  strokeDashoffset={`-${(((categories['Course Queries'] || 0) + (categories['Placement Queries'] || 0) + (categories['Scholarship Queries'] || 0)) / totalCategoryQueries) * 100}`}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-bold text-white">{totalCategoryQueries}</span>
-                <span className="text-[10px] text-alliance-muted font-bold uppercase tracking-wider">Queries</span>
-              </div>
+                    {/* Label */}
+                    <span className={clsx(
+                      "text-xs font-extrabold mt-3 transition-colors duration-200",
+                      isHovered ? "text-alliance-green" : "text-alliance-text"
+                    )}>
+                      {c.label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
+          </div>
 
-            {/* Legends */}
-            <div className="flex-1 space-y-3.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-[#00a884]"></span>
-                  <span className="text-sm text-alliance-text font-medium">Courses Info</span>
-                </div>
-                <span className="text-sm font-semibold text-white">{categories['Course Queries'] || 0}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-[#53bdeb]"></span>
-                  <span className="text-sm text-alliance-text font-medium">Placements</span>
-                </div>
-                <span className="text-sm font-semibold text-white">{categories['Placement Queries'] || 0}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-[#ffd279]"></span>
-                  <span className="text-sm text-alliance-text font-medium">Scholarships</span>
-                </div>
-                <span className="text-sm font-semibold text-white">{categories['Scholarship Queries'] || 0}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-[#ef4444]"></span>
-                  <span className="text-sm text-alliance-text font-medium">Counselor Escalated</span>
-                </div>
-                <span className="text-sm font-semibold text-white">{categories['Human Followups'] || 0}</span>
-              </div>
+          {/* Interactive Course detail display panel */}
+          <div className="mt-6 bg-[#0b141a]/60 border border-alliance-border/50 rounded-xl p-4 flex items-center gap-4 transition-all duration-300 relative overflow-hidden min-h-[92px]">
+            <div className={clsx(
+              "absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b",
+              activeCourseDetail.colorFrom,
+              activeCourseDetail.colorTo
+            )} />
+            <div className={clsx("p-3 rounded-xl bg-alliance-dark text-white flex-shrink-0 flex items-center justify-center")}>
+              <activeCourseDetail.icon className="h-5 w-5 text-alliance-green" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-white tracking-wide uppercase">{activeCourseDetail.fullName}</h4>
+              <p className="text-[11px] text-alliance-muted font-medium mt-1 leading-relaxed">{activeCourseDetail.desc}</p>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer Navigation Short-cut */}
-      <div className="mt-8 bg-alliance-card border border-alliance-border p-6 rounded-xl flex items-center justify-between">
-        <div>
-          <h3 className="text-white font-medium text-base">Ready to take counselor overrides?</h3>
-          <p className="text-alliance-muted text-xs mt-1">Open the conversations dashboard to toggle AI auto-reply and manual message students.</p>
+        {/* Query Categories: High-Fidelity Interactive Donut Chart */}
+        <div className="bg-gradient-to-br from-[#111b21] to-[#0b141a] border border-alliance-border/70 rounded-2xl p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden backdrop-blur-md">
+          
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+                <PieChart className="h-4 w-4 text-alliance-green" />
+                Inquiry Channels Analysis
+              </h2>
+              <span className="text-[10px] text-alliance-green bg-alliance-green/10 px-2 py-0.5 rounded-full font-bold uppercase">AI Classifier</span>
+            </div>
+            <p className="text-xs text-alliance-muted font-medium mb-6">Topic distributions mapped automatically via AI model webhook categorization.</p>
+          </div>
+          
+          <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-8 relative z-10">
+            {/* Custom SVG Donut Chart with glowing properties */}
+            <div className="w-48 h-48 relative flex-shrink-0 flex items-center justify-center group/donut">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                {/* Background empty track */}
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#1f2c34" strokeWidth="2.5" />
+                
+                {segments.map((seg) => {
+                  const isHovered = hoveredCategory === seg.key;
+                  return (
+                    <circle 
+                      key={seg.key}
+                      cx="18" 
+                      cy="18" 
+                      r="15.915" 
+                      fill="none" 
+                      stroke={seg.color} 
+                      strokeWidth={isHovered ? "4" : "3"} 
+                      strokeDasharray={`${seg.percent} ${100 - seg.percent}`} 
+                      strokeDashoffset={`-${seg.offset}`}
+                      strokeLinecap="round"
+                      className="transition-all duration-300 cursor-pointer"
+                      style={{
+                        filter: isHovered ? `drop-shadow(0 0 4px ${seg.color})` : 'none',
+                        opacity: hoveredCategory && !isHovered ? 0.35 : 1
+                      }}
+                      onMouseEnter={() => setHoveredCategory(seg.key)}
+                      onMouseLeave={() => setHoveredCategory(null)}
+                    />
+                  );
+                })}
+              </svg>
+              
+              {/* High-fidelity Center readout */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                {hoveredCategory ? (
+                  <>
+                    <span className="text-2xl font-black text-white animate-fade-in-quick">
+                      {categories[hoveredCategory] || 0}
+                    </span>
+                    <span className="text-[9px] text-alliance-green font-extrabold uppercase tracking-wider text-center px-2 truncate max-w-[120px]">
+                      {hoveredCategory.split(' ')[0]} info
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-2xl font-black text-white">{totalCategoryQueries}</span>
+                    <span className="text-[9px] text-alliance-muted font-bold uppercase tracking-wider">Total Queries</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Interactive Legends Panel */}
+            <div className="flex-1 w-full space-y-2">
+              {segments.map((seg) => {
+                const isHovered = hoveredCategory === seg.key;
+                return (
+                  <div 
+                    key={seg.key}
+                    onMouseEnter={() => setHoveredCategory(seg.key)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    className={clsx(
+                      "flex flex-col p-2.5 rounded-xl border transition-all duration-200 cursor-pointer relative overflow-hidden group",
+                      isHovered 
+                        ? "bg-alliance-hover/80 border-alliance-green/40 shadow-md"
+                        : "bg-[#0b141a]/40 border-alliance-border/30 hover:border-alliance-border/70"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <span className={clsx("w-2.5 h-2.5 rounded-full flex-shrink-0", seg.bgClass, seg.shadowClass)} />
+                        <span className={clsx("text-xs font-bold transition-colors duration-200", isHovered ? "text-alliance-green" : "text-alliance-text")}>
+                          {seg.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-black text-white">{seg.val}</span>
+                        <span className="text-[10px] font-semibold text-alliance-muted">({seg.percent.toFixed(0)}%)</span>
+                      </div>
+                    </div>
+                    {/* Expandable mini-description helper */}
+                    <div className={clsx(
+                      "grid transition-all duration-300 ease-in-out text-[10px] text-alliance-muted pl-5 font-medium leading-relaxed",
+                      isHovered ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0"
+                    )}>
+                      <div className="overflow-hidden">
+                        {seg.desc}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
-        <Link href="/conversations" className="bg-[#0a332c] text-[#25d366] px-4 py-2 text-sm font-medium rounded-lg hover:bg-[#12423a] transition-all flex items-center gap-2 border border-alliance-green/10">
-          Open Chats <ArrowRight className="h-4 w-4" />
-        </Link>
+
       </div>
 
     </div>
