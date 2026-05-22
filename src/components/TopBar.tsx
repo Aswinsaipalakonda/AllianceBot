@@ -176,14 +176,14 @@ export function TopBar() {
         </form>
       </div>
 
-      <div className="flex items-center gap-5 relative">
+      <div className="flex items-center gap-5">
         <div className="flex items-center gap-2 bg-[#092b1d] border border-alliance-green/30 text-alliance-green px-3 py-1.5 rounded-full text-xs font-medium">
           <div className="w-2 h-2 rounded-full bg-alliance-green animate-pulse"></div>
           Online
         </div>
         
         {/* Notifications: wrapper must not be a button so dropdown actions can use real buttons */}
-        <div ref={bellRef} className="relative">
+        <div ref={bellRef} className="md:relative">
           <button
             type="button"
             onClick={() => setShowNotifications(!showNotifications)}
@@ -200,7 +200,7 @@ export function TopBar() {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-3 w-80 bg-alliance-card border border-alliance-border rounded-xl shadow-2xl py-2 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute left-4 right-4 top-full mt-2 md:absolute md:left-auto md:right-0 md:w-80 md:top-full md:mt-3 bg-alliance-card border border-alliance-border rounded-xl shadow-2xl py-2 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 py-2 border-b border-alliance-border flex justify-between items-center bg-alliance-dark/30">
                 <span className="text-white font-semibold text-xs uppercase tracking-wider">Recent Activity Alerts</span>
                 {badgeCount > 0 && (

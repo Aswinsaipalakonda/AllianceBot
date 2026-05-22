@@ -98,6 +98,10 @@ export default function DashboardPage() {
   const dayValues = weekdays.map(day => data?.dayCounts?.[day] ?? 0);
   const maxVal = Math.max(...dayValues, 4); // dynamic peak scale (minimum threshold of 4 for visually robust grid spacing)
   
+  // Dynamically calculate today's index in our Mon-Sun sequence (Mon=0, Tue=1, ..., Sun=6)
+  const todayNum = new Date().getDay();
+  const currentDayIdx = todayNum === 0 ? 6 : todayNum - 1;
+  
   const getY = (val: number) => {
     const ratio = val / maxVal;
     return 165 - ratio * 130; // maps 0 value to 165px baseline, maxVal to 35px peak
@@ -255,8 +259,8 @@ export default function DashboardPage() {
               <svg className="w-full h-full" viewBox="0 0 500 200" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00a884" stopOpacity="0.3" />
-                    <stop offset="70%" stopColor="#00a884" stopOpacity="0.05" />
+                    <stop offset="0%" stopColor="#00a884" stopOpacity="0.35" />
+                    <stop offset="70%" stopColor="#00a884" stopOpacity="0.08" />
                     <stop offset="100%" stopColor="#00a884" stopOpacity="0.0" />
                   </linearGradient>
                   
@@ -264,6 +268,16 @@ export default function DashboardPage() {
                     <stop offset="0%" stopColor="#25d366" />
                     <stop offset="50%" stopColor="#00a884" />
                     <stop offset="100%" stopColor="#05c49b" />
+                  </linearGradient>
+
+                  <linearGradient id="column-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00a884" stopOpacity="0.1" />
+                    <stop offset="100%" stopColor="#00a884" stopOpacity="0.0" />
+                  </linearGradient>
+
+                  <linearGradient id="today-column-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#25d366" stopOpacity="0.06" />
+                    <stop offset="100%" stopColor="#25d366" stopOpacity="0.0" />
                   </linearGradient>
                   
                   <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -279,6 +293,11 @@ export default function DashboardPage() {
                 <line x1="0" y1="35" x2="500" y2="35" stroke="#222e35" strokeOpacity="0.45" strokeDasharray="4 4" />
                 <line x1="0" y1="100" x2="500" y2="100" stroke="#222e35" strokeOpacity="0.45" strokeDasharray="4 4" />
                 <line x1="0" y1="165" x2="500" y2="165" stroke="#222e35" strokeOpacity="0.45" strokeDasharray="4 4" />
+
+                {/* Inline Axis text labels for professional telemetry detail */}
+                <text x="495" y="30" textAnchor="end" className="fill-alliance-muted/40 text-[8px] font-extrabold uppercase tracking-widest pointer-events-none">Peak ({maxVal})</text>
+                <text x="495" y="95" textAnchor="end" className="fill-alliance-muted/40 text-[8px] font-extrabold uppercase tracking-widest pointer-events-none">Mid ({Math.round(maxVal / 2)})</text>
+                <text x="495" y="160" textAnchor="end" className="fill-alliance-muted/40 text-[8px] font-extrabold uppercase tracking-widest pointer-events-none">Baseline (0)</text>
 
                 {/* Vertical Grid Lines at Day Steps */}
                 {weekdays.map((_, idx) => {
@@ -299,11 +318,49 @@ export default function DashboardPage() {
                   );
                 })}
 
+                {/* Column highlights (Backdrops) */}
+                {weekdays.map((_, idx) => {
+                  const x = (idx * 500) / 6;
+                  const isHovered = hoveredIdx === idx;
+                  const isToday = idx === currentDayIdx;
+                  
+                  if (!isHovered && !isToday) return null;
+                  
+                  return (
+                    <rect 
+                      key={`col-bg-${idx}`}
+                      x={x - 28} 
+                      y="15" 
+                      width="56" 
+                      height="180" 
+                      rx="8"
+                      fill={isHovered ? "url(#column-grad)" : "url(#today-column-grad)"}
+                      stroke={isHovered ? "rgba(0, 168, 132, 0.18)" : "rgba(37, 211, 102, 0.05)"}
+                      strokeWidth="1"
+                      className="transition-all duration-300 pointer-events-none"
+                    />
+                  );
+                })}
+
                 {/* Area under the dynamic curve */}
                 {areaD && (
                   <path 
                     d={areaD} 
                     fill="url(#chart-glow)" 
+                    className="animate-in fade-in duration-500"
+                  />
+                )}
+
+                {/* Glowing neon halo backer line */}
+                {pathD && (
+                  <path 
+                    d={pathD} 
+                    fill="none" 
+                    stroke="url(#line-grad)" 
+                    strokeWidth="8" 
+                    strokeLinecap="round"
+                    opacity="0.25"
+                    filter="url(#neon-glow)"
                     className="animate-in fade-in duration-500"
                   />
                 )}
@@ -314,9 +371,8 @@ export default function DashboardPage() {
                     d={pathD} 
                     fill="none" 
                     stroke="url(#line-grad)" 
-                    strokeWidth="4" 
+                    strokeWidth="3.5" 
                     strokeLinecap="round"
-                    filter="url(#neon-glow)"
                     className="animate-in fade-in duration-500"
                   />
                 )}
@@ -350,6 +406,7 @@ export default function DashboardPage() {
                   const val = dayValues[idx];
                   const y = getY(val);
                   const isHovered = hoveredIdx === idx;
+                  const isToday = idx === currentDayIdx;
                   return (
                     <g 
                       key={`point-${day}`} 
@@ -361,19 +418,30 @@ export default function DashboardPage() {
                       <circle 
                         cx={x} 
                         cy={y} 
-                        r="20" 
+                        r="22" 
                         fill="transparent" 
                       />
                       
-                      {/* Core point bubble */}
+                      {/* Ambient Glow Outer Ring */}
                       <circle 
                         cx={x} 
                         cy={y} 
-                        r={isHovered ? "7" : "5.5"} 
-                        fill={isHovered ? "#25d366" : "#00a884"} 
-                        stroke="#111b21" 
-                        strokeWidth="2.5" 
-                        className="transition-all duration-200 transform origin-center" 
+                        r={isHovered ? "9" : isToday ? "8" : "6"} 
+                        fill={isHovered ? "rgba(37, 211, 102, 0.22)" : isToday ? "rgba(0, 168, 132, 0.15)" : "rgba(0, 168, 132, 0.05)"}
+                        stroke={isHovered ? "#25d366" : isToday ? "#00a884" : "#222d34"}
+                        strokeWidth={isHovered ? "1.5" : isToday ? "1.5" : "1"}
+                        className="transition-all duration-300 transform origin-center"
+                      />
+
+                      {/* Crisp Inner Dot */}
+                      <circle 
+                        cx={x} 
+                        cy={y} 
+                        r={isHovered ? "4" : isToday ? "3.5" : "3"} 
+                        fill={isHovered ? "#ffffff" : isToday ? "#25d366" : "#0b141a"}
+                        stroke={isToday || isHovered ? "none" : "#00a884"}
+                        strokeWidth={isToday || isHovered ? "0" : "1.5"}
+                        className="transition-all duration-300 transform origin-center"
                       />
                     </g>
                   );
@@ -383,17 +451,22 @@ export default function DashboardPage() {
 
             {/* X-Axis labels with active highlights */}
             <div className="flex justify-between text-[11px] font-bold mt-2 border-t border-[#222e35]/50 pt-3 relative z-10">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun (Today)'].map((label, idx) => (
-                <span 
-                  key={label} 
-                  className={clsx(
-                    "transition-all duration-200 px-1 rounded-md",
-                    hoveredIdx === idx ? "text-alliance-green bg-[#00a884]/10 scale-105" : "text-alliance-muted"
-                  )}
-                >
-                  {label}
-                </span>
-              ))}
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
+                const isToday = idx === currentDayIdx;
+                const label = isToday ? `${day} (Today)` : day;
+                return (
+                  <span 
+                    key={day} 
+                    className={clsx(
+                      "transition-all duration-200 px-2 py-0.5 rounded-md",
+                      isToday ? "text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/35 shadow-[0_0_10px_rgba(0,168,132,0.1)] font-extrabold" : 
+                      hoveredIdx === idx ? "text-alliance-green bg-[#00a884]/10 scale-105" : "text-alliance-muted"
+                    )}
+                  >
+                    {label}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>
