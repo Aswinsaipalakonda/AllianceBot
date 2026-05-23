@@ -13,7 +13,45 @@ export function TopBar() {
   const [toast, setToast] = useState<string | null>(null);
   
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [badgeCount, setBadgeCount] = useState(0);
+  const [readNotifIds, setReadNotifIds] = useState<string[]>([]);
+
+  // Calculate dynamic badge count on-the-fly based on unread notification items
+  const badgeCount = notifications.filter(n => !readNotifIds.includes(n.id)).length;
+
+  const handleMarkAsRead = (id: string) => {
+    setReadNotifIds((prev) => {
+      const updated = prev.includes(id) ? prev : [...prev, id];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('alliance_read_notifications', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
+  const handleMarkAllAsRead = () => {
+    const allIds = notifications.map((n) => n.id);
+    setReadNotifIds((prev) => {
+      const updated = Array.from(new Set([...prev, ...allIds]));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('alliance_read_notifications', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
+  // Load read notifications from localStorage upon initial client-side render
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('alliance_read_notifications');
+      if (stored) {
+        try {
+          setReadNotifIds(JSON.parse(stored));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, []);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -117,8 +155,11 @@ export function TopBar() {
               type = 'bot';
             }
             
+            // Build unique notification ID based on phone and timestamp
+            const id = lead.phone ? `${lead.phone}-${lead.timestamp || ''}` : String(index);
+            
             return {
-              id: lead.phone || String(index),
+              id,
               title,
               desc,
               time: lead.timestamp ? formatNotifTime(lead.timestamp) : 'Just now',
@@ -128,10 +169,6 @@ export function TopBar() {
           });
           
           setNotifications(mapped);
-
-          // Badge count counts follow-ups and new leads
-          const activeCount = sorted.filter((l: any) => l.status === 'New Lead' || l.status === 'Follow-up' || l.category === 'Human Followups').length;
-          setBadgeCount(activeCount);
         }
       } catch (err) {
         console.error('Failed to sync dynamic notifications:', err);
@@ -203,36 +240,88 @@ export function TopBar() {
             <div className="absolute left-4 right-4 top-full mt-2 md:absolute md:left-auto md:right-0 md:w-80 md:top-full md:mt-3 bg-alliance-card border border-alliance-border rounded-xl shadow-2xl py-2 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 py-2 border-b border-alliance-border flex justify-between items-center bg-alliance-dark/30">
                 <span className="text-white font-semibold text-xs uppercase tracking-wider">Recent Activity Alerts</span>
-                {badgeCount > 0 && (
-                  <span className="text-[10px] text-alliance-green font-bold bg-[#092b1d] border border-alliance-green/20 px-1.5 py-0.5 rounded">
-                    {badgeCount} ACTIVE
-                  </span>
-                )}
+                <div className="flex items-center gap-2.5">
+                  {badgeCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAllAsRead();
+                      }}
+                      className="text-[10px] text-alliance-muted hover:text-alliance-green font-bold transition-all duration-150 cursor-pointer uppercase tracking-wider mr-1"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                  {badgeCount > 0 && (
+                    <span className="text-[10px] text-alliance-green font-bold bg-[#092b1d] border border-alliance-green/20 px-1.5 py-0.5 rounded">
+                      {badgeCount} ACTIVE
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="max-h-[300px] overflow-y-auto divide-y divide-alliance-border/50">
+              <div className="max-h-[320px] overflow-y-auto divide-y divide-alliance-border/50">
                 {notifications.length > 0 ? (
-                  notifications.map((notif) => (
-                    <div key={notif.id} className="p-3.5 hover:bg-alliance-hover/50 transition-colors flex gap-3 cursor-pointer" onClick={() => {
-                        setShowNotifications(false);
-                        router.push(`/conversations?phone=${encodeURIComponent(notif.phone)}`);
-                      }}>
-                      <div className={clsx(
-                        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold",
-                        notif.type === 'inquiry' && "bg-alliance-green/10 text-alliance-green",
-                        notif.type === 'bot' && "bg-[#53bdeb]/10 text-[#53bdeb]",
-                        notif.type === 'escalation' && "bg-amber-500/10 text-amber-400"
-                      )}>
-                        {notif.type === 'inquiry' && <User className="h-4 w-4" />}
-                        {notif.type === 'bot' && <MessageCircle className="h-4 w-4" />}
-                        {notif.type === 'escalation' && <Shield className="h-4 w-4" />}
+                  notifications.map((notif) => {
+                    const isRead = readNotifIds.includes(notif.id);
+                    return (
+                      <div 
+                        key={notif.id} 
+                        className={clsx(
+                          "p-3.5 transition-all flex gap-3 cursor-pointer border-l-2",
+                          isRead 
+                            ? "hover:bg-alliance-hover/30 border-l-transparent opacity-65" 
+                            : "bg-[#00a884]/5 hover:bg-[#00a884]/8 border-l-alliance-green font-medium"
+                        )}
+                        onClick={() => {
+                          handleMarkAsRead(notif.id);
+                          setShowNotifications(false);
+                          router.push(`/conversations?phone=${encodeURIComponent(notif.phone)}`);
+                        }}
+                      >
+                        <div className={clsx(
+                          "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold transition-all",
+                          isRead ? "bg-alliance-hover text-alliance-muted" : (
+                            notif.type === 'inquiry' && "bg-alliance-green/10 text-alliance-green",
+                            notif.type === 'bot' && "bg-[#53bdeb]/10 text-[#53bdeb]",
+                            notif.type === 'escalation' && "bg-amber-500/10 text-amber-400"
+                          )
+                        )}>
+                          {notif.type === 'inquiry' && <User className="h-4 w-4" />}
+                          {notif.type === 'bot' && <MessageCircle className="h-4 w-4" />}
+                          {notif.type === 'escalation' && <Shield className="h-4 w-4" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-white truncate leading-snug flex items-center justify-between gap-1.5">
+                            <span className={clsx(isRead ? "text-alliance-muted font-normal" : "text-white font-bold")}>
+                              {notif.title}
+                            </span>
+                            {!isRead && (
+                              <span className="w-2.5 h-2.5 rounded-full bg-alliance-green animate-pulse flex-shrink-0" />
+                            )}
+                          </div>
+                          <div className={clsx("text-xs mt-0.5 leading-relaxed truncate", isRead ? "text-alliance-muted/70" : "text-alliance-text/95")}>
+                            {notif.desc}
+                          </div>
+                          <div className="flex justify-between items-center mt-2 pt-1.5 border-t border-alliance-border/30">
+                            <div className="text-[10px] text-alliance-muted font-medium">{notif.time}</div>
+                            {!isRead && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarkAsRead(notif.id);
+                                }}
+                                className="text-[9px] text-alliance-green hover:text-white font-extrabold bg-[#00a884]/10 hover:bg-[#00a884]/20 border border-[#00a884]/25 px-2 py-0.5 rounded transition-all duration-150 cursor-pointer uppercase tracking-wider"
+                              >
+                                Mark read
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-white truncate leading-snug">{notif.title}</div>
-                        <div className="text-xs text-alliance-muted mt-0.5 leading-relaxed">{notif.desc}</div>
-                        <div className="text-[10px] text-alliance-muted mt-1 font-medium">{notif.time}</div>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="p-6 text-center text-xs text-alliance-muted font-medium">
                     No active admissions alerts logged.
