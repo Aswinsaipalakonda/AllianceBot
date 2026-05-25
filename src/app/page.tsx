@@ -56,10 +56,19 @@ export default function DashboardPage() {
     showToast('Analytical report downloaded!', 'success');
   };
 
+  const [activeFilter, setActiveFilter] = useState<'weekly' | 'monthly' | 'annual' | 'custom'>('weekly');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
   useEffect(() => {
     async function fetchAnalytics() {
       try {
-        const res = await fetch('/api/analytics');
+        setLoading(true);
+        let url = `/api/analytics?filter=${activeFilter}`;
+        if (activeFilter === 'custom' && startDate && endDate) {
+          url += `&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
+        }
+        const res = await fetch(url);
         const json = await res.json();
         if (json.success) {
           setData(json.analytics);
@@ -70,8 +79,11 @@ export default function DashboardPage() {
         setLoading(false);
       }
     }
-    fetchAnalytics();
-  }, []);
+    
+    if (activeFilter !== 'custom' || (startDate && endDate)) {
+      fetchAnalytics();
+    }
+  }, [activeFilter, startDate, endDate]);
 
   if (loading) {
     return (
@@ -93,46 +105,27 @@ export default function DashboardPage() {
 
   const recentLeads = data?.recentActivity || [];
 
-  // Weekday data aggregation & coordinates calculation for premium custom SVG Bezier chart
-  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const dayValues = weekdays.map(day => data?.dayCounts?.[day] ?? 0);
-  const maxVal = Math.max(...dayValues, 4); // dynamic peak scale (minimum threshold of 4 for visually robust grid spacing)
-  
-  // Dynamically calculate today's index in our Mon-Sun sequence (Mon=0, Tue=1, ..., Sun=6)
-  const todayNum = new Date().getDay();
-  const currentDayIdx = todayNum === 0 ? 6 : todayNum - 1;
+  const chartPoints = data?.chartData || [
+    { label: 'Mon', value: 0, detailLabel: 'Monday' },
+    { label: 'Tue', value: 0, detailLabel: 'Tuesday' },
+    { label: 'Wed', value: 0, detailLabel: 'Wednesday' },
+    { label: 'Thu', value: 0, detailLabel: 'Thursday' },
+    { label: 'Fri', value: 0, detailLabel: 'Friday' },
+    { label: 'Sat', value: 0, detailLabel: 'Saturday' },
+    { label: 'Sun', value: 0, detailLabel: 'Sunday' }
+  ];
+
+  const dayValues = chartPoints.map((p: any) => p.value);
+  const maxVal = Math.max(...dayValues, 4);
   
   const getY = (val: number) => {
     const ratio = val / maxVal;
     return 165 - ratio * 130; // maps 0 value to 165px baseline, maxVal to 35px peak
   };
 
-  // Generate cubic Bezier coordinate path using a mathematical midpoint S-curve algorithm
-  let pathD = '';
-  if (dayValues.length > 0) {
-    pathD = `M 0 ${getY(dayValues[0])}`;
-    for (let i = 0; i < dayValues.length - 1; i++) {
-      const xLeft = (i * 500) / 6;
-      const xRight = ((i + 1) * 500) / 6;
-      const yLeft = getY(dayValues[i]);
-      const yRight = getY(dayValues[i + 1]);
-      
-      const cp1x = xLeft + (xRight - xLeft) / 2;
-      const cp1y = yLeft;
-      const cp2x = cp1x;
-      const cp2y = yRight;
-      
-      pathD += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${xRight} ${yRight}`;
-    }
-  }
+  const totalChats = dayValues.reduce((a: number, b: number) => a + b, 0);
+  const averageChats = chartPoints.length > 0 ? (totalChats / chartPoints.length).toFixed(1) : '0.0';
 
-  // Create area fill path that matches the Bezier curve precisely and drops to the baseline
-  const areaD = dayValues.length > 0
-    ? `M 0 200 L 0 ${getY(dayValues[0])} ` + (pathD.includes('C') ? pathD.substring(pathD.indexOf('C')) : '') + ` L 500 200 Z`
-    : '';
-
-  const totalChats = dayValues.reduce((a, b) => a + b, 0);
-  const averageChats = (totalChats / 7).toFixed(1);
 
   return (
     <div className="flex flex-col h-full overflow-y-auto p-4 md:p-8 bg-alliance-dark pb-24 md:pb-8">
@@ -202,40 +195,79 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Redesigned Dynamic Premium SVG Chart */}
         {/* Consolidated premium dynamic Bar Chart card, perfectly matching the design mock */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-[#111b21] to-[#070c0e] border border-alliance-border/70 rounded-3xl p-8 flex flex-col min-h-[440px] backdrop-blur-md relative overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+        <div className="lg:col-span-2 bg-gradient-to-br from-[#111b21] to-[#070c0e] border border-alliance-border/70 rounded-3xl p-6 md:p-8 flex flex-col min-h-[440px] backdrop-blur-md relative overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
           {/* Subtle neon glow backdrops */}
           <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-alliance-green/5 blur-3xl pointer-events-none" />
           
-          {/* Header section designed exactly like the mock */}
-          <div className="flex justify-between items-start mb-8 relative z-10">
+          {/* Header section designed exactly like the mock with active filters */}
+          <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4 mb-8 relative z-10">
             <div className="flex flex-col">
               <span className="text-[13px] font-bold uppercase text-alliance-muted tracking-widest">Conversation Volume</span>
               <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-2 tracking-tight flex items-baseline gap-2">
-                {totalChats} <span className="text-lg font-bold text-alliance-muted">Chats this week</span>
+                {totalChats} <span className="text-lg font-bold text-alliance-muted">
+                  Chats {activeFilter === 'weekly' ? 'this week' : activeFilter === 'monthly' ? 'this month' : activeFilter === 'annual' ? 'this year' : 'in timeframe'}
+                </span>
               </h2>
               {/* Daily Average details */}
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-xs text-alliance-green bg-[#00a884]/10 border border-[#00a884]/20 px-2.5 py-1 rounded-lg font-extrabold tracking-wide flex items-center gap-1">
                   <Zap className="h-3 w-3 text-alliance-green animate-pulse" />
-                  {averageChats} Daily Avg
+                  {averageChats} {activeFilter === 'annual' ? 'Monthly Avg' : 'Daily Avg'}
                 </span>
                 <span className="text-xs text-alliance-muted font-medium">Automatic CRM Sheet sync</span>
               </div>
             </div>
             
-            <button 
-              onClick={() => setIsTimelineOpen(true)}
-              className="bg-alliance-card border border-alliance-border/60 hover:border-[#00a884]/40 hover:bg-[#00a884]/5 text-white hover:text-alliance-green text-xs font-bold px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer shadow-sm shrink-0"
-            >
-              View Timeline
-            </button>
+            {/* Timeframe Filters Controls */}
+            <div className="flex flex-col sm:items-end gap-3 self-stretch xl:self-auto">
+              <div className="flex flex-wrap bg-alliance-dark/80 p-1 rounded-xl border border-alliance-border/60">
+                {[
+                  { id: 'weekly', label: 'Weekly' },
+                  { id: 'monthly', label: 'Monthly' },
+                  { id: 'annual', label: 'Annual' },
+                  { id: 'custom', label: 'Custom' }
+                ].map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveFilter(item.id as any)}
+                    className={clsx(
+                      "px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 cursor-pointer",
+                      activeFilter === item.id 
+                        ? "bg-alliance-green text-[#092b1d] shadow-[0_2px_10px_rgba(0,168,132,0.2)]" 
+                        : "text-alliance-muted hover:text-white"
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Custom Date Range picker */}
+              {activeFilter === 'custom' && (
+                <div className="flex flex-wrap items-center gap-2 bg-[#122027]/70 border border-alliance-border/40 p-2 rounded-xl animate-in slide-in-from-top-2 duration-300">
+                  <input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={e => setStartDate(e.target.value)}
+                    className="bg-alliance-dark border border-alliance-border/60 text-xs text-white px-2 py-1 rounded outline-none focus:border-alliance-green cursor-pointer"
+                  />
+                  <span className="text-xs text-alliance-muted font-bold">to</span>
+                  <input 
+                    type="date" 
+                    value={endDate} 
+                    onChange={e => setEndDate(e.target.value)}
+                    className="bg-alliance-dark border border-alliance-border/60 text-xs text-white px-2 py-1 rounded outline-none focus:border-alliance-green cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
           </div>
           
           {/* The main responsive grid card */}
-          <div className="flex-1 flex gap-4 mt-2 relative min-h-[260px] w-full">
+          <div className="flex-1 flex gap-2 sm:gap-4 mt-2 relative min-h-[260px] w-full">
             
             {/* Y-Axis labels (left side, like the mock) */}
-            <div className="flex flex-col justify-between h-48 text-[10px] font-extrabold text-alliance-muted/40 uppercase tracking-widest w-12 pb-6 shrink-0 select-none text-right pr-3">
+            <div className="flex flex-col justify-between h-48 text-[10px] font-extrabold text-alliance-muted/40 uppercase tracking-widest w-12 pb-6 shrink-0 select-none text-right pr-2">
               <span>{maxVal}</span>
               <span>{Math.round(maxVal * 0.75)}</span>
               <span>{Math.round(maxVal * 0.5)}</span>
@@ -256,16 +288,15 @@ export default function DashboardPage() {
               </div>
               
               {/* Bars Row */}
-              <div className="absolute inset-0 top-1 bottom-10 left-4 right-4 flex justify-between items-end z-10">
-                {weekdays.map((day, idx) => {
-                  const val = dayValues[idx];
-                  // Highlight if hovered, or if nothing is hovered and it is Today
-                  const isActive = hoveredIdx === idx || (hoveredIdx === null && idx === currentDayIdx);
+              <div className="absolute inset-0 top-1 bottom-10 left-2 right-2 sm:left-4 sm:right-4 flex justify-between items-end z-10">
+                {chartPoints.map((point: any, idx: number) => {
+                  const val = point.value;
+                  const isActive = hoveredIdx === idx || (hoveredIdx === null && point.isToday);
                   const barHeightPercent = (val / maxVal) * 100;
                   
                   return (
                     <div 
-                      key={`bar-group-${day}`}
+                      key={`bar-group-${point.label}-${idx}`}
                       onMouseEnter={() => setHoveredIdx(idx)}
                       onMouseLeave={() => setHoveredIdx(null)}
                       className="flex flex-col items-center justify-end h-full flex-1 group cursor-pointer relative"
@@ -277,7 +308,7 @@ export default function DashboardPage() {
                           isActive ? "opacity-100 scale-100 -translate-y-1 text-white font-extrabold animate-bounce" : "opacity-0 scale-90 translate-y-2"
                         )}
                       >
-                        <span className="bg-[#111b21] border border-[#00a884]/40 px-2 py-0.5 rounded-md text-[#00a884] shadow-lg">
+                        <span className="bg-[#111b21] border border-[#00a884]/45 px-2 py-0.5 rounded-md text-[#00a884] shadow-lg">
                           {val} {val === 1 ? 'chat' : 'chats'}
                         </span>
                       </div>
@@ -285,7 +316,7 @@ export default function DashboardPage() {
                       {/* The Bar itself */}
                       <div 
                         className={clsx(
-                          "w-7 sm:w-10 rounded-t-xl transition-all duration-500 relative overflow-hidden",
+                          "w-5 sm:w-8 md:w-10 rounded-t-lg sm:rounded-t-xl transition-all duration-500 relative overflow-hidden",
                           isActive 
                             ? "bg-gradient-to-t from-[#005c4b] via-[#00a884] to-[#25d366] shadow-[0_0_20px_rgba(0,168,132,0.45)] border border-[#25d366]/30" 
                             : "bg-[#202c33]/45 border border-[#2d3b45]/30 hover:bg-[#00a884]/15 hover:border-[#00a884]/35"
@@ -303,20 +334,20 @@ export default function DashboardPage() {
               </div>
               
               {/* X-Axis labels */}
-              <div className="h-6 mt-auto border-t border-[#222e35]/50 flex justify-between items-center text-[11px] font-extrabold text-alliance-muted tracking-wide px-4 relative z-20 pt-2 shrink-0">
-                {weekdays.map((day, idx) => {
-                  const isToday = idx === currentDayIdx;
+              <div className="h-6 mt-auto border-t border-[#222e35]/50 flex justify-between items-center text-[10px] sm:text-[11px] font-extrabold text-alliance-muted tracking-wide px-2 sm:px-4 relative z-20 pt-2 shrink-0">
+                {chartPoints.map((point: any, idx: number) => {
+                  const isToday = point.isToday;
                   const isHovered = hoveredIdx === idx;
                   return (
                     <div 
-                      key={`axis-${day}`} 
+                      key={`axis-${point.label}-${idx}`} 
                       className={clsx(
-                        "w-12 text-center transition-all duration-200",
+                        "w-12 text-center transition-all duration-200 truncate",
                         isToday ? "text-[#25d366] font-black scale-105" : 
                         isHovered ? "text-[#00a884]" : "text-alliance-muted"
                       )}
                     >
-                      {day}
+                      {point.label}
                     </div>
                   );
                 })}

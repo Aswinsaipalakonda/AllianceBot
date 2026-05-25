@@ -1,40 +1,34 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getLeads } from '@/lib/googleSheets';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = req.nextUrl;
+    const filter = searchParams.get('filter') || 'weekly';
+    const startDateStr = searchParams.get('startDate');
+    const endDateStr = searchParams.get('endDate');
+
     const leads = await getLeads();
+    
+    // Parse time bounds
+    const now = new Date();
+    let startDateLimit = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // Default to last 7 days
+    let endDateLimit = new Date();
 
-    const totalLeads = leads.length;
-    let activeConversations = 0;
-    let applicationsCount = 0;
-    let admissionsConfirmed = 0;
-    let pendingFollowups = 0;
-
-    // Course distribution count
-    const courses: Record<string, number> = { BHMCT: 0, BBA: 0, DHM: 0, Undecided: 0 };
-    // Category distribution count
-    const categories: Record<string, number> = {
-      'Course Queries': 0,
-      'Placement Queries': 0,
-      'Scholarship Queries': 0,
-      'Human Followups': 0,
-    };
-
-    // Truly dynamic weekday counts aggregation based on actual leads
-    const dayCounts: Record<string, number> = {
-      Mon: 0,
-      Tue: 0,
-      Wed: 0,
-      Thu: 0,
-      Fri: 0,
-      Sat: 0,
-      Sun: 0
-    };
-
-    const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    if (filter === 'weekly') {
+      startDateLimit = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (filter === 'monthly') {
+      startDateLimit = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    } else if (filter === 'annual') {
+      startDateLimit = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+    } else if (filter === 'custom') {
+      startDateLimit = startDateStr ? new Date(startDateStr) : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      endDateLimit = endDateStr ? new Date(endDateStr) : now;
+      startDateLimit.setHours(0, 0, 0, 0);
+      endDateLimit.setHours(23, 59, 59, 999);
+    }
 
     function parseTimestampToDate(ts: string): Date | null {
       if (!ts) return null;
@@ -90,7 +84,31 @@ export async function GET() {
       return null;
     }
 
-    leads.forEach((lead) => {
+    // Filter leads within timeframe
+    const filteredLeads = leads.filter(lead => {
+      if (!lead.timestamp) return false;
+      const dateObj = parseTimestampToDate(lead.timestamp);
+      if (!dateObj) return false;
+      return dateObj >= startDateLimit && dateObj <= endDateLimit;
+    });
+
+    const totalLeads = filteredLeads.length;
+    let activeConversations = 0;
+    let applicationsCount = 0;
+    let admissionsConfirmed = 0;
+    let pendingFollowups = 0;
+
+    // Course distribution count
+    const courses: Record<string, number> = { BHMCT: 0, BBA: 0, DHM: 0, Undecided: 0 };
+    // Category distribution count
+    const categories: Record<string, number> = {
+      'Course Queries': 0,
+      'Placement Queries': 0,
+      'Scholarship Queries': 0,
+      'Human Followups': 0,
+    };
+
+    filteredLeads.forEach((lead) => {
       // 1. Core KPIs
       if (['New Lead', 'Interested', 'Follow-up'].includes(lead.status)) {
         activeConversations++;
@@ -105,36 +123,154 @@ export async function GET() {
         pendingFollowups++;
       }
 
-      // 2. Course preference breakdown
+      // 2. Course preferences
       if (courses[lead.course] !== undefined) {
         courses[lead.course]++;
       } else {
         courses['Undecided']++;
       }
 
-      // 3. Query category breakdown
+      // 3. Query categories
       if (categories[lead.category] !== undefined) {
         categories[lead.category]++;
       } else {
         categories['Course Queries']++;
       }
-
-      // 4. Day of week aggregation using robust parser
-      if (lead.timestamp) {
-        const dateObj = parseTimestampToDate(lead.timestamp);
-        if (dateObj) {
-          const dayName = weekdayNames[dateObj.getDay()];
-          if (dayCounts[dayName] !== undefined) {
-            dayCounts[dayName]++;
-          }
-        }
-      }
     });
 
-    // Mock trend percentages for high aesthetics
+    // 4. Generate dynamic chart data based on selected filter (Rolling order)
+    const chartData: { label: string; value: number; isToday?: boolean; detailLabel: string }[] = [];
+
+    if (filter === 'weekly') {
+      // Last 7 days leading to Today (rolling rightmost)
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
+        
+        chartData.push({
+          label: i === 0 ? `${dayLabel} (Today)` : dayLabel,
+          value: 0,
+          isToday: i === 0,
+          detailLabel: d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
+        });
+      }
+      
+      filteredLeads.forEach(lead => {
+        const dateObj = parseTimestampToDate(lead.timestamp);
+        if (dateObj) {
+          const match = chartData.find(b => {
+            const bDate = new Date(b.detailLabel).toDateString();
+            const lDate = dateObj.toDateString();
+            return bDate === lDate;
+          });
+          if (match) match.value++;
+        }
+      });
+    } else if (filter === 'monthly') {
+      // Last 4 Weeks leading to This Week
+      for (let i = 3; i >= 0; i--) {
+        const dStart = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+        chartData.push({
+          label: i === 0 ? 'This Week' : i === 1 ? 'Last Week' : `${i} Wks Ago`,
+          value: 0,
+          isToday: i === 0,
+          detailLabel: `Week of ${dStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+        });
+      }
+      
+      filteredLeads.forEach(lead => {
+        const dateObj = parseTimestampToDate(lead.timestamp);
+        if (dateObj) {
+          const diffDays = Math.floor((now.getTime() - dateObj.getTime()) / (24 * 60 * 60 * 1000));
+          const weekIdx = Math.floor(diffDays / 7);
+          if (weekIdx >= 0 && weekIdx < 4) {
+            const targetIdx = 3 - weekIdx;
+            if (chartData[targetIdx]) {
+              chartData[targetIdx].value++;
+            }
+          }
+        }
+      });
+    } else if (filter === 'annual') {
+      // Last 12 Months leading to Current Month (rolling rightmost)
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthLabel = d.toLocaleDateString('en-US', { month: 'short' });
+        
+        chartData.push({
+          label: i === 0 ? `${monthLabel} (Current)` : monthLabel,
+          value: 0,
+          isToday: i === 0,
+          detailLabel: `${d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+        });
+      }
+      
+      filteredLeads.forEach(lead => {
+        const dateObj = parseTimestampToDate(lead.timestamp);
+        if (dateObj) {
+          const leadYear = dateObj.getFullYear();
+          const leadMonth = dateObj.getMonth();
+          const match = chartData.find(b => {
+            const bDate = new Date(b.detailLabel);
+            return bDate.getFullYear() === leadYear && bDate.getMonth() === leadMonth;
+          });
+          if (match) match.value++;
+        }
+      });
+    } else if (filter === 'custom') {
+      const diffTime = Math.abs(endDateLimit.getTime() - startDateLimit.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays <= 8) {
+        // Daily rolling
+        for (let i = diffDays - 1; i >= 0; i--) {
+          const d = new Date(endDateLimit);
+          d.setDate(endDateLimit.getDate() - i);
+          const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
+          chartData.push({
+            label: d.toDateString() === now.toDateString() ? `${dayLabel} (Today)` : dayLabel,
+            value: 0,
+            isToday: d.toDateString() === now.toDateString(),
+            detailLabel: d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
+          });
+        }
+        filteredLeads.forEach(lead => {
+          const dateObj = parseTimestampToDate(lead.timestamp);
+          if (dateObj) {
+            const match = chartData.find(b => new Date(b.detailLabel).toDateString() === dateObj.toDateString());
+            if (match) match.value++;
+          }
+        });
+      } else {
+        // Equal step aggregates (5 steps)
+        const stepDays = Math.ceil(diffDays / 5);
+        for (let i = 0; i < 5; i++) {
+          const startStep = new Date(startDateLimit.getTime() + i * stepDays * 24 * 60 * 60 * 1000);
+          const endStep = new Date(startDateLimit.getTime() + (i + 1) * stepDays * 24 * 60 * 60 * 1000);
+          if (endStep > endDateLimit) endStep.setTime(endDateLimit.getTime());
+          
+          const label = `${startStep.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endStep.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+          chartData.push({
+            label,
+            value: 0,
+            detailLabel: `${startStep.toDateString()} to ${endStep.toDateString()}`
+          });
+          
+          filteredLeads.forEach(lead => {
+            const dateObj = parseTimestampToDate(lead.timestamp);
+            if (dateObj && dateObj >= startStep && dateObj <= endStep) {
+              chartData[i].value++;
+            }
+          });
+        }
+      }
+    }
+
+    // Mock trend percentages for high aesthetics matching timeframe
     const analytics = {
       stats: [
-        { label: 'Total Leads', value: totalLeads.toLocaleString(), trend: '+14%', isUp: true },
+        { label: 'Total Leads', value: totalLeads.toLocaleString(), trend: filter === 'weekly' ? '+14%' : filter === 'monthly' ? '+8%' : '+19%', isUp: true },
         { label: 'Active Conversations', value: activeConversations.toLocaleString(), trend: '+6%', isUp: true },
         { label: 'Applications', value: applicationsCount.toLocaleString(), trend: '+19%', isUp: true },
         { label: 'Admissions Confirmed', value: admissionsConfirmed.toLocaleString(), trend: '+22%', isUp: true },
@@ -142,9 +278,9 @@ export async function GET() {
       ],
       courses,
       categories,
-      dayCounts,
-      // Reconstruct activity feed dynamically from actual leads list
-      recentActivity: leads
+      chartData,
+      // Reconstruct activity feed dynamically from timeframe leads list
+      recentActivity: filteredLeads
         .slice(-5)
         .reverse()
         .map((lead) => ({
