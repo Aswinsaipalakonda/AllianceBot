@@ -201,262 +201,126 @@ export default function DashboardPage() {
       {/* Charts & Activities Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Redesigned Dynamic Premium SVG Chart */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-[#111b21] to-[#070c0e] border border-alliance-border/70 rounded-2xl p-6 flex flex-col min-h-[420px] backdrop-blur-md relative overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
-          {/* Neon corner flare */}
-          <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-alliance-green/10 blur-3xl pointer-events-none" />
+        {/* Consolidated premium dynamic Bar Chart card, perfectly matching the design mock */}
+        <div className="lg:col-span-2 bg-gradient-to-br from-[#111b21] to-[#070c0e] border border-alliance-border/70 rounded-3xl p-8 flex flex-col min-h-[440px] backdrop-blur-md relative overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+          {/* Subtle neon glow backdrops */}
+          <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-alliance-green/5 blur-3xl pointer-events-none" />
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 relative z-10">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-white tracking-wide">Conversation Volume</h2>
-                <div className="flex items-center gap-1.5 bg-[#00a884]/15 px-2 py-0.5 rounded-full border border-alliance-green/20 text-[9px] text-alliance-green font-extrabold uppercase tracking-wide">
-                  <Zap className="h-2.5 w-2.5 text-alliance-green animate-pulse" /> Live Syncing
-                </div>
+          {/* Header section designed exactly like the mock */}
+          <div className="flex justify-between items-start mb-8 relative z-10">
+            <div className="flex flex-col">
+              <span className="text-[13px] font-bold uppercase text-alliance-muted tracking-widest">Conversation Volume</span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-2 tracking-tight flex items-baseline gap-2">
+                {totalChats} <span className="text-lg font-bold text-alliance-muted">Chats this week</span>
+              </h2>
+              {/* Daily Average details */}
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-alliance-green bg-[#00a884]/10 border border-[#00a884]/20 px-2.5 py-1 rounded-lg font-extrabold tracking-wide flex items-center gap-1">
+                  <Zap className="h-3 w-3 text-alliance-green animate-pulse" />
+                  {averageChats} Daily Avg
+                </span>
+                <span className="text-xs text-alliance-muted font-medium">Automatic CRM Sheet sync</span>
               </div>
-              <p className="text-xs text-alliance-muted font-medium mt-1">Real-time incoming student traffic metrics from Google Sheets</p>
             </div>
             
-            <div className="flex items-center gap-4 bg-alliance-dark/50 border border-alliance-border/50 px-4 py-2 rounded-xl backdrop-blur-sm self-start sm:self-auto">
-              <div className="flex flex-col">
-                <span className="text-[10px] text-alliance-muted font-bold uppercase tracking-wider">Weekly Volume</span>
-                <span className="text-base font-extrabold text-white">{totalChats} chats</span>
-              </div>
-              <div className="h-6 w-px bg-alliance-border/50" />
-              <div className="flex flex-col">
-                <span className="text-[10px] text-alliance-muted font-bold uppercase tracking-wider">Daily Avg</span>
-                <span className="text-base font-extrabold text-alliance-green">{averageChats}</span>
-              </div>
-            </div>
+            <button 
+              onClick={() => setIsTimelineOpen(true)}
+              className="bg-alliance-card border border-alliance-border/60 hover:border-[#00a884]/40 hover:bg-[#00a884]/5 text-white hover:text-alliance-green text-xs font-bold px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer shadow-sm shrink-0"
+            >
+              View Timeline
+            </button>
           </div>
           
-          <div className="flex-1 flex flex-col justify-between relative mt-2 min-h-[240px]">
-            {/* The main relative outer container for coordinates */}
-            <div className="w-full h-64 relative px-6 select-none">
+          {/* The main responsive grid card */}
+          <div className="flex-1 flex gap-4 mt-2 relative min-h-[260px] w-full">
+            
+            {/* Y-Axis labels (left side, like the mock) */}
+            <div className="flex flex-col justify-between h-48 text-[10px] font-extrabold text-alliance-muted/40 uppercase tracking-widest w-12 pb-6 shrink-0 select-none text-right pr-3">
+              <span>{maxVal}</span>
+              <span>{Math.round(maxVal * 0.75)}</span>
+              <span>{Math.round(maxVal * 0.5)}</span>
+              <span>{Math.round(maxVal * 0.25)}</span>
+              <span>0</span>
+            </div>
+            
+            {/* Chart Area */}
+            <div className="flex-1 flex flex-col justify-between relative h-full min-w-0">
               
-              {/* HTML Grid Lines Backdrop */}
-              <div className="absolute inset-0 left-6 right-6 flex flex-col justify-between pointer-events-none z-0">
-                {/* Horizontal baseline, middle, and peak grid lines */}
-                <div className="absolute top-[17.5%] left-0 right-0 border-t border-[#222e35]/35 border-dashed flex justify-between items-center pr-2">
-                  <span className="text-[8px] font-bold text-alliance-muted/40 uppercase tracking-widest bg-[#111b21] px-1.5 py-0.5 rounded -mt-2.5">Peak ({maxVal})</span>
-                </div>
-                <div className="absolute top-[50%] left-0 right-0 border-t border-[#222e35]/35 border-dashed flex justify-between items-center pr-2">
-                  <span className="text-[8px] font-bold text-alliance-muted/40 uppercase tracking-widest bg-[#111b21] px-1.5 py-0.5 rounded -mt-2.5">Mid ({Math.round(maxVal / 2)})</span>
-                </div>
-                <div className="absolute top-[82.5%] left-0 right-0 border-t border-[#222e35]/35 border-dashed flex justify-between items-center pr-2">
-                  <span className="text-[8px] font-bold text-alliance-muted/40 uppercase tracking-widest bg-[#111b21] px-1.5 py-0.5 rounded -mt-2.5">Baseline (0)</span>
-                </div>
+              {/* Grid Lines Overlay */}
+              <div className="absolute inset-0 top-1 bottom-10 left-0 right-0 flex flex-col justify-between pointer-events-none z-0">
+                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
+                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
+                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
+                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
+                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
               </div>
-
-              {/* HTML Column Backgrounds (Hover states) */}
-              <div className="absolute inset-0 left-6 right-6 pointer-events-none z-10">
-                {weekdays.map((_, idx) => {
-                  const leftPercent = (idx / 6) * 100;
-                  const isHovered = hoveredIdx === idx;
-                  const isToday = idx === currentDayIdx;
-                  
-                  if (!isHovered && !isToday) return null;
-                  
-                  return (
-                    <div 
-                      key={`col-highlight-${idx}`}
-                      className={clsx(
-                        "absolute top-0 bottom-0 -translate-x-1/2 w-12 rounded-xl transition-all duration-300 border",
-                        isHovered 
-                          ? "bg-gradient-to-b from-[#00a884]/8 to-transparent border-[#00a884]/20" 
-                          : "bg-gradient-to-b from-[#25d366]/4 to-transparent border-[#25d366]/5"
-                      )}
-                      style={{ left: `${leftPercent}%` }}
-                    />
-                  );
-                })}
-              </div>
-
-              {/* Vertical Grid Lines & Hover Guides */}
-              <div className="absolute inset-y-0 left-6 right-6 pointer-events-none z-10">
-                {weekdays.map((_, idx) => {
-                  const leftPercent = (idx / 6) * 100;
-                  const isHovered = hoveredIdx === idx;
-                  return (
-                    <div 
-                      key={`v-grid-${idx}`}
-                      className={clsx(
-                        "absolute top-0 bottom-0 w-px border-l border-dashed transition-all duration-300",
-                        isHovered ? "border-[#00a884]/40" : "border-[#222e35]/30"
-                      )}
-                      style={{ left: `${leftPercent}%` }}
-                    />
-                  );
-                })}
-              </div>
-
-              {/* Dynamic Interactive HTML Floating Card Tooltip */}
-              {hoveredIdx !== null && (
-                <div 
-                  className="absolute bg-[#111b21]/95 border border-[#00a884]/40 rounded-xl p-3 shadow-2xl backdrop-blur-md z-40 transition-all duration-150 w-36 font-sans text-left"
-                  style={{
-                    left: `calc(24px + (100% - 48px) * ${hoveredIdx / 6} - 72px)`,
-                    top: `${Math.max(10, ((getY(dayValues[hoveredIdx]) / 200) * 100) - 25)}%`,
-                    transform: 'translateY(-100%)',
-                  }}
-                >
-                  {/* Tooltip caret */}
-                  <div className="absolute bottom-[-6px] left-[calc(50%-6px)] w-3 h-3 bg-[#111b21] border-r border-b border-[#00a884]/40 rotate-45" />
-                  
-                  <div className="text-[10px] font-extrabold text-alliance-muted uppercase tracking-wider">
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][hoveredIdx]}
-                  </div>
-                  <div className="text-sm font-black text-white mt-1">
-                    {dayValues[hoveredIdx]} {dayValues[hoveredIdx] === 1 ? 'chat' : 'chats'}
-                  </div>
-                  <div className="text-[9px] text-[#00a884] font-bold mt-0.5">
-                    {totalChats > 0 ? `${((dayValues[hoveredIdx] / totalChats) * 100).toFixed(0)}% of weekly load` : '0% of weekly load'}
-                  </div>
-                </div>
-              )}
-
-              {/* The pure SVG layer for curve drawing only (stretched smoothly) */}
-              <div className="absolute inset-0 left-6 right-6 z-20 pointer-events-none">
-                <svg className="w-full h-full overflow-visible" viewBox="0 0 500 200" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#00a884" stopOpacity="0.35" />
-                      <stop offset="70%" stopColor="#00a884" stopOpacity="0.08" />
-                      <stop offset="100%" stopColor="#00a884" stopOpacity="0.0" />
-                    </linearGradient>
-                    
-                    <linearGradient id="line-grad" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#25d366" />
-                      <stop offset="50%" stopColor="#00a884" />
-                      <stop offset="100%" stopColor="#05c49b" />
-                    </linearGradient>
-                    
-                    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                      <feGaussianBlur stdDeviation="4" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  </defs>
-
-                  {/* Area under the dynamic curve */}
-                  {areaD && (
-                    <path 
-                      d={areaD} 
-                      fill="url(#chart-glow)" 
-                      className="animate-in fade-in duration-500"
-                    />
-                  )}
-
-                  {/* Glowing neon halo backer line */}
-                  {pathD && (
-                    <path 
-                      d={pathD} 
-                      fill="none" 
-                      stroke="url(#line-grad)" 
-                      strokeWidth="8" 
-                      strokeLinecap="round"
-                      opacity="0.25"
-                      filter="url(#neon-glow)"
-                      className="animate-in fade-in duration-500"
-                    />
-                  )}
-
-                  {/* Main Glowing S-Curve Bezier Line */}
-                  {pathD && (
-                    <path 
-                      d={pathD} 
-                      fill="none" 
-                      stroke="url(#line-grad)" 
-                      strokeWidth="3.5" 
-                      strokeLinecap="round"
-                      className="animate-in fade-in duration-500"
-                    />
-                  )}
-                </svg>
-              </div>
-
-              {/* Crisp HTML/CSS perfectly round dots */}
-              <div className="absolute inset-0 left-6 right-6 z-30 pointer-events-none">
+              
+              {/* Bars Row */}
+              <div className="absolute inset-0 top-1 bottom-10 left-4 right-4 flex justify-between items-end z-10">
                 {weekdays.map((day, idx) => {
                   const val = dayValues[idx];
-                  const xPercent = (idx / 6) * 100;
-                  const yPercent = (getY(val) / 200) * 100;
-                  const isHovered = hoveredIdx === idx;
-                  const isToday = idx === currentDayIdx;
+                  // Highlight if hovered, or if nothing is hovered and it is Today
+                  const isActive = hoveredIdx === idx || (hoveredIdx === null && idx === currentDayIdx);
+                  const barHeightPercent = (val / maxVal) * 100;
                   
                   return (
                     <div 
-                      key={`point-container-${day}`}
-                      className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 origin-center flex items-center justify-center"
-                      style={{ 
-                        left: `${xPercent}%`,
-                        top: `${yPercent}%`
-                      }}
+                      key={`bar-group-${day}`}
+                      onMouseEnter={() => setHoveredIdx(idx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                      className="flex flex-col items-center justify-end h-full flex-1 group cursor-pointer relative"
                     >
-                      {/* Interactive hover scale halo */}
+                      {/* Value label directly above active bar */}
                       <div 
                         className={clsx(
-                          "rounded-full transition-all duration-300 flex items-center justify-center",
-                          isHovered 
-                            ? "w-7 h-7 bg-[#25d366]/20 border border-[#25d366]/60 shadow-[0_0_15px_rgba(37,211,102,0.4)]" 
-                            : isToday 
-                              ? "w-6 h-6 bg-[#00a884]/15 border border-[#00a884]/40 shadow-[0_0_10px_rgba(0,168,132,0.2)] animate-pulse"
-                              : "w-5 h-5 bg-[#00a884]/5 border border-[#222d34]"
+                          "absolute -top-7 text-xs font-black text-center whitespace-nowrap transition-all duration-300 pointer-events-none select-none z-30",
+                          isActive ? "opacity-100 scale-100 -translate-y-1 text-white font-extrabold animate-bounce" : "opacity-0 scale-90 translate-y-2"
                         )}
                       >
-                        {/* Crisp inner core dot */}
-                        <div 
-                          className={clsx(
-                            "rounded-full transition-all duration-300",
-                            isHovered 
-                              ? "w-2.5 h-2.5 bg-white shadow-[0_0_8px_rgba(255,255,255,1)]" 
-                              : isToday 
-                                ? "w-2 h-2 bg-[#25d366]" 
-                                : "w-1.5 h-1.5 bg-[#0b141a] border border-[#00a884]"
-                          )}
-                        />
+                        <span className="bg-[#111b21] border border-[#00a884]/40 px-2 py-0.5 rounded-md text-[#00a884] shadow-lg">
+                          {val} {val === 1 ? 'chat' : 'chats'}
+                        </span>
+                      </div>
+                      
+                      {/* The Bar itself */}
+                      <div 
+                        className={clsx(
+                          "w-7 sm:w-10 rounded-t-xl transition-all duration-500 relative overflow-hidden",
+                          isActive 
+                            ? "bg-gradient-to-t from-[#005c4b] via-[#00a884] to-[#25d366] shadow-[0_0_20px_rgba(0,168,132,0.45)] border border-[#25d366]/30" 
+                            : "bg-[#202c33]/45 border border-[#2d3b45]/30 hover:bg-[#00a884]/15 hover:border-[#00a884]/35"
+                        )}
+                        style={{ height: `${Math.max(6, barHeightPercent)}%` }}
+                      >
+                        {/* Shimmer gradient on active bar */}
+                        {isActive && (
+                          <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/15 to-transparent animate-[pulse_2s_infinite]" />
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
-
-              {/* Invisible HTML hover catchers */}
-              <div className="absolute inset-0 left-6 right-6 z-30">
+              
+              {/* X-Axis labels */}
+              <div className="h-6 mt-auto border-t border-[#222e35]/50 flex justify-between items-center text-[11px] font-extrabold text-alliance-muted tracking-wide px-4 relative z-20 pt-2 shrink-0">
                 {weekdays.map((day, idx) => {
-                  const xPercent = (idx / 6) * 100;
+                  const isToday = idx === currentDayIdx;
+                  const isHovered = hoveredIdx === idx;
                   return (
                     <div 
-                      key={`hover-catcher-${day}`}
-                      onMouseEnter={() => setHoveredIdx(idx)}
-                      onMouseLeave={() => setHoveredIdx(null)}
-                      className="absolute top-0 bottom-0 -translate-x-1/2 w-16 cursor-pointer"
-                      style={{ left: `${xPercent}%` }}
-                    />
+                      key={`axis-${day}`} 
+                      className={clsx(
+                        "w-12 text-center transition-all duration-200",
+                        isToday ? "text-[#25d366] font-black scale-105" : 
+                        isHovered ? "text-[#00a884]" : "text-alliance-muted"
+                      )}
+                    >
+                      {day}
+                    </div>
                   );
                 })}
               </div>
-            </div>
-
-            {/* X-Axis labels with active highlights */}
-            <div className="flex justify-between text-[11px] font-bold mt-2 border-t border-[#222e35]/50 pt-3 relative z-10 px-6">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
-                const isToday = idx === currentDayIdx;
-                const label = isToday ? `${day} (Today)` : day;
-                return (
-                  <span 
-                    key={day} 
-                    className={clsx(
-                      "transition-all duration-200 px-2 py-0.5 rounded-md",
-                      isToday ? "text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/35 shadow-[0_0_10px_rgba(0,168,132,0.1)] font-extrabold" : 
-                      hoveredIdx === idx ? "text-alliance-green bg-[#00a884]/10 scale-105" : "text-alliance-muted"
-                    )}
-                  >
-                    {label}
-                  </span>
-                );
-              })}
             </div>
           </div>
         </div>
