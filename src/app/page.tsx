@@ -56,7 +56,7 @@ export default function DashboardPage() {
     showToast('Analytical report downloaded!', 'success');
   };
 
-  const [activeFilter, setActiveFilter] = useState<'weekly' | 'monthly' | 'annual' | 'custom'>('weekly');
+  const [activeFilter, setActiveFilter] = useState<'weekly' | 'monthly' | 'custom'>('weekly');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -205,14 +205,14 @@ export default function DashboardPage() {
               <span className="text-[13px] font-bold uppercase text-alliance-muted tracking-widest">Conversation Volume</span>
               <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-2 tracking-tight flex items-baseline gap-2">
                 {totalChats} <span className="text-lg font-bold text-alliance-muted">
-                  Chats {activeFilter === 'weekly' ? 'this week' : activeFilter === 'monthly' ? 'this month' : activeFilter === 'annual' ? 'this year' : 'in timeframe'}
+                  Chats {activeFilter === 'weekly' ? 'in last 4 weeks' : activeFilter === 'monthly' ? 'in last 4 months' : 'in timeframe'}
                 </span>
               </h2>
               {/* Daily Average details */}
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs text-alliance-green bg-[#00a884]/10 border border-[#00a884]/20 px-2.5 py-1 rounded-lg font-extrabold tracking-wide flex items-center gap-1">
+                <span className="text-xs text-[#00a884] bg-[#00a884]/10 border border-[#00a884]/20 px-2.5 py-1 rounded-lg font-extrabold tracking-wide flex items-center gap-1">
                   <Zap className="h-3 w-3 text-alliance-green animate-pulse" />
-                  {averageChats} {activeFilter === 'annual' ? 'Monthly Avg' : 'Daily Avg'}
+                  {averageChats} {activeFilter === 'weekly' ? 'Weekly Avg' : activeFilter === 'monthly' ? 'Monthly Avg' : 'Daily Avg'}
                 </span>
                 <span className="text-xs text-alliance-muted font-medium">Automatic CRM Sheet sync</span>
               </div>
@@ -224,7 +224,6 @@ export default function DashboardPage() {
                 {[
                   { id: 'weekly', label: 'Weekly' },
                   { id: 'monthly', label: 'Monthly' },
-                  { id: 'annual', label: 'Annual' },
                   { id: 'custom', label: 'Custom' }
                 ].map(item => (
                   <button
@@ -264,10 +263,10 @@ export default function DashboardPage() {
           </div>
           
           {/* The main responsive grid card */}
-          <div className="flex-1 flex gap-2 sm:gap-4 mt-2 relative min-h-[260px] w-full">
+          <div className="flex-1 flex gap-1.5 sm:gap-2.5 mt-2 relative min-h-[260px] w-full">
             
             {/* Y-Axis labels (left side, like the mock) */}
-            <div className="flex flex-col justify-between h-48 text-[10px] font-extrabold text-alliance-muted/40 uppercase tracking-widest w-12 pb-6 shrink-0 select-none text-right pr-2">
+            <div className="flex flex-col justify-between h-48 text-[10px] font-extrabold text-alliance-muted/40 uppercase tracking-widest w-8 pb-6 shrink-0 select-none text-right pr-1.5">
               <span>{maxVal}</span>
               <span>{Math.round(maxVal * 0.75)}</span>
               <span>{Math.round(maxVal * 0.5)}</span>
@@ -334,7 +333,7 @@ export default function DashboardPage() {
               </div>
               
               {/* X-Axis labels */}
-              <div className="h-6 mt-auto border-t border-[#222e35]/50 flex justify-between items-center text-[10px] sm:text-[11px] font-extrabold text-alliance-muted tracking-wide px-2 sm:px-4 relative z-20 pt-2 shrink-0">
+              <div className="h-6 mt-auto border-t border-[#222e35]/50 flex items-center text-[10px] sm:text-[11px] font-extrabold text-alliance-muted tracking-wide px-2 sm:px-4 relative z-20 pt-2 shrink-0">
                 {chartPoints.map((point: any, idx: number) => {
                   const isToday = point.isToday;
                   const isHovered = hoveredIdx === idx;
@@ -342,7 +341,7 @@ export default function DashboardPage() {
                     <div 
                       key={`axis-${point.label}-${idx}`} 
                       className={clsx(
-                        "w-12 text-center transition-all duration-200 truncate",
+                        "flex-1 text-center transition-all duration-200 text-[9px] xs:text-[10px] sm:text-[11px] px-1 leading-normal whitespace-normal break-words",
                         isToday ? "text-[#25d366] font-black scale-105" : 
                         isHovered ? "text-[#00a884]" : "text-alliance-muted"
                       )}

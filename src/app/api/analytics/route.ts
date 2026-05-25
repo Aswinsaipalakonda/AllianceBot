@@ -18,11 +18,11 @@ export async function GET(req: NextRequest) {
     let endDateLimit = new Date();
 
     if (filter === 'weekly') {
-      startDateLimit = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      // 4 weeks (28 days) limit
+      startDateLimit = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
     } else if (filter === 'monthly') {
-      startDateLimit = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    } else if (filter === 'annual') {
-      startDateLimit = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+      // 4 months limit (start of the month 3 months ago)
+      startDateLimit = new Date(now.getFullYear(), now.getMonth() - 3, 1);
     } else if (filter === 'custom') {
       startDateLimit = startDateStr ? new Date(startDateStr) : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       endDateLimit = endDateStr ? new Date(endDateStr) : now;
@@ -142,33 +142,7 @@ export async function GET(req: NextRequest) {
     const chartData: { label: string; value: number; isToday?: boolean; detailLabel: string }[] = [];
 
     if (filter === 'weekly') {
-      // Last 7 days leading to Today (rolling rightmost)
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(now.getDate() - i);
-        const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
-        
-        chartData.push({
-          label: i === 0 ? `${dayLabel} (Today)` : dayLabel,
-          value: 0,
-          isToday: i === 0,
-          detailLabel: d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
-        });
-      }
-      
-      filteredLeads.forEach(lead => {
-        const dateObj = parseTimestampToDate(lead.timestamp);
-        if (dateObj) {
-          const match = chartData.find(b => {
-            const bDate = new Date(b.detailLabel).toDateString();
-            const lDate = dateObj.toDateString();
-            return bDate === lDate;
-          });
-          if (match) match.value++;
-        }
-      });
-    } else if (filter === 'monthly') {
-      // Last 4 Weeks leading to This Week
+      // Last 4 Weeks leading to This Week (last 3 records + current week)
       for (let i = 3; i >= 0; i--) {
         const dStart = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
         chartData.push({
@@ -192,30 +166,28 @@ export async function GET(req: NextRequest) {
           }
         }
       });
-    } else if (filter === 'annual') {
-      // Last 12 Months leading to Current Month (rolling rightmost)
-      for (let i = 11; i >= 0; i--) {
+    } else if (filter === 'monthly') {
+      // Last 4 Months leading to This Month (last 3 records + current month)
+      for (let i = 3; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthLabel = d.toLocaleDateString('en-US', { month: 'short' });
-        
         chartData.push({
-          label: i === 0 ? `${monthLabel} (Current)` : monthLabel,
+          label: i === 0 ? 'This Month' : i === 1 ? 'Last Month' : `${i} Mos Ago`,
           value: 0,
           isToday: i === 0,
-          detailLabel: `${d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+          detailLabel: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         });
       }
       
       filteredLeads.forEach(lead => {
         const dateObj = parseTimestampToDate(lead.timestamp);
         if (dateObj) {
-          const leadYear = dateObj.getFullYear();
-          const leadMonth = dateObj.getMonth();
-          const match = chartData.find(b => {
-            const bDate = new Date(b.detailLabel);
-            return bDate.getFullYear() === leadYear && bDate.getMonth() === leadMonth;
-          });
-          if (match) match.value++;
+          const diffMonths = (now.getFullYear() - dateObj.getFullYear()) * 12 + (now.getMonth() - dateObj.getMonth());
+          if (diffMonths >= 0 && diffMonths < 4) {
+            const targetIdx = 3 - diffMonths;
+            if (chartData[targetIdx]) {
+              chartData[targetIdx].value++;
+            }
+          }
         }
       });
     } else if (filter === 'custom') {
