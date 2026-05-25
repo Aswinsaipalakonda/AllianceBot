@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateOrAddLead, appendToSheet, getLeads, normalizePhone, logChatMessage, getConversationHistory } from '@/lib/googleSheets';
+import { updateOrAddLead, getLeads, normalizePhone, logChatMessage, getConversationHistory } from '@/lib/googleSheets';
 import { classifyMessageAndRespond } from '@/lib/gemini';
 
 function sanitizeButtonText(btn: string): string {
@@ -186,18 +186,16 @@ export async function POST(req: NextRequest) {
           const course = existingLead.course;
           const status = 'Follow-up';
 
-          // Safe, concurrent non-blocking logging in background
-          Promise.all([
-            updateOrAddLead(studentPhone, studentName, course, status, category, messageText),
-            appendToSheet('Human Followups', [
-              [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
-            ]),
-            logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course)
-          ]).then(() => {
+          // Ensure all sheets logging operations are fully completed before returning
+          try {
+            await Promise.all([
+              updateOrAddLead(studentPhone, studentName, course, status, category, messageText),
+              logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course)
+            ]);
             console.log(`Successfully logged incoming human-mode message from ${studentName} for counselor follow-up.`);
-          }).catch(err => {
+          } catch (err: any) {
             console.error(`Error logging human-mode message from ${studentName}:`, err.message);
-          });
+          }
 
           // Skip sending automatic reply
           continue;
@@ -242,47 +240,25 @@ export async function POST(req: NextRequest) {
           await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons);
         }
 
-        // B. Perform all slow Google Sheets logging operations concurrently in the background
-        const buttonsSuffix = suggestedButtons && suggestedButtons.length > 0
-          ? `\n\n[Buttons: ${suggestedButtons.join(', ')}]`
-          : '';
-        const replyTextForSheet = replyText + buttonsSuffix;
-
-        Promise.all([
-          logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course).catch(e => console.error("Error logging user chat:", e.message)),
-          logChatMessage(studentPhone, studentName, 'bot', replyText, suggestedButtons, category, course).catch(e => console.error("Error logging bot chat:", e.message)),
-          updateOrAddLead(
-            studentPhone, 
-            studentName, 
-            course, 
-            status, 
-            category, 
-            messageText, 
-            isBotReEngagement ? true : undefined
-          ).catch(e => console.error("Error updating lead:", e.message)),
-          (async () => {
-            try {
-              if (category === 'Course Queries') {
-                await appendToSheet('Course Queries', [[timestamp, studentPhone, course, messageText, replyTextForSheet]]);
-              } else if (category === 'Placement Queries') {
-                await appendToSheet('Placement Queries', [[timestamp, studentPhone, messageText, replyTextForSheet]]);
-              } else if (category === 'Scholarship Queries') {
-                await appendToSheet('Scholarship Queries', [[timestamp, studentPhone, messageText, replyTextForSheet]]);
-              } else if (category === 'Human Followups') {
-                await appendToSheet('Human Followups', [
-                  [timestamp, 'Unassigned Counselor', studentPhone, `Student Message: ${messageText}`, 'Awaiting Human Counselor'],
-                  [timestamp, 'AI Assistant', studentPhone, 'Counselor Reply', replyTextForSheet],
-                ]);
-              }
-            } catch (e: any) {
-              console.error("Error appending to category sheet:", e.message);
-            }
-          })()
-        ]).then(() => {
-          console.log(`All sheets logging successfully completed in background for ${studentPhone}`);
-        }).catch(err => {
-          console.error("Background logging to Google Sheets failed:", err.message);
-        });
+        // B. Ensure all master sheets logging operations are fully completed before returning
+        try {
+          await Promise.all([
+            logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course).catch(e => console.error("Error logging user chat:", e.message)),
+            logChatMessage(studentPhone, studentName, 'bot', replyText, suggestedButtons, category, course).catch(e => console.error("Error logging bot chat:", e.message)),
+            updateOrAddLead(
+              studentPhone, 
+              studentName, 
+              course, 
+              status, 
+              category, 
+              messageText, 
+              isBotReEngagement ? true : undefined
+            ).catch(e => console.error("Error updating lead:", e.message))
+          ]);
+          console.log(`All master sheets logging successfully completed for ${studentPhone}`);
+        } catch (err: any) {
+          console.error("Logging to Google Sheets failed:", err.message);
+        }
       }
     }
 

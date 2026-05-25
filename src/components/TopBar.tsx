@@ -205,6 +205,7 @@ export function TopBar() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
+            suppressHydrationWarning
             className="block w-full pl-10 pr-12 py-2 bg-alliance-dark border border-alliance-border rounded-lg text-sm text-alliance-text placeholder-alliance-muted focus:outline-none focus:border-alliance-green focus:ring-1 focus:ring-alliance-green transition-all"
           />
           <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
@@ -224,6 +225,7 @@ export function TopBar() {
           <button
             type="button"
             onClick={() => setShowNotifications(!showNotifications)}
+            suppressHydrationWarning
             className="relative text-alliance-muted hover:text-white transition-colors cursor-pointer"
             aria-expanded={showNotifications}
             aria-haspopup="true"

@@ -542,9 +542,6 @@ export async function logCounselorReply(phone: string, counselorName: string, me
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
     const timestamp = new Date().toISOString(); // Save standard ISO UTC string
 
-    // 1. Log manual entry into Human Followups
-    await appendToSheet('Human Followups', [[timestamp, counselorName, phone, 'Counselor Reply', message]]);
-
     // 2. Fetch student's Name and Course to perform single-cell update on Admissions Leads
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,

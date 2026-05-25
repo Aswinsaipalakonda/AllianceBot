@@ -198,7 +198,7 @@ export function generateOfflineReply(messageText: string) {
 
   // Default Fallback
   return {
-    replyText: "Thanks for reaching out to *Alliance College of Hotel Management* (affiliated to Andhra University)! 🎓👋\n\nI am the Senior Admissions Officer. I can answer questions about our BBA, BHMCT, DHM, PGDHM, and PGDBM courses, placements, scholarship criteria, or hostel facilities.\n\nWhat would you like to know?",
+    replyText: "Welcome to *Alliance College of Hotel Management* (affiliated to Andhra University)! 🎓👋\n\nI am the Senior Admissions Officer here. I can answer questions about our BBA, BHMCT, DHM, PGDHM, and PGDBM courses, placements, scholarship criteria, or hostel facilities.\n\nWhat would you like to know?",
     category: "Course Queries",
     course: "Undecided",
     status: "New Lead",
@@ -398,7 +398,7 @@ Strict Guidelines to Follow for CRM Classification:
 3. "status": One of "New Lead", "Interested", "Follow-up", "Applied", "Converted". (Defaults to "Interested" unless it is a simple greeting which is "New Lead").
 
 Strict Guidelines to Follow for WhatsApp Reply:
-1. Speak as the Senior Admissions Officer: Be helpful, warm, concise, and highly professional. Avoid repetitive answers.
+1. Speak as the Senior Admissions Officer: Be helpful, warm, concise, and highly professional. Avoid repetitive answers. Always start greetings or introductory replies with a warm welcome or greeting to the user (e.g., "Welcome to *Alliance College of Hotel Management* (affiliated to Andhra University)!" or "Warm greetings!"), and NEVER start with "Thanks for reaching out".
 2. Highlighting College Name: When writing the college name in highlights, write it exactly as: *Alliance College of Hotel Management* (affiliated to Andhra University).
 3. Full Course Names: When mentioning courses, always show the full course name first followed by the abbreviation in brackets. For example:
    - "Bachelor of Hospitality Management & Catering Technology (BHMCT)" (Duration is 3 Years)

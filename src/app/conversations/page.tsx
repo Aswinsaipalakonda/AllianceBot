@@ -107,8 +107,25 @@ function ConversationsContent() {
   const [messages, setMessages] = useState<any[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showRightPane, setShowRightPane] = useState(false);
   const [loadingLeads, setLoadingLeads] = useState(true);
+
+  const showRightPane = searchParams.get('about') === 'true';
+
+  const setShowRightPane = (val: boolean) => {
+    const params = new URLSearchParams(window.location.search);
+    if (val) {
+      params.set('about', 'true');
+      router.push(`/conversations?${params.toString()}`);
+    } else {
+      if (searchParams.get('about') === 'true') {
+        router.back();
+      } else {
+        params.delete('about');
+        router.replace(`/conversations?${params.toString()}`);
+      }
+    }
+  };
+
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [togglingAI, setTogglingAI] = useState(false);
