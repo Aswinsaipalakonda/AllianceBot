@@ -229,20 +229,78 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          <div className="flex-1 flex flex-col justify-between relative mt-2 min-h-[220px]">
-            {/* Custom SVG Line Chart with Premium Gradients & Cyber Styling */}
-            <div className="w-full h-64 relative">
+          <div className="flex-1 flex flex-col justify-between relative mt-2 min-h-[240px]">
+            {/* The main relative outer container for coordinates */}
+            <div className="w-full h-64 relative px-6 select-none">
+              
+              {/* HTML Grid Lines Backdrop */}
+              <div className="absolute inset-0 left-6 right-6 flex flex-col justify-between pointer-events-none z-0">
+                {/* Horizontal baseline, middle, and peak grid lines */}
+                <div className="absolute top-[17.5%] left-0 right-0 border-t border-[#222e35]/35 border-dashed flex justify-between items-center pr-2">
+                  <span className="text-[8px] font-bold text-alliance-muted/40 uppercase tracking-widest bg-[#111b21] px-1.5 py-0.5 rounded -mt-2.5">Peak ({maxVal})</span>
+                </div>
+                <div className="absolute top-[50%] left-0 right-0 border-t border-[#222e35]/35 border-dashed flex justify-between items-center pr-2">
+                  <span className="text-[8px] font-bold text-alliance-muted/40 uppercase tracking-widest bg-[#111b21] px-1.5 py-0.5 rounded -mt-2.5">Mid ({Math.round(maxVal / 2)})</span>
+                </div>
+                <div className="absolute top-[82.5%] left-0 right-0 border-t border-[#222e35]/35 border-dashed flex justify-between items-center pr-2">
+                  <span className="text-[8px] font-bold text-alliance-muted/40 uppercase tracking-widest bg-[#111b21] px-1.5 py-0.5 rounded -mt-2.5">Baseline (0)</span>
+                </div>
+              </div>
+
+              {/* HTML Column Backgrounds (Hover states) */}
+              <div className="absolute inset-0 left-6 right-6 pointer-events-none z-10">
+                {weekdays.map((_, idx) => {
+                  const leftPercent = (idx / 6) * 100;
+                  const isHovered = hoveredIdx === idx;
+                  const isToday = idx === currentDayIdx;
+                  
+                  if (!isHovered && !isToday) return null;
+                  
+                  return (
+                    <div 
+                      key={`col-highlight-${idx}`}
+                      className={clsx(
+                        "absolute top-0 bottom-0 -translate-x-1/2 w-12 rounded-xl transition-all duration-300 border",
+                        isHovered 
+                          ? "bg-gradient-to-b from-[#00a884]/8 to-transparent border-[#00a884]/20" 
+                          : "bg-gradient-to-b from-[#25d366]/4 to-transparent border-[#25d366]/5"
+                      )}
+                      style={{ left: `${leftPercent}%` }}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Vertical Grid Lines & Hover Guides */}
+              <div className="absolute inset-y-0 left-6 right-6 pointer-events-none z-10">
+                {weekdays.map((_, idx) => {
+                  const leftPercent = (idx / 6) * 100;
+                  const isHovered = hoveredIdx === idx;
+                  return (
+                    <div 
+                      key={`v-grid-${idx}`}
+                      className={clsx(
+                        "absolute top-0 bottom-0 w-px border-l border-dashed transition-all duration-300",
+                        isHovered ? "border-[#00a884]/40" : "border-[#222e35]/30"
+                      )}
+                      style={{ left: `${leftPercent}%` }}
+                    />
+                  );
+                })}
+              </div>
+
               {/* Dynamic Interactive HTML Floating Card Tooltip */}
               {hoveredIdx !== null && (
                 <div 
-                  className="absolute pointer-events-none bg-[#111b21]/95 border border-alliance-green/40 rounded-xl p-3 shadow-2xl backdrop-blur-md z-40 transition-all duration-150 w-36 font-sans text-left"
+                  className="absolute bg-[#111b21]/95 border border-[#00a884]/40 rounded-xl p-3 shadow-2xl backdrop-blur-md z-40 transition-all duration-150 w-36 font-sans text-left"
                   style={{
-                    left: `calc(${(hoveredIdx * 100) / 6}% - 72px)`,
-                    top: `${Math.max(10, getY(dayValues[hoveredIdx]) - 80)}px`,
+                    left: `calc(24px + (100% - 48px) * ${hoveredIdx / 6} - 72px)`,
+                    top: `${Math.max(10, ((getY(dayValues[hoveredIdx]) / 200) * 100) - 25)}%`,
+                    transform: 'translateY(-100%)',
                   }}
                 >
                   {/* Tooltip caret */}
-                  <div className="absolute bottom-[-6px] left-[calc(50%-6px)] w-3 h-3 bg-[#111b21] border-r border-b border-alliance-green/40 rotate-45" />
+                  <div className="absolute bottom-[-6px] left-[calc(50%-6px)] w-3 h-3 bg-[#111b21] border-r border-b border-[#00a884]/40 rotate-45" />
                   
                   <div className="text-[10px] font-extrabold text-alliance-muted uppercase tracking-wider">
                     {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][hoveredIdx]}
@@ -250,207 +308,139 @@ export default function DashboardPage() {
                   <div className="text-sm font-black text-white mt-1">
                     {dayValues[hoveredIdx]} {dayValues[hoveredIdx] === 1 ? 'chat' : 'chats'}
                   </div>
-                  <div className="text-[9px] text-alliance-green font-bold mt-0.5">
+                  <div className="text-[9px] text-[#00a884] font-bold mt-0.5">
                     {totalChats > 0 ? `${((dayValues[hoveredIdx] / totalChats) * 100).toFixed(0)}% of weekly load` : '0% of weekly load'}
                   </div>
                 </div>
               )}
 
-              <svg className="w-full h-full" viewBox="0 0 500 200" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00a884" stopOpacity="0.35" />
-                    <stop offset="70%" stopColor="#00a884" stopOpacity="0.08" />
-                    <stop offset="100%" stopColor="#00a884" stopOpacity="0.0" />
-                  </linearGradient>
-                  
-                  <linearGradient id="line-grad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#25d366" />
-                    <stop offset="50%" stopColor="#00a884" />
-                    <stop offset="100%" stopColor="#05c49b" />
-                  </linearGradient>
+              {/* The pure SVG layer for curve drawing only (stretched smoothly) */}
+              <div className="absolute inset-0 left-6 right-6 z-20 pointer-events-none">
+                <svg className="w-full h-full overflow-visible" viewBox="0 0 500 200" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#00a884" stopOpacity="0.35" />
+                      <stop offset="70%" stopColor="#00a884" stopOpacity="0.08" />
+                      <stop offset="100%" stopColor="#00a884" stopOpacity="0.0" />
+                    </linearGradient>
+                    
+                    <linearGradient id="line-grad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#25d366" />
+                      <stop offset="50%" stopColor="#00a884" />
+                      <stop offset="100%" stopColor="#05c49b" />
+                    </linearGradient>
+                    
+                    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="4" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
 
-                  <linearGradient id="column-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00a884" stopOpacity="0.1" />
-                    <stop offset="100%" stopColor="#00a884" stopOpacity="0.0" />
-                  </linearGradient>
-
-                  <linearGradient id="today-column-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#25d366" stopOpacity="0.06" />
-                    <stop offset="100%" stopColor="#25d366" stopOpacity="0.0" />
-                  </linearGradient>
-                  
-                  <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="4" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-
-                {/* Horizontal Grid Lines */}
-                <line x1="0" y1="35" x2="500" y2="35" stroke="#222e35" strokeOpacity="0.45" strokeDasharray="4 4" />
-                <line x1="0" y1="100" x2="500" y2="100" stroke="#222e35" strokeOpacity="0.45" strokeDasharray="4 4" />
-                <line x1="0" y1="165" x2="500" y2="165" stroke="#222e35" strokeOpacity="0.45" strokeDasharray="4 4" />
-
-                {/* Inline Axis text labels for professional telemetry detail */}
-                <text x="495" y="30" textAnchor="end" className="fill-alliance-muted/40 text-[8px] font-extrabold uppercase tracking-widest pointer-events-none">Peak ({maxVal})</text>
-                <text x="495" y="95" textAnchor="end" className="fill-alliance-muted/40 text-[8px] font-extrabold uppercase tracking-widest pointer-events-none">Mid ({Math.round(maxVal / 2)})</text>
-                <text x="495" y="160" textAnchor="end" className="fill-alliance-muted/40 text-[8px] font-extrabold uppercase tracking-widest pointer-events-none">Baseline (0)</text>
-
-                {/* Vertical Grid Lines at Day Steps */}
-                {weekdays.map((_, idx) => {
-                  const x = (idx * 500) / 6;
-                  return (
-                    <line 
-                      key={`v-grid-${idx}`} 
-                      x1={x} 
-                      y1="25" 
-                      x2={x} 
-                      y2="175" 
-                      stroke="#222e35" 
-                      strokeOpacity={hoveredIdx === idx ? "0.6" : "0.2"} 
-                      strokeWidth={hoveredIdx === idx ? "1.5" : "1"}
-                      strokeDasharray="3 3"
-                      className="transition-all duration-300"
+                  {/* Area under the dynamic curve */}
+                  {areaD && (
+                    <path 
+                      d={areaD} 
+                      fill="url(#chart-glow)" 
+                      className="animate-in fade-in duration-500"
                     />
-                  );
-                })}
+                  )}
 
-                {/* Column highlights (Backdrops) */}
-                {weekdays.map((_, idx) => {
-                  const x = (idx * 500) / 6;
-                  const isHovered = hoveredIdx === idx;
-                  const isToday = idx === currentDayIdx;
-                  
-                  if (!isHovered && !isToday) return null;
-                  
-                  return (
-                    <rect 
-                      key={`col-bg-${idx}`}
-                      x={x - 28} 
-                      y="15" 
-                      width="56" 
-                      height="180" 
-                      rx="8"
-                      fill={isHovered ? "url(#column-grad)" : "url(#today-column-grad)"}
-                      stroke={isHovered ? "rgba(0, 168, 132, 0.18)" : "rgba(37, 211, 102, 0.05)"}
-                      strokeWidth="1"
-                      className="transition-all duration-300 pointer-events-none"
+                  {/* Glowing neon halo backer line */}
+                  {pathD && (
+                    <path 
+                      d={pathD} 
+                      fill="none" 
+                      stroke="url(#line-grad)" 
+                      strokeWidth="8" 
+                      strokeLinecap="round"
+                      opacity="0.25"
+                      filter="url(#neon-glow)"
+                      className="animate-in fade-in duration-500"
                     />
-                  );
-                })}
+                  )}
 
-                {/* Area under the dynamic curve */}
-                {areaD && (
-                  <path 
-                    d={areaD} 
-                    fill="url(#chart-glow)" 
-                    className="animate-in fade-in duration-500"
-                  />
-                )}
-
-                {/* Glowing neon halo backer line */}
-                {pathD && (
-                  <path 
-                    d={pathD} 
-                    fill="none" 
-                    stroke="url(#line-grad)" 
-                    strokeWidth="8" 
-                    strokeLinecap="round"
-                    opacity="0.25"
-                    filter="url(#neon-glow)"
-                    className="animate-in fade-in duration-500"
-                  />
-                )}
-
-                {/* Main Glowing S-Curve Bezier Line */}
-                {pathD && (
-                  <path 
-                    d={pathD} 
-                    fill="none" 
-                    stroke="url(#line-grad)" 
-                    strokeWidth="3.5" 
-                    strokeLinecap="round"
-                    className="animate-in fade-in duration-500"
-                  />
-                )}
-
-                {/* Dynamic Hover Vertical Column Guides */}
-                {hoveredIdx !== null && (
-                  <g className="pointer-events-none">
-                    <line 
-                      x1={(hoveredIdx * 500) / 6} 
-                      y1="20" 
-                      x2={(hoveredIdx * 500) / 6} 
-                      y2="190" 
-                      stroke="#00a884" 
-                      strokeOpacity="0.3" 
-                      strokeWidth="1.5" 
+                  {/* Main Glowing S-Curve Bezier Line */}
+                  {pathD && (
+                    <path 
+                      d={pathD} 
+                      fill="none" 
+                      stroke="url(#line-grad)" 
+                      strokeWidth="3.5" 
+                      strokeLinecap="round"
+                      className="animate-in fade-in duration-500"
                     />
-                    <circle 
-                      cx={(hoveredIdx * 500) / 6} 
-                      cy={getY(dayValues[hoveredIdx])} 
-                      r="12" 
-                      fill="#00a884" 
-                      fillOpacity="0.15" 
-                      className="animate-ping origin-center"
-                    />
-                  </g>
-                )}
+                  )}
+                </svg>
+              </div>
 
-                {/* Interactive Points Grid */}
+              {/* Crisp HTML/CSS perfectly round dots */}
+              <div className="absolute inset-0 left-6 right-6 z-30 pointer-events-none">
                 {weekdays.map((day, idx) => {
-                  const x = (idx * 500) / 6;
                   const val = dayValues[idx];
-                  const y = getY(val);
+                  const xPercent = (idx / 6) * 100;
+                  const yPercent = (getY(val) / 200) * 100;
                   const isHovered = hoveredIdx === idx;
                   const isToday = idx === currentDayIdx;
+                  
                   return (
-                    <g 
-                      key={`point-${day}`} 
+                    <div 
+                      key={`point-container-${day}`}
+                      className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 origin-center flex items-center justify-center"
+                      style={{ 
+                        left: `${xPercent}%`,
+                        top: `${yPercent}%`
+                      }}
+                    >
+                      {/* Interactive hover scale halo */}
+                      <div 
+                        className={clsx(
+                          "rounded-full transition-all duration-300 flex items-center justify-center",
+                          isHovered 
+                            ? "w-7 h-7 bg-[#25d366]/20 border border-[#25d366]/60 shadow-[0_0_15px_rgba(37,211,102,0.4)]" 
+                            : isToday 
+                              ? "w-6 h-6 bg-[#00a884]/15 border border-[#00a884]/40 shadow-[0_0_10px_rgba(0,168,132,0.2)] animate-pulse"
+                              : "w-5 h-5 bg-[#00a884]/5 border border-[#222d34]"
+                        )}
+                      >
+                        {/* Crisp inner core dot */}
+                        <div 
+                          className={clsx(
+                            "rounded-full transition-all duration-300",
+                            isHovered 
+                              ? "w-2.5 h-2.5 bg-white shadow-[0_0_8px_rgba(255,255,255,1)]" 
+                              : isToday 
+                                ? "w-2 h-2 bg-[#25d366]" 
+                                : "w-1.5 h-1.5 bg-[#0b141a] border border-[#00a884]"
+                          )}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Invisible HTML hover catchers */}
+              <div className="absolute inset-0 left-6 right-6 z-30">
+                {weekdays.map((day, idx) => {
+                  const xPercent = (idx / 6) * 100;
+                  return (
+                    <div 
+                      key={`hover-catcher-${day}`}
                       onMouseEnter={() => setHoveredIdx(idx)}
                       onMouseLeave={() => setHoveredIdx(null)}
-                      className="cursor-pointer"
-                    >
-                      {/* Transparent larger hover catcher */}
-                      <circle 
-                        cx={x} 
-                        cy={y} 
-                        r="22" 
-                        fill="transparent" 
-                      />
-                      
-                      {/* Ambient Glow Outer Ring */}
-                      <circle 
-                        cx={x} 
-                        cy={y} 
-                        r={isHovered ? "9" : isToday ? "8" : "6"} 
-                        fill={isHovered ? "rgba(37, 211, 102, 0.22)" : isToday ? "rgba(0, 168, 132, 0.15)" : "rgba(0, 168, 132, 0.05)"}
-                        stroke={isHovered ? "#25d366" : isToday ? "#00a884" : "#222d34"}
-                        strokeWidth={isHovered ? "1.5" : isToday ? "1.5" : "1"}
-                        className="transition-all duration-300 transform origin-center"
-                      />
-
-                      {/* Crisp Inner Dot */}
-                      <circle 
-                        cx={x} 
-                        cy={y} 
-                        r={isHovered ? "4" : isToday ? "3.5" : "3"} 
-                        fill={isHovered ? "#ffffff" : isToday ? "#25d366" : "#0b141a"}
-                        stroke={isToday || isHovered ? "none" : "#00a884"}
-                        strokeWidth={isToday || isHovered ? "0" : "1.5"}
-                        className="transition-all duration-300 transform origin-center"
-                      />
-                    </g>
+                      className="absolute top-0 bottom-0 -translate-x-1/2 w-16 cursor-pointer"
+                      style={{ left: `${xPercent}%` }}
+                    />
                   );
                 })}
-              </svg>
+              </div>
             </div>
 
             {/* X-Axis labels with active highlights */}
-            <div className="flex justify-between text-[11px] font-bold mt-2 border-t border-[#222e35]/50 pt-3 relative z-10">
+            <div className="flex justify-between text-[11px] font-bold mt-2 border-t border-[#222e35]/50 pt-3 relative z-10 px-6">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
                 const isToday = idx === currentDayIdx;
                 const label = isToday ? `${day} (Today)` : day;
