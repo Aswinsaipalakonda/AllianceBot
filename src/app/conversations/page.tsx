@@ -445,14 +445,18 @@ function ConversationsContent() {
             <h1 className="text-white text-lg font-bold">Chats</h1>
           </div>
           <div className="flex items-center gap-3.5 text-[#aebac1]">
-            <button onClick={() => fetchLeads(activePhone || undefined)} title="Sync Leads List" className="cursor-pointer hover:text-white transition-all">
+            <button 
+              onClick={() => {
+                showToast('Refreshing conversations list...', 'info');
+                fetchLeads(activePhone || undefined);
+                if (activePhone) {
+                  fetchMessages(activePhone, true);
+                }
+              }} 
+              title="Sync Leads List" 
+              className="cursor-pointer hover:text-white transition-all p-1 rounded hover:bg-[#2a3942]"
+            >
               <RefreshCw className="h-4.5 w-4.5 hover:rotate-180 duration-500" />
-            </button>
-            <button onClick={() => { if (activePhone) { showToast('Opening WhatsApp...', 'info'); window.open('https://wa.me/' + activePhone, '_blank'); } }} title="Open in WhatsApp" className="cursor-pointer hover:text-white transition-colors">
-              <MessageSquare className="h-5 w-5" />
-            </button>
-            <button onClick={() => showToast('Chat options coming soon!', 'info')} title="More Options" className="cursor-pointer hover:text-white transition-colors">
-              <MoreVertical className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -493,7 +497,7 @@ function ConversationsContent() {
         </div>
 
         {/* Scrollable list of students */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#111b21]">
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#111b21] pb-28 md:pb-0">
           {sortedLeads.map(lead => {
             const isActive = lead.phone === activePhone;
             const initials = lead.name.substring(0, 2).toUpperCase();
