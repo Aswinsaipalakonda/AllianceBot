@@ -242,8 +242,12 @@ export async function POST(req: NextRequest) {
 
         // B. Ensure all master sheets logging operations are fully completed before returning
         try {
+          // Log user message sequentially to prevent concurrent append race conditions on the same 'Chat Log' sheet
+          await logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course)
+            .catch(e => console.error("Error logging user chat:", e.message));
+          
+          // Log bot message and update the lead in parallel (different sheets, so completely safe and race-free)
           await Promise.all([
-            logChatMessage(studentPhone, studentName, 'user', messageText, [], category, course).catch(e => console.error("Error logging user chat:", e.message)),
             logChatMessage(studentPhone, studentName, 'bot', replyText, suggestedButtons, category, course).catch(e => console.error("Error logging bot chat:", e.message)),
             updateOrAddLead(
               studentPhone, 
