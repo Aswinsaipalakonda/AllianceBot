@@ -67,7 +67,7 @@ export function generateOfflineReply(messageText: string) {
       replyText: "Ready to launch your global career? 🚀 Admissions are open for the new batch at *Alliance College of Hotel Management* (affiliated to Andhra University)!\n\nHere is our simple 2-step admissions process:\n1️⃣ Click the link to fill the online application form:\n📝 *Apply Now*: https://forms.gle/FxpcHjSCLLrkhZkPA\n\n2️⃣ Upload your documents (10th/12th marksheets, ID proof) inside the form and click Submit to secure your admission! *(No registration fee required!)*\n\nWould you like to explore our scholarships or speak to a counselor?",
       category: "Course Queries",
       course: "Undecided",
-      status: "Applied",
+      status: "Interested",
       suggestedButtons: ["Explore Courses", "Scholarships", "Talk to Counselor"]
     };
   }
@@ -92,20 +92,30 @@ export function generateOfflineReply(messageText: string) {
 
   // 4. Course Details & Eligibility Queries
   const isBba = text.includes('bba') || text.includes('business administration');
-  const isBhmct = text.includes('bhmct') || text.includes('hospitality management') || text.includes('catering');
+  const isBhmct = text.includes('bhmct') || text.includes('hotel management & catering technology') || text.includes('catering technology') || text.includes('bachelors in hotel');
   const isDhm = text.includes('dhm') || text.includes('diploma in hotel') || text.includes('diploma in hospitality');
-  const isPgdhm = text.includes('pgdhm') || text.includes('post graduate diploma in hotel');
+  const isPgdhm = text.includes('pgdhm') || text.includes('pgdttm') || text.includes('tourism') || text.includes('travel') || text.includes('post graduate diploma in hotel');
   const isPgdbm = text.includes('pgdbm') || text.includes('post graduate diploma in business');
+  const isIntermediate = text.includes('intermediate') && (text.includes('hotel') || text.includes('catering') || text.includes('ihmt'));
   const isMoreCourses = text === 'more courses' || text === 'other courses' || text.includes('more courses');
 
-  if (text.includes('course') || text.includes('degree') || text.includes('program') || text.includes('eligibility') || text.includes('duration') || isBba || isBhmct || isDhm || isPgdhm || isPgdbm || isMoreCourses) {
+  if (text.includes('course') || text.includes('degree') || text.includes('program') || text.includes('eligibility') || text.includes('duration') || isBba || isBhmct || isDhm || isPgdhm || isPgdbm || isIntermediate || isMoreCourses) {
     if (isMoreCourses) {
       return {
-        replyText: "Certainly! Here are our other highly popular diploma and postgraduate management programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n3. *Diploma in Hotel Management (DHM)* - 1 Year\n4. *Post Graduate Diploma in Hotel Management (PGDHM)* - 1 Year\n5. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or tell me your interests!",
+        replyText: "Certainly! Here are our other highly popular intermediate, diploma, and postgraduate management programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Intermediate in Hotel Management and Catering Technology* - 2 Years\n3. *Diploma in Hotel Management (DHM)* - 1 Year\n4. *Post Graduate Diploma in Hotel Management (PGDHM) / Tourism & Travel Management (PGDTTM)* - 1 Year\n5. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or tell me your interests!",
         category: "Course Queries",
         course: "Undecided",
         status: "Interested",
         suggestedButtons: ["DHM Details", "PGDHM Details", "PGDBM Details"]
+      };
+    } else if (isIntermediate) {
+      return {
+        replyText: "Our *Intermediate in Hotel Management and Catering Technology* is a foundational 2-year full-time program at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏨✨\n\n• *Duration*: 2 Years (Full-Time)\n• *Eligibility*: Pass in 10th Class.\n• *Overview*: Foundational grounding in hospitality basics, catering science, and culinary fundamentals.\n\nWould you like to start your application now or speak with a counselor?",
+        category: "Course Queries",
+        course: "Undecided",
+        status: "Interested",
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
+        sendCourseImage: "hotel"
       };
     } else if (isBba) {
       return {
@@ -113,12 +123,12 @@ export function generateOfflineReply(messageText: string) {
         category: "Course Queries",
         course: "BBA",
         status: "Interested",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         sendCourseImage: "bba"
       };
     } else if (isBhmct) {
       return {
-        replyText: "Our *Bachelor of Hospitality Management & Catering Technology (BHMCT)* is a professional 3-year full-time degree at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏨🍳\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) in any stream.\n• *Overview*: Comprehensive training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in luxury 5-star hotels.\n\nWould you like to check out placement partners or start your application?",
+        replyText: "Our *Bachelor of Hotel Management & Catering Technology (BHMCT)* is a professional 3-year full-time degree at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏨🍳\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) with any stream/discipline.\n• *Overview*: Comprehensive professional training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in multinational corporate companies. \n\nWould you like to check out placement partners or start your application?",
         category: "Course Queries",
         course: "BHMCT",
         status: "Interested",
@@ -131,30 +141,30 @@ export function generateOfflineReply(messageText: string) {
         category: "Course Queries",
         course: "DHM",
         status: "Interested",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         sendCourseImage: "hotel"
       };
     } else if (isPgdhm) {
       return {
-        replyText: "Our *Post Graduate Diploma in Hotel Management (PGDHM)* is an advanced 1-year professional course at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏢🎓\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any recognized university in any stream.\n• *Overview*: Designed for graduates seeking leadership and specialized administration roles in global luxury hotels and catering industries.\n\nWould you like to start your application or speak with a counselor?",
+        replyText: "Our *Post Graduate Diploma in Hotel Management (PGDHM) / Post Graduate Diploma in Tourism & Travel Management (PGDTTM)* is an advanced 1-year professional course at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏢🎓\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Pass in Degree (Graduation) from any recognized university.\n• *Overview*: Advanced professional leadership training in hospitality administration, global tourism, and travel management for graduates.\n\nWould you like to start your application or speak with a counselor?",
         category: "Course Queries",
         course: "PGDHM",
         status: "Interested",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         sendCourseImage: "hotel"
       };
     } else if (isPgdbm) {
       return {
-        replyText: "Our *Post Graduate Diploma in Business Management (PGDBM)* is a premium 2-year post-graduate course at *Alliance College of Hotel Management* (affiliated to Andhra University). 📈✨\n\n• *Duration*: 2 Years (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any discipline.\n• *Specializations*: Finance, Marketing, HR, I.T., Operations Management, Retail Management, Foreign Trade.\n\nWould you like to start your application or speak with a counselor?",
+        replyText: "Our *Post Graduate Diploma in Business Management (PGDBM)* is a premium 2-year post-graduate course at *Alliance College of Hotel Management* (affiliated to Andhra University). 📈✨\n\n• *Duration*: 2 Years (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any recognized university.\n• *Specializations*: Finance, Marketing, HR, I.T., Operations Management, Retail Management, Foreign Trade.\n\nWould you like to start your application or speak with a counselor?",
         category: "Course Queries",
         course: "PGDBM",
         status: "Interested",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         sendCourseImage: "bba"
       };
     } else {
       return {
-        replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Bachelor of Hospitality Management & Catering Technology (BHMCT)* - 3 Years\n2. *Bachelor of Business Administration (BBA)* - 3 Years\n3. *Diploma in Hotel Management (DHM)* - 1 Year\n4. *Post Graduate Diploma in Hotel Management (PGDHM)* - 1 Year\n5. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or let me know your interests!",
+        replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Intermediate in Hotel Management and Catering Technology* - 2 Years\n2. *Bachelor of Hotel Management & Catering Technology (BHMCT)* - 3 Years\n3. *Bachelor of Business Administration (BBA)* - 3 Years\n4. *Diploma in Hotel Management (DHM)* - 1 Year\n5. *Post Graduate Diploma in Hotel Management (PGDHM) / Tourism & Travel Management (PGDTTM)* - 1 Year\n6. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or let me know your interests!",
         category: "Course Queries",
         course: "Undecided",
         status: "Interested",
@@ -166,7 +176,7 @@ export function generateOfflineReply(messageText: string) {
   // 5. Placements & Internships
   if (text.includes('placement') || text.includes('job') || text.includes('recruit') || text.includes('company') || text.includes('salary') || text.includes('package') || text.includes('internship')) {
     return {
-      replyText: "*Alliance College of Hotel Management* (affiliated to Andhra University) has a dedicated Training & Placement Cell offering *100% placement assistance*! 💼✈️\n\n• *Core Recruiters*: Taj Hotels, Hyatt, Marriott, Radisson, Oberoi Group, ITC Hotels, Emirates Airlines, Hilton.\n• *Salary Packages*: Average 4.5 LPA, highest international package up to 12 LPA.\n• Hands-on premium 6-month internships in luxury 5-star hotels are integrated into the courses.\n\nWould you like to see our courses or speak to a counselor?",
+      replyText: "*Alliance College of Hotel Management* (affiliated to Andhra University) has a dedicated Training & Placement Cell offering *100% placement assistance*! 💼✈️\n\n• *Core Recruiters*: Taj Hotels, Hyatt, Marriott, Radisson, Oberoi Group, ITC Hotels, Emirates Airlines, Hilton.\n• *Salary Packages*: Average 4.5 LPA, highest international package up to 12 LPA.\n• Hands-on premium 6-month internships in multinational corporate companies.\n\nWould you like to see our courses or speak to a counselor?",
       category: "Placement Queries",
       course: "Undecided",
       status: "Interested",
@@ -177,7 +187,7 @@ export function generateOfflineReply(messageText: string) {
   // 6. Scholarships and Fees
   if (text.includes('scholarship') || text.includes('fee') || text.includes('discount') || text.includes('free') || text.includes('cost') || text.includes('price')) {
     return {
-      replyText: "*Alliance College of Hotel Management* (affiliated to Andhra University) offers fantastic *merit-based scholarships* and tuition fee concessions to deserving students! 🌟\n\n• *Mark-based fee waivers*: Up to 50% tuition fee waiver depending on your Intermediate/10+2 scores.\n• *Government Concessions*: Fee reimbursement and special A.P. state scholarships are available for eligible undergraduate candidates.\n• *Special Concessions*: Sports and special category concessions are offered during physical spot counseling sessions.\n\nWould you like to apply online now or talk to our admissions counselor to check your eligibility?",
+      replyText: "*Alliance College of Hotel Management* (affiliated to Andhra University) offers fantastic *merit-based scholarships* and tuition fee concessions to deserving students! 🌟\n\n• *Government Concessions*: Fee reimbursement and special A.P. state scholarships/reimbursements are available ONLY for eligible BHMCT and BBA undergraduate candidates. No other course scholarships or spot concessions are offered.\n\nWould you like to apply online now or talk to our admissions counselor to check your eligibility?",
       category: "Scholarship Queries",
       course: "Undecided",
       status: "Interested",
@@ -268,7 +278,7 @@ export async function classifyMessageAndRespond(
         suggestedButtons: ["Explore Courses", "Scholarships", "Talk to Counselor"],
         category: "Course Queries",
         course: "Undecided",
-        status: "Applied"
+        status: "Interested"
       };
     }
 
@@ -285,7 +295,7 @@ export async function classifyMessageAndRespond(
 
     if (lowerMsg === 'scholarships' || lowerMsg === 'scholarship') {
       return {
-        replyText: "*Alliance College of Hotel Management* (affiliated to Andhra University) offers fantastic *merit-based scholarships* and tuition fee concessions to deserving students! 🌟\n\n• *Mark-based fee waivers*: Up to 50% tuition fee waiver depending on your Intermediate/10+2 scores.\n• *Government Concessions*: Fee reimbursement and special A.P. state scholarships are available for eligible undergraduate candidates.\n• *Special Concessions*: Sports and special category concessions are offered during physical spot counseling sessions.\n\nWould you like to apply online now or talk to our admissions counselor to check your eligibility?",
+        replyText: "*Alliance College of Hotel Management* (affiliated to Andhra University) offers fantastic *merit-based scholarships* and tuition fee concessions to deserving students! 🌟\n\n• *Government Concessions*: Fee reimbursement and special A.P. state scholarships/reimbursements are available ONLY for eligible BHMCT and BBA undergraduate candidates. No other course scholarships or spot concessions are offered.\n\nWould you like to apply online now or talk to our admissions counselor to check your eligibility?",
         suggestedButtons: ["Apply Now", "Explore Courses", "Talk to Counselor"],
         category: "Scholarship Queries",
         course: "Undecided",
@@ -295,7 +305,7 @@ export async function classifyMessageAndRespond(
 
     if (lowerMsg === 'explore courses' || lowerMsg === 'courses') {
       return {
-        replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Bachelor of Hospitality Management & Catering Technology (BHMCT)*\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate)\n\n2. *Bachelor of Business Administration (BBA)*\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate)\n\n3. *Diploma in Hotel Management (DHM)*\n• *Duration*: 1 Year\n• *Eligibility*: Pass in 10th Class\n\n4. *Post Graduate Diploma in Hotel Management (PGDHM)*\n• *Duration*: 1 Year\n• *Eligibility*: Graduation (Any Degree)\n\n5. *Post Graduate Diploma in Business Management (PGDBM)*\n• *Duration*: 2 Years\n• *Eligibility*: Graduation (Any Degree)\n\nWhich program would you like to discuss in detail? Select a course or talk to us directly!",
+        replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Intermediate in Hotel Management and Catering Technology* (Duration: 2 Years)\n2. *Bachelor of Hotel Management & Catering Technology (BHMCT)* (Duration: 3 Years)\n3. *Bachelor of Business Administration (BBA)* (Duration: 3 Years)\n4. *Diploma in Hotel Management (DHM)* (Duration: 1 Year)\n5. *Post Graduate Diploma in Hotel Management (PGDHM) / Tourism & Travel Management (PGDTTM)* (Duration: 1 Year)\n6. *Post Graduate Diploma in Business Management (PGDBM)* (Duration: 2 Years)\n\nWhich program would you like to discuss in detail? Select a course or talk to us directly!",
         suggestedButtons: ["BHMCT Details", "BBA Details", "More Courses"],
         category: "Course Queries",
         course: "Undecided",
@@ -303,9 +313,20 @@ export async function classifyMessageAndRespond(
       };
     }
 
+    if (lowerMsg === 'intermediate details' || lowerMsg === 'intermediate course' || lowerMsg.includes('intermediate in hotel') || lowerMsg === 'ihmt details') {
+      return {
+        replyText: "Our *Intermediate in Hotel Management and Catering Technology* is a foundational 2-year full-time program at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏨✨\n\n• *Duration*: 2 Years (Full-Time)\n• *Eligibility*: Pass in 10th Class.\n• *Overview*: Foundational grounding in hospitality basics, catering science, and culinary fundamentals.\n\nWould you like to start your application now or speak with a counselor?",
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
+        category: "Course Queries",
+        course: "Undecided",
+        status: "Interested",
+        sendCourseImage: "hotel"
+      };
+    }
+
     if (lowerMsg === 'more courses' || lowerMsg === 'other courses' || lowerMsg.includes('more courses')) {
       return {
-        replyText: "Certainly! Here are our other highly popular diploma and postgraduate management programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n3. *Diploma in Hotel Management (DHM)* - 1 Year\n4. *Post Graduate Diploma in Hotel Management (PGDHM)* - 1 Year\n5. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or tell me your interests!",
+        replyText: "Certainly! Here are our other highly popular intermediate, diploma, and postgraduate management programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Intermediate in Hotel Management and Catering Technology* - 2 Years\n3. *Diploma in Hotel Management (DHM)* - 1 Year\n4. *Post Graduate Diploma in Hotel Management (PGDHM) / Tourism & Travel Management (PGDTTM)* - 1 Year\n5. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or tell me your interests!",
         suggestedButtons: ["DHM Details", "PGDHM Details", "PGDBM Details"],
         category: "Course Queries",
         course: "Undecided",
@@ -315,7 +336,7 @@ export async function classifyMessageAndRespond(
 
     if (lowerMsg === 'bhmct details' || lowerMsg === 'bhmct admissions' || lowerMsg.includes('bhmct details') || lowerMsg.includes('bhmct course')) {
       return {
-        replyText: "Our *Bachelor of Hospitality Management & Catering Technology (BHMCT)* is a professional 3-year full-time degree at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏨🍳\n\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate) in any stream.\n• *Overview*: Comprehensive training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in luxury 5-star hotels.\n\nWould you like to check out placement partners or start your application?",
+        replyText: "Our *Bachelor of Hotel Management & Catering Technology (BHMCT)* is a professional 3-year full-time degree at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏨🍳\n\n• *Duration*: 3 Years\n• *Eligibility*: Pass in 10+2 (Intermediate) with any stream/discipline.\n• *Overview*: Comprehensive professional training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in multinational corporate companies.\n\nWould you like to check out placement partners or start your application?",
         suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         category: "Course Queries",
         course: "BHMCT",
@@ -326,8 +347,8 @@ export async function classifyMessageAndRespond(
     
     if (lowerMsg === 'bba details' || lowerMsg === 'bba admissions' || lowerMsg.includes('bba details') || lowerMsg.includes('bba course')) {
       return {
-        replyText: "Our *Bachelor of Business Administration (BBA)* is a premium 3-year full-time undergraduate program at *Alliance College of Hotel Management* (affiliated to Andhra University). 💼\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) from any recognized board in any stream.\n• *Overview*: Focuses on business principles, marketing, finance, accounting, and human resource management.\n\nWould you like to start your application now or speak with a counselor?",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        replyText: "Our *Bachelor of Business Administration (BBA)* is a premium 3-year full-time undergraduate program at *Alliance College of Hotel Management* (affiliated to Andhra University). 💼\n\n• *Duration*: 3 Years (Full-Time)\n• *Eligibility*: Pass in 10+2 (Intermediate) with any stream/discipline.\n• *Overview*: Focuses on business principles, marketing, finance, accounting, and human resource management.\n\nWould you like to start your application now or speak with a counselor?",
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         category: "Course Queries",
         course: "BBA",
         status: "Interested",
@@ -338,7 +359,7 @@ export async function classifyMessageAndRespond(
     if (lowerMsg === 'dhm details' || lowerMsg === 'dhm admissions' || lowerMsg.includes('dhm details') || lowerMsg.includes('dhm course')) {
       return {
         replyText: "Our *Diploma in Hotel Management (DHM)* is a practical-oriented 1-year course at *Alliance College of Hotel Management* (affiliated to Andhra University). 🍽️✨\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Pass in 10th standard.\n• *Overview*: Fast-track practical curriculum focusing on culinary arts, food production, housekeeping, and front office operations. Perfect for a quick, robust entry into the global hotel workforce.\n\nWould you like to apply now or speak with a counselor?",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         category: "Course Queries",
         course: "DHM",
         status: "Interested",
@@ -346,10 +367,10 @@ export async function classifyMessageAndRespond(
       };
     }
 
-    if (lowerMsg === 'pgdhm details' || lowerMsg === 'pgdhm admissions' || lowerMsg.includes('pgdhm details') || lowerMsg.includes('pgdhm course')) {
+    if (lowerMsg === 'pgdhm details' || lowerMsg === 'pgdhm admissions' || lowerMsg.includes('pgdhm details') || lowerMsg.includes('pgdhm course') || lowerMsg.includes('pgdttm') || lowerMsg.includes('tourism')) {
       return {
-        replyText: "Our *Post Graduate Diploma in Hotel Management (PGDHM)* is an advanced 1-year professional course at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏢🎓\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any recognized university in any stream.\n• *Overview*: Designed for graduates seeking leadership and specialized administration roles in global luxury hotels and catering industries.\n\nWould you like to start your application or speak with a counselor?",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        replyText: "Our *Post Graduate Diploma in Hotel Management (PGDHM) / Post Graduate Diploma in Tourism & Travel Management (PGDTTM)* is an advanced 1-year professional course at *Alliance College of Hotel Management* (affiliated to Andhra University). 🏢🎓\n\n• *Duration*: 1 Year (Full-Time)\n• *Eligibility*: Pass in Degree (Graduation) from any recognized university.\n• *Overview*: Advanced professional leadership training in hospitality administration, global tourism, and travel management for graduates.\n\nWould you like to start your application or speak with a counselor?",
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         category: "Course Queries",
         course: "PGDHM",
         status: "Interested",
@@ -359,8 +380,8 @@ export async function classifyMessageAndRespond(
 
     if (lowerMsg === 'pgdbm details' || lowerMsg === 'pgdbm admissions' || lowerMsg.includes('pgdbm details') || lowerMsg.includes('pgdbm course')) {
       return {
-        replyText: "Our *Post Graduate Diploma in Business Management (PGDBM)* is a premium 2-year post-graduate course at *Alliance College of Hotel Management* (affiliated to Andhra University). 📈✨\n\n• *Duration*: 2 Years (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any discipline.\n• *Specializations*: Finance, Marketing, HR, I.T., Operations Management, Retail Management, Foreign Trade.\n\nWould you like to start your application or speak with a counselor?",
-        suggestedButtons: ["Apply Now", "Scholarships", "Talk to Counselor"],
+        replyText: "Our *Post Graduate Diploma in Business Management (PGDBM)* is a premium 2-year post-graduate course at *Alliance College of Hotel Management* (affiliated to Andhra University). 📈✨\n\n• *Duration*: 2 Years (Full-Time)\n• *Eligibility*: Graduation (Degree pass) from any recognized university.\n• *Specializations*: Finance, Marketing, HR, I.T., Operations Management, Retail Management, Foreign Trade.\n\nWould you like to start your application or speak with a counselor?",
+        suggestedButtons: ["Apply Now", "Placements Info", "Talk to Counselor"],
         category: "Course Queries",
         course: "PGDBM",
         status: "Interested",
@@ -395,17 +416,18 @@ Strict Guidelines to Follow for CRM Classification:
    - If asking about discounts, scholarships, free admission, set to "Scholarship Queries".
    - If the student is angry, explicitly asking for a real person/counselor, or has complex off-topic requests, set to "Human Followups".
 2. "course": One of "BHMCT", "BBA", "DHM", "PGDHM", "PGDBM", or "Undecided". (Identify the course mentioned, default to "Undecided" if none).
-3. "status": One of "New Lead", "Interested", "Follow-up", "Applied", "Converted". (Defaults to "Interested" unless it is a simple greeting which is "New Lead").
+3. "status": One of "New Lead", "Interested", "Follow-up", "Applied", "Converted". (Defaults to "Interested" unless it is a simple greeting which is "New Lead". Note: "Applied" should NOT be returned when a student only requests the application form or says they want to apply; instead, use "Interested").
 
 Strict Guidelines to Follow for WhatsApp Reply:
 1. Speak as the Senior Admissions Officer: Be helpful, warm, concise, and highly professional. Avoid repetitive answers. Always start greetings or introductory replies with a warm welcome or greeting to the user (e.g., "Welcome to *Alliance College of Hotel Management* (affiliated to Andhra University)!" or "Warm greetings!"), and NEVER start with "Thanks for reaching out".
 2. Highlighting College Name: When writing the college name in highlights, write it exactly as: *Alliance College of Hotel Management* (affiliated to Andhra University).
 3. Full Course Names: When mentioning courses, always show the full course name first followed by the abbreviation in brackets. For example:
-   - "Bachelor of Hospitality Management & Catering Technology (BHMCT)" (Duration is 3 Years)
-   - "Bachelor of Business Administration (BBA)" (Duration is 3 Years)
-   - "Diploma in Hotel Management (DHM)" (Duration is 1 Year)
-   - "Post Graduate Diploma in Hotel Management (PGDHM)" (Duration is 1 Year)
-   - "Post Graduate Diploma in Business Management (PGDBM)" (Duration is 2 Years)
+   - "Intermediate in Hotel Management and Catering Technology" (Duration is 2 Years, Eligibility is Pass in 10th Class)
+   - "Bachelor of Hotel Management & Catering Technology (BHMCT)" (Duration is 3 Years, Eligibility is Pass in 10+2 with any stream/discipline)
+   - "Bachelor of Business Administration (BBA)" (Duration is 3 Years, Eligibility is Pass in 10+2 with any stream/discipline)
+   - "Diploma in Hotel Management (DHM)" (Duration is 1 Year, Eligibility is Pass in 10th Class)
+   - "Post Graduate Diploma in Hotel Management (PGDHM) / Post Graduate Diploma in Tourism & Travel Management (PGDTTM)" (Duration is 1 Year, Eligibility is Pass in Degree/Graduation)
+   - "Post Graduate Diploma in Business Management (PGDBM)" (Duration is 2 Years, Eligibility is Pass in Degree/Graduation)
 4. Intercept "Talk to Counselor": If the student clicks "Talk to Counselor" or asks to speak with a human/counselor/call/phone, you MUST output this exact message:
    "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨
 
@@ -420,9 +442,9 @@ Please feel free to call us directly during working hours (9:00 AM - 5:00 PM) or
    - If you are answering a query about Counselor/Helpline, do NOT include "Talk to Counselor" in the suggested buttons.
    - If you are answering a query about Application/Applying, do NOT include "Apply Now" in the suggested buttons.
 7. Provide up to 3 suggested interactive quick-reply buttons. Each button MUST be strictly 20 characters or less.
-   - If the student is asking about BBA or PGDBM, suggest ["BBA Details", "Scholarships", "Apply Now"].
-   - If the student is asking about BHMCT, DHM, or PGDHM, suggest ["BHMCT Details", "DHM Details", "Apply Now"].
-   - If they ask about courses generally, suggest ["BHMCT Details", "BBA Details", "More Courses"].
+    - If the student is asking about BBA or PGDBM, suggest ["BBA Details", "Placements Info", "Apply Now"].
+    - If the student is asking about BHMCT, DHM, PGDHM, PGDTTM, or Intermediate, suggest ["BHMCT Details", "Placements Info", "Apply Now"].
+    - If they ask about courses generally, suggest ["BHMCT Details", "BBA Details", "More Courses"].
 
 You MUST return a JSON object in this exact format:
 {
@@ -430,7 +452,7 @@ You MUST return a JSON object in this exact format:
   "course": "BBA",
   "status": "Interested",
   "replyText": "Professional, warm response from Senior Admissions Officer based on context...",
-  "suggestedButtons": ["Explore Courses", "Scholarships", "Talk to Counselor"],
+  "suggestedButtons": ["Explore Courses", "Placements Info", "Talk to Counselor"],
   "sendCourseImage": "bba" // String: Set strictly to "bba" if answering or providing details about BBA or PGDBM. Set strictly to "hotel" if answering or providing details about BHMCT, DHM, or PGDHM. Set to null otherwise.
 }
 `;
@@ -501,14 +523,14 @@ You MUST return a JSON object in this exact format:
 
       // Ensure we always have at least 2 and at most 3 fallback/diverse buttons if they got pruned
       const uniqueButtons = new Set(responseObj.suggestedButtons);
-      const candidates = ["Explore Courses", "Apply Now", "Scholarships", "Talk to Counselor"];
+      const candidates = ["Explore Courses", "Apply Now", "Placements Info", "Talk to Counselor"];
       
       for (const cand of candidates) {
         if (uniqueButtons.size >= 3) break;
         
         const lowerCand = cand.toLowerCase();
         // Check if candidate would be redundant in this context
-        if ((lowerQuery.includes('scholarship') || lowerReply.includes('scholarship')) && lowerCand.includes('scholarship')) continue;
+        if ((lowerQuery.includes('placement') || lowerReply.includes('placement')) && lowerCand.includes('placement')) continue;
         if ((lowerQuery.includes('counselor') || lowerQuery.includes('contact') || lowerQuery.includes('talk to') || lowerReply.includes('helpline')) && (lowerCand.includes('counselor') || lowerCand.includes('talk to'))) continue;
         if ((lowerQuery.includes('apply') || lowerQuery.includes('form') || lowerReply.includes('forms.gle') || lowerReply.includes('forms.gle/')) && lowerCand.includes('apply')) continue;
         

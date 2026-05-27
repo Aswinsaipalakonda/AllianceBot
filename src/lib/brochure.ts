@@ -7,30 +7,35 @@ Address: Near SBI, Maddilipalem, Visakhapatnam-530 022
 
 COURSES OFFERED & ELIGIBILITY:
 
-1. Bachelor of Hospitality Management & Catering Technology (BHMCT)
-- Duration: 3 Years (Full-Time)
-- Eligibility: Pass in 10+2 (Intermediate) in any stream/discipline.
-- Overview: Covers Food Production, Food & Beverage Service, Front Office operations, Housekeeping, Tourism Management, Bakery, and Catering Technology. Includes premium 6-month industrial internships.
+1. Intermediate in Hotel Management and Catering Technology
+- Duration: 2 Years (Full-Time)
+- Eligibility: Pass in 10th Class.
+- Overview: Foundational grounding in hospitality basics, catering science, and culinary fundamentals.
 
-2. Bachelor of Business Administration (BBA)
+2. Bachelor of Hotel Management & Catering Technology (BHMCT)
 - Duration: 3 Years (Full-Time)
-- Eligibility: Pass in 10+2 (Intermediate) in any stream/discipline.
-- Overview: Core business management principles, marketing, finance, HR management, and operations.
+- Eligibility: Pass in 10+2 (Intermediate) with any stream/discipline.
+- Overview: Comprehensive professional training in Food Production, Front Office, Housekeeping, Food & Beverage service, and Bakery. Includes a premium 6-month industrial internship in multinational corporate companies.
 
 3. Diploma in Hotel Management (DHM)
 - Duration: 1 Year (Full-Time)
 - Eligibility: Pass in 10th Class.
 - Overview: Intensive practical-oriented diploma focusing on culinary arts, food production, housekeeping, and front office.
 
-4. Post Graduate Diploma in Hotel Management (PGDHM)
+4. Post Graduate Diploma in Hotel Management (PGDHM) / Post Graduate Diploma in Tourism & Travel Management (PGDTTM)
 - Duration: 1 Year (Full-Time)
-- Eligibility: Pass in any Degree (Graduation).
-- Overview: Advanced professional diploma in hospitality administration and culinary operations.
+- Eligibility: Pass in Degree (Graduation) from any recognized university.
+- Overview: Advanced professional leadership training in hospitality administration, global tourism, and travel management.
 
-5. Post Graduate Diploma in Business Management (PGDBM)
+5. Bachelor of Business Administration (BBA)
+- Duration: 3 Years (Full-Time)
+- Eligibility: Pass in 10+2 (Intermediate) with any stream/discipline.
+- Overview: Premium undergraduate business degree focused on marketing, corporate strategy, financial management, and human resource management.
+
+6. Post Graduate Diploma in Business Management (PGDBM)
 - Duration: 2 Years (Full-Time)
-- Eligibility: Graduation from any discipline.
-- Specializations: Finance, Marketing, HR, I.T., Operations Management, Retail Management, Foreign Trade.
+- Eligibility: Graduation (Degree pass) from any recognized university.
+- Overview: Professional post-graduate management program with specializations in Finance, Marketing, HR, I.T., Operations Management, Retail Management, and Foreign Trade.
 
 ADMINISTRATION & ADMISSIONS HELPLINE STAFF:
 - Main Helpline / Admissions Desk: +91 88850 66502
@@ -49,6 +54,5 @@ PLACEMENTS & PARTNERS:
 - Average Package: 4.5 LPA, Highest Package: 12 LPA (International).
 
 SCHOLARSHIPS:
-- Merit-based tuition fee waivers available for eligible candidates based on scores.
-- Special concessions from Govt. of A.P. for eligible undergraduate students.
+- Government concessions and special A.P. state scholarships/reimbursements are available ONLY for eligible BHMCT and BBA undergraduate candidates.
 `;
