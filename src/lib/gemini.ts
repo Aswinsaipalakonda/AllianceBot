@@ -25,7 +25,7 @@ export function generateOfflineReply(messageText: string) {
     text === 'good afternoon'
   ) {
     return {
-      replyText: "Welcome to *Alliance College of Hotel Management*, Visakhapatnam (affiliated to Andhra University)! 🎓👋\n\nI am the Senior Admissions Officer here. We offer premium business and hotel management programs to launch your global career. How may I assist you today? Please select from the options below to get started!",
+      replyText: "Welcome to *Alliance College of Hotel Management*, Visakhapatnam (affiliated to Andhra University)! 🎓👋\n\nSo glad you reached out! I'm here to help you explore all of our courses, campus life, and global placements. Whether you are planning your career or ready to apply, how can I guide you today? 😊 Feel free to select from the options below to get started!",
       category: "Course Queries",
       course: "Undecided",
       status: "New Lead",
@@ -46,7 +46,7 @@ export function generateOfflineReply(messageText: string) {
     text.includes('representative')
   ) {
     return {
-      replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?",
+      replyText: "Hey there! I would be absolutely delighted to connect you directly with our friendly admissions panel. 📞✨\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or drop us an email. Would you like to review our courses or start your application process?",
       category: "Human Followups",
       course: "Undecided",
       status: "Follow-up",
@@ -164,7 +164,7 @@ export function generateOfflineReply(messageText: string) {
       };
     } else {
       return {
-        replyText: "As the Senior Admissions Officer, I am proud to showcase our career-oriented academic programs at *Alliance College of Hotel Management* (affiliated to Andhra University): 🎓✨\n\n1. *Intermediate in Hotel Management and Catering Technology* - 2 Years\n2. *Bachelor of Hotel Management & Catering Technology (BHMCT)* - 3 Years\n3. *Bachelor of Business Administration (BBA)* - 3 Years\n4. *Diploma in Hotel Management (DHM)* - 1 Year\n5. *Post Graduate Diploma in Hotel Management (PGDHM) / Tourism & Travel Management (PGDTTM)* - 1 Year\n6. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program would you like to explore? Select a button below or let me know your interests!",
+        replyText: "We have some fantastic, industry-ready programs at *Alliance College of Hotel Management* (affiliated to Andhra University) to kickstart your global career! 🎓✨\n\n1. *Intermediate in Hotel Management and Catering Technology* - 2 Years\n2. *Bachelor of Hotel Management & Catering Technology (BHMCT)* - 3 Years\n3. *Bachelor of Business Administration (BBA)* - 3 Years\n4. *Diploma in Hotel Management (DHM)* - 1 Year\n5. *Post Graduate Diploma in Hotel Management (PGDHM) / Tourism & Travel Management (PGDTTM)* - 1 Year\n6. *Post Graduate Diploma in Business Management (PGDBM)* - 2 Years\n\nWhich program sounds interesting to you? Let me know your interests or choose a quick option below! 😊",
         category: "Course Queries",
         course: "Undecided",
         status: "Interested",
@@ -208,7 +208,7 @@ export function generateOfflineReply(messageText: string) {
 
   // Default Fallback
   return {
-    replyText: "Welcome to *Alliance College of Hotel Management* (affiliated to Andhra University)! 🎓👋\n\nI am the Senior Admissions Officer here. I can answer questions about our BBA, BHMCT, DHM, PGDHM, and PGDBM courses, placements, scholarship criteria, or hostel facilities.\n\nWhat would you like to know?",
+    replyText: "Welcome to *Alliance College of Hotel Management* (affiliated to Andhra University)! 🎓👋\n\nSo glad you reached out! I'm here to help you with anything you need—from course durations and placements to scholarships and hostel facilities. 😊\n\nWhat would you like to explore first?",
     category: "Course Queries",
     course: "Undecided",
     status: "New Lead",
@@ -244,7 +244,7 @@ export async function classifyMessageAndRespond(
     // ==========================================
     if (lowerMsg === 'talk to counselor' || lowerMsg === 'talk to us' || lowerMsg === 'counselor') {
       return {
-        replyText: "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?",
+        replyText: "Hey there! I would be absolutely delighted to connect you directly with our friendly admissions panel. 📞✨\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?",
         suggestedButtons: ["+91 88850 66502", "Email Admissions"],
         category: "Human Followups",
         course: "Undecided",
@@ -402,8 +402,9 @@ export async function classifyMessageAndRespond(
     });
 
     const systemPrompt = `
-You are the Senior Admissions Officer at Alliance College of Hotel Management, Visakhapatnam.
-Your goal is to assist prospective students who contact us on WhatsApp with absolute authority, professional warmth, and clarity. Keep interactions simple and easy to understand.
+You are a warm, friendly, highly helpful Admissions Coordinator at Alliance College of Hotel Management, Visakhapatnam.
+Your goal is to assist prospective students who contact us on WhatsApp with human warmth, personal empathy, and absolute clarity.
+Avoid dry, rigid, bot-like phrasing (do NOT write statements like "I am the Senior Admissions Officer here" or "I am an AI assistant"). Speak naturally and conversationally, as a helpful student counselor or guide would, to make the student feel completely welcomed!
 Also, classify the incoming message and the student's status for our CRM.
 
 Here is the official Brochure context:
@@ -419,7 +420,7 @@ Strict Guidelines to Follow for CRM Classification:
 3. "status": One of "New Lead", "Interested", "Follow-up", "Applied", "Converted". (Defaults to "Interested" unless it is a simple greeting which is "New Lead". Note: "Applied" should NOT be returned when a student only requests the application form or says they want to apply; instead, use "Interested").
 
 Strict Guidelines to Follow for WhatsApp Reply:
-1. Speak as the Senior Admissions Officer: Be helpful, warm, concise, and highly professional. Avoid repetitive answers. Always start greetings or introductory replies with a warm welcome or greeting to the user (e.g., "Welcome to *Alliance College of Hotel Management* (affiliated to Andhra University)!" or "Warm greetings!"), and NEVER start with "Thanks for reaching out".
+1. Speak in a warm, natural, human-like voice: Be highly supportive, friendly, concise, and helpful. Always welcome the student with warm greetings (e.g., "Welcome to *Alliance College of Hotel Management* (affiliated to Andhra University)! 🎓👋 So glad you reached out!" or "Hey there! 😊"), and NEVER start with dry robot expressions.
 2. Highlighting College Name: When writing the college name in highlights, write it exactly as: *Alliance College of Hotel Management* (affiliated to Andhra University).
 3. Full Course Names: When mentioning courses, always show the full course name first followed by the abbreviation in brackets. For example:
    - "Intermediate in Hotel Management and Catering Technology" (Duration is 2 Years, Eligibility is Pass in 10th Class)
@@ -429,7 +430,7 @@ Strict Guidelines to Follow for WhatsApp Reply:
    - "Post Graduate Diploma in Hotel Management (PGDHM) / Post Graduate Diploma in Tourism & Travel Management (PGDTTM)" (Duration is 1 Year, Eligibility is Pass in Degree/Graduation)
    - "Post Graduate Diploma in Business Management (PGDBM)" (Duration is 2 Years, Eligibility is Pass in Degree/Graduation)
 4. Intercept "Talk to Counselor": If the student clicks "Talk to Counselor" or asks to speak with a human/counselor/call/phone, you MUST output this exact message:
-   "Warm greetings! As the Senior Admissions Officer here at *Alliance College of Hotel Management* (affiliated to Andhra University), I am delighted to connect you with our admissions panel. 📞✨
+   "Hey there! I would be absolutely delighted to connect you directly with our admissions panel. 📞✨
 
 Please feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?"
 5. Intercept "Apply Now": If the student clicks "Apply Now" or asks to apply/register, you MUST provide:
@@ -451,7 +452,7 @@ You MUST return a JSON object in this exact format:
   "category": "Course Queries",
   "course": "BBA",
   "status": "Interested",
-  "replyText": "Professional, warm response from Senior Admissions Officer based on context...",
+  "replyText": "Warm, natural, conversational response that is helpful and friendly...",
   "suggestedButtons": ["Explore Courses", "Placements Info", "Talk to Counselor"],
   "sendCourseImage": "bba" // String: Set strictly to "bba" if answering or providing details about BBA or PGDBM. Set strictly to "hotel" if answering or providing details about BHMCT, DHM, or PGDHM. Set to null otherwise.
 }
