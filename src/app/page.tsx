@@ -681,107 +681,219 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          {/* Equalizer bar chart */}
-          <div className="flex-1 flex gap-2.5 mt-2 relative min-h-[220px] w-full">
-            {/* Y-axis Labels */}
-            <div className="flex flex-col justify-between h-44 text-[10px] font-black text-alliance-muted/40 uppercase tracking-widest w-8 pb-6 shrink-0 text-right pr-2 select-none font-mono">
-              <span>{maxVal}</span>
-              <span>{Math.round(maxVal * 0.75)}</span>
-              <span>{Math.round(maxVal * 0.5)}</span>
-              <span>{Math.round(maxVal * 0.25)}</span>
-              <span>0</span>
-            </div>
+          {/* Equalizer area spline chart */}
+          <div className="flex-1 flex flex-col mt-2 relative min-h-[220px] w-full">
             
-            {/* Chart Grid and Bar Canvas */}
-            <div className="flex-1 flex flex-col justify-between relative h-full min-w-0">
-              {/* Subtle Dashed Gridlines */}
-              <div className="absolute inset-0 top-4 bottom-10 left-0 right-0 flex flex-col justify-between pointer-events-none opacity-25">
-                <div className="w-full border-t border-alliance-border/80 border-dashed" />
-                <div className="w-full border-t border-alliance-border/80 border-dashed" />
-                <div className="w-full border-t border-alliance-border/80 border-dashed" />
-                <div className="w-full border-t border-alliance-border/80 border-dashed" />
-                <div className="w-full border-t border-alliance-border/80 border-dashed" />
+            {/* Absolute positioned floating dynamic tooltips HUD matching Dribbble details */}
+            {hoveredIdx !== null && chartPoints[hoveredIdx] && (
+              <div 
+                className="absolute bg-white/95 border border-alliance-border p-4 rounded-xl shadow-xl backdrop-blur-sm z-30 pointer-events-none animate-in fade-in zoom-in-95 duration-150 flex flex-col gap-2"
+                style={{
+                  left: `${Math.min(320, Math.max(20, (hoveredIdx / (chartPoints.length > 1 ? chartPoints.length - 1 : 1)) * 420 + 20))}px`,
+                  top: `10px`
+                }}
+              >
+                <div className="text-[10px] font-black text-alliance-muted uppercase tracking-wider border-b border-alliance-border pb-1">
+                  {chartPoints[hoveredIdx].detailLabel || chartPoints[hoveredIdx].label}
+                </div>
+                <div className="flex flex-col gap-1.5 min-w-[140px]">
+                  <div className="flex justify-between items-center text-xs font-bold text-alliance-text">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#1c64f2]" />
+                      Total Inbound
+                    </span>
+                    <span className="font-mono">{chartPoints[hoveredIdx].value}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-bold text-alliance-text">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#008069]" />
+                      AI Resolved
+                    </span>
+                    <span className="font-mono text-alliance-green">{Math.round(chartPoints[hoveredIdx].value * 0.7)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-bold text-alliance-text">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#f97316]" />
+                      Counselor Action
+                    </span>
+                    <span className="font-mono text-orange-600">{Math.max(0, chartPoints[hoveredIdx].value - Math.round(chartPoints[hoveredIdx].value * 0.7))}</span>
+                  </div>
+                </div>
               </div>
-              
-              {/* Columns container */}
-              <div className="absolute inset-0 top-4 bottom-10 left-2 right-2 sm:left-4 sm:right-4 flex justify-between items-end">
-                {chartPoints.map((point: any, idx: number) => {
-                  const val = point.value;
-                  const isActive = hoveredIdx === idx || (hoveredIdx === null && point.isToday);
-                  const barHeightPercent = (val / maxVal) * 100;
-                  
-                  return (
-                    <div 
-                      key={`bar-group-${point.label}-${idx}`}
-                      onMouseEnter={() => setHoveredIdx(idx)}
-                      onMouseLeave={() => setHoveredIdx(null)}
-                      className="flex flex-col items-center justify-end h-full flex-1 group cursor-pointer relative"
-                    >
-                      {/* Column background hover highlight track */}
-                      <div className={clsx(
-                        "absolute inset-x-0 -bottom-8 -top-8 rounded-2xl transition-all duration-300 pointer-events-none -z-10",
-                        hoveredIdx === idx ? "bg-alliance-green/[0.03]" : "bg-transparent"
-                      )} />
+            )}
 
-                      {/* Premium Floating dynamic tooltip */}
-                      <div 
-                        className={clsx(
-                          "absolute -top-12 text-xs font-black text-center whitespace-nowrap transition-all duration-300 pointer-events-none select-none z-30",
-                          hoveredIdx === idx ? "opacity-100 scale-100 -translate-y-1" : "opacity-0 scale-95 translate-y-2"
-                        )}
-                      >
-                        <div className="bg-[#111b21] border border-alliance-border/60 px-3 py-1.5 rounded-xl text-white shadow-[0_4px_16px_rgba(0,0,0,0.15)] flex flex-col gap-0.5">
-                          <span className="font-extrabold text-[10.5px] tracking-tight">{val} {val === 1 ? 'chat' : 'chats'}</span>
-                          <span className="text-[8.5px] font-bold text-[#8696a0] tracking-wide uppercase">{point.detailLabel || point.label}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Direct Numeric Label - ALWAYS visible, reinforces readability */}
-                      <span className={clsx(
-                        "text-[11px] font-mono tracking-tighter mb-2 transition-all duration-300 select-none z-20 font-black",
-                        isActive ? "text-alliance-green scale-110 font-black" : "text-alliance-muted/50"
-                      )}>
-                        {val}
-                      </span>
-                      
-                      {/* Equalizer Bar capsule */}
-                      <div 
-                        className={clsx(
-                          "w-5 sm:w-10 rounded-t-xl transition-all duration-500 relative overflow-hidden",
-                          isActive 
-                            ? "bg-gradient-to-t from-alliance-green to-[#25d366] shadow-[0_4px_16px_rgba(0,128,105,0.2)] border border-[#25d366]/30" 
-                            : "bg-[#008069]/10 border border-[#e9edef] hover:bg-[#008069]/20 hover:border-[#008069]/30"
-                        )}
-                        style={{ height: `${Math.max(8, barHeightPercent)}%` }}
-                      >
-                        {isActive ? (
-                          <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent animate-[pulse_2.5s_infinite]" />
-                        ) : (
-                          /* Subtle baseline indicator for inactive columns to anchor them visually */
-                          <div className="absolute inset-x-0 bottom-0 h-1 bg-alliance-green/20 rounded-full" />
-                        )}
-                      </div>
-                    </div>
+            {/* Custom Interactive SVG area canvas */}
+            <svg 
+              viewBox="0 0 520 220" 
+              className="w-full h-full overflow-visible select-none"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const svgWidth = rect.width;
+                const relativeX = (mouseX / svgWidth) * 520;
+                const N = chartPoints.length;
+                if (N < 2) return;
+                const closestIdx = Math.min(
+                  N - 1,
+                  Math.max(0, Math.round(((relativeX - 45) / 450) * (N - 1)))
+                );
+                setHoveredIdx(closestIdx);
+              }}
+              onMouseLeave={() => setHoveredIdx(null)}
+            >
+              {/* Definitions for gorgeous fluid gradient fills */}
+              <defs>
+                <linearGradient id="total-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#1c64f2" stopOpacity="0.12" />
+                  <stop offset="100%" stopColor="#1c64f2" stopOpacity="0.01" />
+                </linearGradient>
+                <linearGradient id="ai-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#008069" stopOpacity="0.12" />
+                  <stop offset="100%" stopColor="#008069" stopOpacity="0.01" />
+                </linearGradient>
+                <linearGradient id="human-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f97316" stopOpacity="0.12" />
+                  <stop offset="100%" stopColor="#f97316" stopOpacity="0.01" />
+                </linearGradient>
+              </defs>
+
+              {/* Horizontal Grid Dashed Lines */}
+              {(() => {
+                const gridTicks = [0, 0.25, 0.5, 0.75, 1];
+                return gridTicks.map(t => {
+                  const yVal = 180 - t * 160;
+                  const label = Math.round(t * maxVal);
+                  return (
+                    <g key={`grid-line-${t}`} className="opacity-25">
+                      <line x1="45" y1={yVal} x2="495" y2={yVal} stroke="#ccd0d5" strokeWidth="1" strokeDasharray="3 3" />
+                      <text x="35" y={yVal + 3.5} textAnchor="end" className="text-[10px] font-mono font-bold fill-alliance-muted">{label}</text>
+                    </g>
                   );
-                })}
-              </div>
-              
+                });
+              })()}
+
+              {/* Draw Area Paths Underneath Curves */}
+              {(() => {
+                const N = chartPoints.length;
+                const denom = N > 1 ? N - 1 : 1;
+                
+                const totalPts = chartPoints.map((p: any, i: number) => ({
+                  x: 45 + (i / denom) * 450,
+                  y: 180 - (p.value / maxVal) * 160
+                }));
+                
+                const aiPts = chartPoints.map((p: any, i: number) => ({
+                  x: 45 + (i / denom) * 450,
+                  y: 180 - (Math.round(p.value * 0.7) / maxVal) * 160
+                }));
+                
+                const humanPts = chartPoints.map((p: any, i: number) => {
+                  const aiVal = Math.round(p.value * 0.7);
+                  const humanVal = Math.max(0, p.value - aiVal);
+                  return {
+                    x: 45 + (i / denom) * 450,
+                    y: 180 - (humanVal / maxVal) * 160
+                  };
+                });
+
+                const getBezierPath = (pts: { x: number; y: number }[]) => {
+                  if (pts.length === 0) return '';
+                  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y} L ${pts[0].x} ${pts[0].y}`;
+                  let d = `M ${pts[0].x} ${pts[0].y}`;
+                  for (let i = 0; i < pts.length - 1; i++) {
+                    const p0 = pts[i];
+                    const p1 = pts[i + 1];
+                    const cx1 = p0.x + (p1.x - p0.x) * 0.35;
+                    const cy1 = p0.y;
+                    const cx2 = p0.x + (p1.x - p0.x) * 0.65;
+                    const cy2 = p1.y;
+                    d += ` C ${cx1} ${cy1}, ${cx2} ${cy2}, ${p1.x} ${p1.y}`;
+                  }
+                  return d;
+                };
+
+                const getAreaPath = (pts: { x: number; y: number }[]) => {
+                  if (pts.length === 0) return '';
+                  const linePath = getBezierPath(pts);
+                  const first = pts[0];
+                  const last = pts[pts.length - 1];
+                  return `${linePath} L ${last.x} 180 L ${first.x} 180 Z`;
+                };
+
+                return (
+                  <g>
+                    {/* SVG Gradient Areas */}
+                    <path d={getAreaPath(totalPts)} fill="url(#total-gradient)" />
+                    <path d={getAreaPath(aiPts)} fill="url(#ai-gradient)" />
+                    <path d={getAreaPath(humanPts)} fill="url(#human-gradient)" />
+
+                    {/* SVG Splines Lines */}
+                    <path d={getBezierPath(totalPts)} fill="none" stroke="#1c64f2" strokeWidth="2.5" strokeLinecap="round" />
+                    <path d={getBezierPath(aiPts)} fill="none" stroke="#008069" strokeWidth="2.5" strokeLinecap="round" />
+                    <path d={getBezierPath(humanPts)} fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" />
+
+                    {/* Interactive hover tracks guidelines and nodes */}
+                    {hoveredIdx !== null && totalPts[hoveredIdx] && aiPts[hoveredIdx] && humanPts[hoveredIdx] && (
+                      <g>
+                        {/* Vertical dotted cursor guide line */}
+                        <line 
+                          x1={totalPts[hoveredIdx].x} 
+                          y1="20" 
+                          x2={totalPts[hoveredIdx].x} 
+                          y2="180" 
+                          stroke="#008069" 
+                          strokeWidth="1.5" 
+                          strokeDasharray="3 3" 
+                          className="opacity-50"
+                        />
+                        {/* Circular nodes overlay */}
+                        <circle cx={totalPts[hoveredIdx].x} cy={totalPts[hoveredIdx].y} r="5" fill="#1c64f2" stroke="#ffffff" strokeWidth="1.5" />
+                        <circle cx={aiPts[hoveredIdx].x} cy={aiPts[hoveredIdx].y} r="5" fill="#008069" stroke="#ffffff" strokeWidth="1.5" />
+                        <circle cx={humanPts[hoveredIdx].x} cy={humanPts[hoveredIdx].y} r="5" fill="#f97316" stroke="#ffffff" strokeWidth="1.5" />
+                      </g>
+                    )}
+                  </g>
+                );
+              })()}
+
               {/* X-axis Labels */}
-              <div className="h-6 mt-auto border-t border-alliance-border flex items-center text-[10px] font-extrabold text-alliance-muted tracking-widest uppercase px-2 sm:px-4 relative pt-2 shrink-0 select-none">
-                {chartPoints.map((point: any, idx: number) => (
-                  <div 
-                    key={`axis-${point.label}-${idx}`} 
+              {chartPoints.map((pt: any, i: number) => {
+                const N = chartPoints.length;
+                const denom = N > 1 ? N - 1 : 1;
+                const xPos = 45 + (i / denom) * 450;
+                return (
+                  <text 
+                    key={`x-axis-lbl-${i}`} 
+                    x={xPos} 
+                    y="204" 
+                    textAnchor="middle" 
                     className={clsx(
-                      "flex-1 text-center transition-all duration-200 text-[10px] font-bold",
-                      point.isToday ? "text-alliance-green font-black scale-105" : 
-                      hoveredIdx === idx ? "text-alliance-green" : "text-alliance-muted"
+                      "text-[10px] font-bold fill-alliance-muted/80 transition-colors duration-200 select-none",
+                      i === hoveredIdx && "fill-alliance-green font-black"
                     )}
                   >
-                    {point.label}
-                  </div>
-                ))}
+                    {pt.label}
+                  </text>
+                );
+              })}
+            </svg>
+
+            {/* Dribbble Style Bottom Legend Panel */}
+            <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-alliance-border text-[11px] font-bold select-none">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#1c64f2] shadow-[0_0_6px_rgba(28,100,242,0.3)]" />
+                <span className="text-alliance-text">Total Inbound</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#008069] shadow-[0_0_6px_rgba(0,128,105,0.3)]" />
+                <span className="text-alliance-green">AI Resolved</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#f97316] shadow-[0_0_6px_rgba(249,115,22,0.3)]" />
+                <span className="text-orange-600">Counselor Action</span>
               </div>
             </div>
+
           </div>
         </div>
 
