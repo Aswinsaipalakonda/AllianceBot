@@ -17,11 +17,11 @@ const ICON_MAP: Record<string, any> = {
 };
 
 const COLOR_MAP: Record<string, { color: string; bg: string; border: string; glow: string }> = {
-  'Total Leads': { color: 'text-alliance-green', bg: 'bg-[#00a884]/10', border: 'hover:border-alliance-green/30', glow: 'shadow-[0_0_20px_rgba(0,168,132,0.02)]' },
-  'Active Conversations': { color: 'text-[#53bdeb]', bg: 'bg-[#53bdeb]/10', border: 'hover:border-[#53bdeb]/30', glow: 'shadow-[0_0_20px_rgba(83,189,235,0.02)]' },
-  'Applications': { color: 'text-alliance-green', bg: 'bg-[#00a884]/10', border: 'hover:border-alliance-green/30', glow: 'shadow-[0_0_20px_rgba(0,168,132,0.02)]' },
-  'Admissions Confirmed': { color: 'text-[#ffd279]', bg: 'bg-[#ffd279]/10', border: 'hover:border-[#ffd279]/30', glow: 'shadow-[0_0_20px_rgba(255,210,121,0.02)]' },
-  'Pending Follow-ups': { color: 'text-red-400', bg: 'bg-red-400/10', border: 'hover:border-red-400/30', glow: 'shadow-[0_0_20px_rgba(239,68,68,0.02)]' },
+  'Total Leads': { color: 'text-alliance-green', bg: 'bg-alliance-green/10', border: 'hover:border-alliance-green/30', glow: 'shadow-[0_4px_12px_rgba(0,128,105,0.03)]' },
+  'Active Conversations': { color: 'text-blue-600', bg: 'bg-blue-500/10', border: 'hover:border-blue-500/30', glow: 'shadow-[0_4px_12px_rgba(59,130,246,0.03)]' },
+  'Applications': { color: 'text-alliance-green', bg: 'bg-alliance-green/10', border: 'hover:border-alliance-green/30', glow: 'shadow-[0_4px_12px_rgba(0,128,105,0.03)]' },
+  'Admissions Confirmed': { color: 'text-[#b27b0b]', bg: 'bg-[#ffd279]/15', border: 'hover:border-[#ffd279]/30', glow: 'shadow-[0_4px_12px_rgba(255,210,121,0.03)]' },
+  'Pending Follow-ups': { color: 'text-rose-600', bg: 'bg-rose-500/10', border: 'hover:border-rose-500/30', glow: 'shadow-[0_4px_12px_rgba(244,63,94,0.03)]' },
 };
 
 export default function DashboardPage() {
