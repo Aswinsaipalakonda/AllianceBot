@@ -99,7 +99,15 @@ export async function GET(req: NextRequest) {
     let pendingFollowups = 0;
 
     // Course distribution count
-    const courses: Record<string, number> = { BHMCT: 0, BBA: 0, DHM: 0, Undecided: 0 };
+    const courses: Record<string, number> = { 
+      BHMCT: 0, 
+      BBA: 0, 
+      DHM: 0, 
+      IHMT: 0,
+      PGDHM: 0,
+      PGDBM: 0,
+      Undecided: 0 
+    };
     // Category distribution count
     const categories: Record<string, number> = {
       'Course Queries': 0,

@@ -51,7 +51,7 @@ export default function AnalyticsPage() {
   }
 
   // Calculate percentages and variables
-  const courses = data?.courses || { BHMCT: 0, BBA: 0, DHM: 0, Undecided: 0 };
+  const courses = data?.courses || { BHMCT: 0, BBA: 0, DHM: 0, IHMT: 0, PGDHM: 0, PGDBM: 0, Undecided: 0 };
   const categories = data?.categories || { 'Course Queries': 0, 'Placement Queries': 0, 'Scholarship Queries': 0, 'Human Followups': 0 };
 
   const totalCourseQueries = (Object.values(courses) as number[]).reduce((a: number, b: number) => a + b, 0);
@@ -77,46 +77,79 @@ export default function AnalyticsPage() {
     { 
       key: 'BHMCT', 
       label: 'BHMCT', 
-      fullName: 'Bachelor of Hotel Management & Catering Technology', 
+      fullName: 'Bachelor of Hotel Management & Catering Technology (BHMCT)', 
       colorFrom: 'from-[#005c4b]', 
       colorTo: 'to-[#00a884]', 
       borderClass: 'border-[#00a884]/30 hover:border-[#00a884]/60',
       glowColor: 'rgba(0,168,132,0.4)', 
       icon: Award, 
-      desc: '3-year professional hospitality track with industry-standard culinary kitchens and premium placement partnerships.' 
+      desc: '3-year professional hospitality degree with industry-standard labs and premium placement partnerships.' 
     },
     { 
       key: 'BBA', 
       label: 'BBA', 
-      fullName: 'Bachelor of Business Administration', 
+      fullName: 'Bachelor of Business Administration (BBA)', 
       colorFrom: 'from-[#1b80a4]', 
       colorTo: 'to-[#53bdeb]', 
       borderClass: 'border-[#53bdeb]/30 hover:border-[#53bdeb]/60',
       glowColor: 'rgba(83,189,235,0.4)', 
       icon: TrendingUp, 
-      desc: '3-year comprehensive degree focused on business management systems, corporate strategy, and dual specialization.' 
+      desc: '3-year comprehensive undergraduate degree focused on business management and dual specializations.' 
     },
     { 
       key: 'DHM', 
       label: 'DHM', 
-      fullName: 'Diploma in Hotel Management & Catering Technology', 
+      fullName: 'Diploma in Hotel Management (DHM)', 
       colorFrom: 'from-[#c59129]', 
       colorTo: 'to-[#ffd279]', 
       borderClass: 'border-[#ffd279]/30 hover:border-[#ffd279]/60',
       glowColor: 'rgba(255,210,121,0.4)', 
       icon: BookOpen, 
-      desc: '1-year fast-track technical course designed for high-performance operations in culinary arts and guest accommodations.' 
+      desc: '1-year fast-track technical diploma course for high-performance operations in culinary arts and guest services.' 
+    },
+    { 
+      key: 'IHMT', 
+      label: 'IHMT', 
+      fullName: 'Intermediate in Hotel Management and Catering Technology', 
+      colorFrom: 'from-[#7c3aed]', 
+      colorTo: 'to-[#a78bfa]', 
+      borderClass: 'border-[#a78bfa]/30 hover:border-[#a78bfa]/60',
+      glowColor: 'rgba(167,139,250,0.4)', 
+      icon: Users, 
+      desc: '2-year foundational junior college course in hospitality basics, catering science, and culinary fundamentals.' 
+    },
+    { 
+      key: 'PGDHM', 
+      label: 'PGDHM', 
+      fullName: 'Post Graduate Diploma in Hotel Management / Tourism & Travel Management', 
+      colorFrom: 'from-[#0f766e]', 
+      colorTo: 'to-[#14b8a6]', 
+      borderClass: 'border-[#14b8a6]/30 hover:border-[#14b8a6]/60',
+      glowColor: 'rgba(20,184,166,0.4)', 
+      icon: CheckCircle2, 
+      desc: '1-year advanced professional course focused on global tourism, hospitality leadership, and travel management.' 
+    },
+    { 
+      key: 'PGDBM', 
+      label: 'PGDBM', 
+      fullName: 'Post Graduate Diploma in Business Management (PGDBM)', 
+      colorFrom: 'from-[#b91c1c]', 
+      colorTo: 'to-[#f87171]', 
+      borderClass: 'border-[#f87171]/30 hover:border-[#f87171]/60',
+      glowColor: 'rgba(248,113,113,0.4)', 
+      icon: FileText, 
+      desc: '2-year premium post-graduate management program with specializations in Finance, HR, and Marketing.' 
     },
     { 
       key: 'Undecided', 
       label: 'Undecided', 
       fullName: 'General Inquiry / Consultation Needed', 
-      colorFrom: 'from-[#9f1239]', 
-      colorTo: 'to-[#ef4444]', 
-      borderClass: 'border-[#ef4444]/30 hover:border-[#ef4444]/60',
-      glowColor: 'rgba(239,68,68,0.4)', 
-      icon: Users, 
-      desc: 'Prospective students inquiring about general admissions, campus walkthroughs, or unassigned course configurations.' 
+      colorFrom: 'from-[#4b5563]', 
+      colorTo: 'to-[#9ca3af]', 
+      borderClass: 'border-[#9ca3af]/30 hover:border-[#9ca3af]/60',
+      glowColor: 'rgba(156,163,175,0.4)', 
+      icon: Sparkles, 
+      desc: 'Prospective students inquiring about general admissions, campus walkthroughs, or unassigned configurations.' 
     }
   ];
 
@@ -294,7 +327,7 @@ export default function AnalyticsPage() {
               <div className="border-t border-dashed border-alliance-border w-full" />
             </div>
 
-            <div className="w-full h-48 flex items-end justify-around border-b border-alliance-border pb-2 px-2 gap-4 relative">
+            <div className="w-full h-48 flex items-end justify-around border-b border-alliance-border pb-2 px-1 gap-1.5 sm:gap-3 md:gap-4 relative">
               {courseKeys.map((c) => {
                 const count = courses[c.key] || 0;
                 const percent = getBarHeightPercent(count);
@@ -305,7 +338,7 @@ export default function AnalyticsPage() {
                     key={c.key}
                     onMouseEnter={() => setHoveredCourse(c.key)}
                     onMouseLeave={() => setHoveredCourse(null)}
-                    className="flex flex-col items-center w-14 sm:w-16 group relative"
+                    className="flex flex-col items-center w-8 sm:w-14 md:w-16 group relative"
                   >
                     {/* Tooltip bubble always aligned nicely */}
                     <div 
@@ -315,7 +348,7 @@ export default function AnalyticsPage() {
                       )}
                     >
                       <span className="text-xs font-black text-white">{count} Leads</span>
-                      <span className="text-[9px] font-bold text-alliance-green uppercase">
+                      <span className="text-[9px] font-bold text-alliance-green uppercase font-sans">
                         {totalCourseQueries > 0 ? ((count / totalCourseQueries) * 100).toFixed(0) : 0}% Share
                       </span>
                       {/* Triangle pointer */}
@@ -323,7 +356,7 @@ export default function AnalyticsPage() {
                     </div>
 
                     {/* Capsule track */}
-                    <div className="w-8 sm:w-10 bg-[#ccd0d5]/30 border border-alliance-border h-36 rounded-full flex items-end relative overflow-hidden cursor-pointer">
+                    <div className="w-5 sm:w-8 md:w-10 bg-[#ccd0d5]/30 border border-alliance-border h-36 rounded-full flex items-end relative overflow-hidden cursor-pointer">
                       {/* Interactive glowing bar */}
                       <div 
                         className={clsx(
@@ -344,7 +377,7 @@ export default function AnalyticsPage() {
 
                     {/* Label */}
                     <span className={clsx(
-                      "text-xs font-extrabold mt-3 transition-colors duration-200",
+                      "text-[9px] sm:text-xs font-extrabold mt-3 transition-colors duration-200",
                       isHovered ? "text-alliance-green" : "text-alliance-text"
                     )}>
                       {c.label}
