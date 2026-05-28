@@ -83,7 +83,7 @@ export default function AnalyticsPage() {
       borderClass: 'border-[#00a884]/30 hover:border-[#00a884]/60',
       glowColor: 'rgba(0,168,132,0.4)', 
       icon: Award, 
-      desc: '4-year professional hospitality track with industry-standard culinary kitchens and premium placement partnerships.' 
+      desc: '3-year professional hospitality track with industry-standard culinary kitchens and premium placement partnerships.' 
     },
     { 
       key: 'BBA', 
@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
       borderClass: 'border-[#ffd279]/30 hover:border-[#ffd279]/60',
       glowColor: 'rgba(255,210,121,0.4)', 
       icon: BookOpen, 
-      desc: '2-year fast-track technical course designed for high-performance operations in culinary arts and guest accommodations.' 
+      desc: '1-year fast-track technical course designed for high-performance operations in culinary arts and guest accommodations.' 
     },
     { 
       key: 'Undecided', 
