@@ -203,27 +203,6 @@ function ConversationsContent() {
       const json = await res.json();
       if (json.success) {
         setLeads(json.leads);
-        // Determine which lead to select
-        if (json.leads.length > 0) {
-          const target = selectPhone || urlPhone;
-          if (target) {
-            const found = json.leads.some((l: any) => l.phone === target);
-            if (found) {
-              setActivePhone(target);
-            } else {
-              setActivePhone(json.leads[0].phone);
-            }
-          } else {
-            // No phone in URL or parameter. 
-            // On desktop, auto-select first lead. On mobile, keep it null.
-            const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-            if (isMobile) {
-              setActivePhone(null);
-            } else {
-              setActivePhone(json.leads[0].phone);
-            }
-          }
-        }
       }
     } catch (err) {
       console.error('Failed to load leads:', err);
@@ -232,9 +211,33 @@ function ConversationsContent() {
     }
   };
 
+  // Run initial fetch on mount
   useEffect(() => {
     fetchLeads();
-  }, [urlPhone]);
+  }, []);
+
+  // Sync activePhone state with urlPhone and leads list
+  useEffect(() => {
+    if (loadingLeads || leads.length === 0) return;
+
+    if (urlPhone) {
+      const found = leads.some((l: any) => l.phone === urlPhone);
+      if (found) {
+        setActivePhone(urlPhone);
+      } else {
+        // Fallback to first lead if specific phone in URL not found
+        setActivePhone(leads[0].phone);
+      }
+    } else {
+      // No phone query in URL: on mobile keep it null (show list), on desktop select first lead
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      if (isMobile) {
+        setActivePhone(null);
+      } else {
+        setActivePhone(leads[0].phone);
+      }
+    }
+  }, [urlPhone, leads, loadingLeads]);
 
   // 2. Fetch conversation history for active phone
   const fetchMessages = async (phone: string, showLoader = false) => {
@@ -418,8 +421,8 @@ function ConversationsContent() {
 
   const handleChatSelect = (phone: string) => {
     setActivePhone(phone);
-    // Sync URL param without full page reload
-    router.replace(`/conversations?phone=${encodeURIComponent(phone)}`);
+    // Push the state to history for correct mobile swipe/browser back gesture support
+    router.push(`/conversations?phone=${encodeURIComponent(phone)}`);
   };
 
   if (loadingLeads) {
