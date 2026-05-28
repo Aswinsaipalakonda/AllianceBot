@@ -69,421 +69,303 @@ export default function DashboardPage() {
     }
   }, [activeFilter, startDate, endDate]);
 
-  const handleExportCSV = () => {
-    if (!data) return;
-    
-    // Prefix phone numbers with a tab character to force Excel to treat them strictly as text, preventing scientific notation
-    const statsText = data.stats.map((s: any) => `"${s.label}","${s.value}","${s.trend}"`).join('\n');
-    const activityText = data.recentActivity.map((r: any) => `"${r.name}","\t${r.phone}","${r.course}","${r.status}","${r.time}"`).join('\n');
-    
-    const headers = 'Alliance College Admissions Report\n\nMetric,Current Value,Week-over-Week Trend\n' + statsText + 
-      '\n\nRecent Activity Leads\nName,Phone,Course,Lead Status,Time Logged\n' + activityText;
+  const handleExportCSV = async () => {
+    try {
+      showToast('Preparing spreadsheet report...', 'info');
+      const res = await fetch('/api/leads');
+      const json = await res.json();
+      if (!json.success || !json.leads) {
+        showToast('Failed to retrieve student records.', 'error');
+        return;
+      }
       
-    const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `admissions_report_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setIsExportModalOpen(false);
-    showToast('Analytical CSV spreadsheet downloaded!', 'success');
+      const leadsList = json.leads;
+      
+      // Prefix phone numbers with a tab character to force Excel to treat them strictly as text, preventing scientific notation
+      const rowsText = leadsList.map((lead: any, idx: number) => {
+        const timeClean = lead.timestamp ? lead.timestamp.replace(/"/g, '""') : 'Just now';
+        return `"${idx + 1}","${lead.name.replace(/"/g, '""')}","\t${lead.phone}","${lead.course.replace(/"/g, '""')}","${lead.status.replace(/"/g, '""')}","${lead.category.replace(/"/g, '""')}","${timeClean}"`;
+      }).join('\n');
+      
+      const headers = 'Alliance College - Student Admissions Register\n\nS.No,Student Name,Phone Number,Inquired Course,Lead Status,Query Category,Time Registered\n' + rowsText;
+        
+      const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `student_admissions_register_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setIsExportModalOpen(false);
+      showToast('Student Admissions Register Excel/CSV downloaded!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Error exporting student directory.', 'error');
+    }
   };
 
-  const handleExportPDF = () => {
-    if (!data) return;
-    
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showToast('Pop-up blocked! Please allow pop-ups to print PDF.', 'error');
-      return;
-    }
-    
-    const dateStr = new Date().toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    const statsHTML = data.stats.map((s: any) => `
-      <div class="kpi-card">
-        <div class="kpi-label">${s.label}</div>
-        <div class="kpi-value">${s.value}</div>
-        <div class="kpi-trend ${s.isUp ? 'up' : 'down'}">
-          ${s.isUp ? '▲' : '▼'} ${s.trend} week-over-week
-        </div>
-      </div>
-    `).join('');
-    
-    const leadsHTML = data.recentActivity.map((r: any, idx: number) => `
-      <tr class="${idx % 2 === 0 ? 'even' : 'odd'}">
-        <td style="font-weight: 700; color: #111b21;">${r.name}</td>
-        <td style="font-family: monospace; letter-spacing: 0.5px;">${r.phone}</td>
-        <td><span class="course-badge">${r.course}</span></td>
-        <td><span class="status-badge status-${r.status.toLowerCase().replace(/\s+/g, '-')}">${r.status}</span></td>
-        <td style="color: #667781; font-size: 11px;">${r.time}</td>
-      </tr>
-    `).join('');
-    
-    const coursesMap = data.courses || { BHMCT: 0, BBA: 0, DHM: 0, Undecided: 0 };
-    const totalCourses = Object.values(coursesMap).reduce((a: any, b: any) => a + b, 0) as number || 1;
-    const coursesHTML = [
-      { label: 'BHMCT Culinary Arts', value: coursesMap.BHMCT || 0, color: '#008069' },
-      { label: 'BBA Corporate Systems', value: coursesMap.BBA || 0, color: '#1b80a4' },
-      { label: 'DHM Hospitality Diploma', value: coursesMap.DHM || 0, color: '#c59129' },
-      { label: 'Consultations Needed', value: coursesMap.Undecided || 0, color: '#9f1239' }
-    ].map(c => {
-      const pct = ((c.value / totalCourses) * 100).toFixed(0);
-      return `
-        <div class="course-row">
-          <div class="course-info">
-            <span class="course-name">${c.label}</span>
-            <span class="course-count">${pct}% (${c.value})</span>
-          </div>
-          <div class="progress-bg">
-            <div class="progress-fill" style="width: ${pct}%; background-color: ${c.color};"></div>
-          </div>
-        </div>
-      `;
-    }).join('');
+  const handleExportPDF = async () => {
+    try {
+      showToast('Preparing PDF document...', 'info');
+      const res = await fetch('/api/leads');
+      const json = await res.json();
+      if (!json.success || !json.leads) {
+        showToast('Failed to retrieve student records.', 'error');
+        return;
+      }
+      
+      const leadsList = json.leads;
+      
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        showToast('Pop-up blocked! Please allow pop-ups to print PDF.', 'error');
+        return;
+      }
+      
+      const dateStr = new Date().toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      const rowsHTML = leadsList.map((lead: any, idx: number) => {
+        const timeClean = lead.timestamp || 'Just now';
+        return `
+          <tr class="${idx % 2 === 0 ? 'even' : 'odd'}">
+            <td style="font-weight: 700; text-align: center; color: #667781;">${idx + 1}</td>
+            <td style="font-weight: 700; color: #111b21;">${lead.name}</td>
+            <td style="font-family: monospace; letter-spacing: 0.5px;">${lead.phone}</td>
+            <td><span class="course-badge">${lead.course}</span></td>
+            <td><span class="status-badge status-${lead.status.toLowerCase().replace(/\s+/g, '-')}">${lead.status}</span></td>
+            <td style="color: #667781; font-weight: 500;">${lead.category}</td>
+            <td style="color: #8696a0; font-size: 11px;">${timeClean}</td>
+          </tr>
+        `;
+      }).join('');
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Alliance College - Admissions CRM Report</title>
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-          
-          @media print {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Alliance College - Student Admissions Register</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+            
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background-color: #ffffff !important;
+              }
+              @page {
+                size: A4 landscape;
+                margin: 12mm 15mm;
+              }
+              .no-print {
+                display: none !important;
+              }
+            }
+            
             body {
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-              background-color: #ffffff !important;
+              font-family: 'Inter', system-ui, -apple-system, sans-serif;
+              background-color: #ffffff;
+              color: #111b21;
+              margin: 0;
+              padding: 0;
+              line-height: 1.5;
+              -webkit-font-smoothing: antialiased;
             }
-            @page {
-              size: A4 landscape;
-              margin: 12mm 15mm;
+            
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              border-bottom: 2px solid #e9edef;
+              padding-bottom: 15px;
+              margin-bottom: 25px;
             }
-            .no-print {
-              display: none !important;
+            
+            .logo-container {
+              display: flex;
+              align-items: center;
+              gap: 12px;
             }
-          }
+            
+            .title {
+              font-size: 24px;
+              font-weight: 800;
+              color: #111b21;
+              margin: 0;
+              letter-spacing: -0.5px;
+            }
+            
+            .subtitle {
+              font-size: 13px;
+              color: #667781;
+              margin: 3px 0 0 0;
+              font-weight: 500;
+            }
+            
+            .meta-info {
+              text-align: right;
+              font-size: 12px;
+              color: #667781;
+              font-weight: 500;
+            }
+            
+            .table-container {
+              border: 1px solid #e9edef;
+              border-radius: 12px;
+              overflow: hidden;
+              margin-bottom: 20px;
+            }
+            
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              text-align: left;
+              font-size: 12px;
+            }
+            
+            th {
+              background-color: #f0f2f5;
+              color: #111b21;
+              font-weight: 800;
+              padding: 12px 14px;
+              font-size: 10.5px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              border-bottom: 1px solid #e9edef;
+            }
+            
+            td {
+              padding: 12px 14px;
+              border-bottom: 1px solid #e9edef;
+              color: #3b4a54;
+            }
+            
+            tr.even {
+              background-color: #ffffff;
+            }
+            
+            tr.odd {
+              background-color: #f8f9fa;
+            }
+            
+            .course-badge {
+              background-color: #f0f2f5;
+              color: #111b21;
+              font-weight: 700;
+              padding: 2px 8px;
+              border-radius: 6px;
+              font-size: 11px;
+            }
+            
+            .status-badge {
+              font-weight: 700;
+              padding: 2px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              text-transform: uppercase;
+              letter-spacing: 0.3px;
+            }
+            
+            .status-interested { background-color: rgba(255, 210, 121, 0.2); color: #b27b0b; }
+            .status-follow-up { background-color: rgba(59, 130, 246, 0.15); color: #1d4ed8; }
+            .status-new-lead { background-color: rgba(0, 128, 105, 0.15); color: #008069; }
+            .status-applied { background-color: rgba(147, 51, 234, 0.15); color: #7c3aed; }
+            .status-converted { background-color: rgba(16, 185, 129, 0.15); color: #059669; }
+            
+            .footer {
+              margin-top: 30px;
+              border-top: 1px solid #e9edef;
+              padding-top: 10px;
+              display: flex;
+              justify-content: space-between;
+              font-size: 10px;
+              color: #8696a0;
+              font-weight: 500;
+            }
+            
+            .print-btn {
+              position: fixed;
+              bottom: 20px;
+              right: 20px;
+              background-color: #008069;
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              border-radius: 8px;
+              font-size: 13px;
+              font-weight: 700;
+              cursor: pointer;
+              box-shadow: 0 4px 12px rgba(0, 128, 105, 0.2);
+              transition: all 0.2s;
+              font-family: 'Inter', sans-serif;
+            }
+            
+            .print-btn:hover {
+              background-color: #00a884;
+              transform: translateY(-1px);
+            }
+          </style>
+        </head>
+        <body>
+          <button class="print-btn no-print" onclick="window.print()">Print / Save PDF</button>
           
-          body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: #ffffff;
-            color: #111b21;
-            margin: 0;
-            padding: 0;
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-          }
-          
-          .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #e9edef;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-          }
-          
-          .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-          }
-          
-          .title {
-            font-size: 24px;
-            font-weight: 800;
-            color: #111b21;
-            margin: 0;
-            letter-spacing: -0.5px;
-          }
-          
-          .subtitle {
-            font-size: 13px;
-            color: #667781;
-            margin: 3px 0 0 0;
-            font-weight: 500;
-          }
-          
-          .meta-info {
-            text-align: right;
-            font-size: 12px;
-            color: #667781;
-            font-weight: 500;
-          }
-          
-          .grid-container {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 25px;
-            margin-bottom: 25px;
-          }
-          
-          .section-title {
-            font-size: 14px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #667781;
-            margin-top: 0;
-            margin-bottom: 12px;
-          }
-          
-          .kpis-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
-            margin-bottom: 25px;
-          }
-          
-          .kpi-card {
-            border: 1px solid #e9edef;
-            border-radius: 12px;
-            padding: 14px;
-            background-color: #f8f9fa;
-          }
-          
-          .kpi-label {
-            font-size: 10px;
-            font-weight: 700;
-            color: #667781;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-          }
-          
-          .kpi-value {
-            font-size: 22px;
-            font-weight: 900;
-            color: #111b21;
-            letter-spacing: -0.5px;
-          }
-          
-          .kpi-trend {
-            font-size: 9px;
-            font-weight: 700;
-            margin-top: 4px;
-            display: inline-flex;
-            align-items: center;
-          }
-          
-          .kpi-trend.up {
-            color: #008069;
-          }
-          
-          .kpi-trend.down {
-            color: #e11d48;
-          }
-          
-          .table-container {
-            border: 1px solid #e9edef;
-            border-radius: 12px;
-            overflow: hidden;
-          }
-          
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 12.5px;
-          }
-          
-          th {
-            background-color: #f0f2f5;
-            color: #111b21;
-            font-weight: 700;
-            padding: 10px 14px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #e9edef;
-          }
-          
-          td {
-            padding: 11px 14px;
-            border-bottom: 1px solid #e9edef;
-            color: #3b4a54;
-          }
-          
-          tr.even {
-            background-color: #ffffff;
-          }
-          
-          tr.odd {
-            background-color: #f8f9fa;
-          }
-          
-          .course-badge {
-            background-color: #f0f2f5;
-            color: #111b21;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-          }
-          
-          .status-badge {
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-          }
-          
-          .status-interested { background-color: rgba(255, 210, 121, 0.2); color: #b27b0b; }
-          .status-follow-up { background-color: rgba(59, 130, 246, 0.15); color: #1d4ed8; }
-          .status-new-lead { background-color: rgba(0, 128, 105, 0.15); color: #008069; }
-          
-          .courses-container {
-            border: 1px solid #e9edef;
-            border-radius: 12px;
-            padding: 18px;
-            background-color: #ffffff;
-          }
-          
-          .course-row {
-            margin-bottom: 12px;
-          }
-          
-          .course-row:last-child {
-            margin-bottom: 0;
-          }
-          
-          .course-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11.5px;
-            font-weight: 700;
-            margin-bottom: 4px;
-          }
-          
-          .course-name {
-            color: #111b21;
-          }
-          
-          .course-count {
-            color: #667781;
-          }
-          
-          .progress-bg {
-            height: 6px;
-            background-color: #f0f2f5;
-            border-radius: 3px;
-            overflow: hidden;
-          }
-          
-          .progress-fill {
-            height: 100%;
-            border-radius: 3px;
-          }
-          
-          .footer {
-            margin-top: 30px;
-            border-top: 1px solid #e9edef;
-            padding-top: 10px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            color: #8696a0;
-            font-weight: 500;
-          }
-          
-          .print-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #008069;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 128, 105, 0.2);
-            transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
-          }
-          
-          .print-btn:hover {
-            background-color: #00a884;
-            transform: translateY(-1px);
-          }
-        </style>
-      </head>
-      <body>
-        <button class="print-btn no-print" onclick="window.print()">Print / Save PDF</button>
-        
-        <div class="header">
-          <div class="logo-container">
-            <div style="font-weight: 900; font-size: 26px; color: #008069; letter-spacing: -1px;">A</div>
-            <div>
-              <h1 class="title">Alliance College</h1>
-              <p class="subtitle">Admissions Command Deck Summary</p>
+          <div class="header">
+            <div class="logo-container">
+              <div style="font-weight: 900; font-size: 26px; color: #008069; letter-spacing: -1px;">A</div>
+              <div>
+                <h1 class="title">Alliance College</h1>
+                <p class="subtitle">Admissions Student Registry Summary</p>
+              </div>
             </div>
-          </div>
-          <div class="meta-info">
-            <div style="font-weight: 700; color: #111b21;">OFFICIAL CRM SUMMARY REPORT</div>
-            <div>Generated: ${dateStr} at ${timeStr}</div>
-          </div>
-        </div>
-        
-        <div class="section-title">Key Performance Indicators</div>
-        <div class="kpis-grid">
-          ${statsHTML}
-        </div>
-        
-        <div class="grid-container">
-          <div>
-            <div class="section-title">Recent Student Leads Activity</div>
-            <div class="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width: 25%;">Student Name</th>
-                    <th style="width: 22%;">Phone Number</th>
-                    <th style="width: 23%;">Inquired Course</th>
-                    <th style="width: 15%;">Lead Status</th>
-                    <th style="width: 15%;">Time Logged</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${leadsHTML}
-                </tbody>
-              </table>
+            <div class="meta-info">
+              <div style="font-weight: 700; color: #111b21;">OFFICIAL STUDENT ADMISSIONS REGISTER</div>
+              <div>Generated: ${dateStr} at ${timeStr}</div>
             </div>
           </div>
           
-          <div>
-            <div class="section-title">Course Preference Share</div>
-            <div class="courses-container">
-              ${coursesHTML}
-            </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 6%; text-align: center;">S.No</th>
+                  <th style="width: 22%;">Student Name</th>
+                  <th style="width: 18%;">Phone Number</th>
+                  <th style="width: 16%;">Inquired Course</th>
+                  <th style="width: 15%;">Lead Status</th>
+                  <th style="width: 23%;">Query Category</th>
+                  <th style="width: 0%;">Time Registered</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHTML}
+              </tbody>
+            </table>
           </div>
-        </div>
-        
-        <div class="footer">
-          <span>Alliance College Admissions Management Portal &copy; 2026. Confidential and Proprietary.</span>
-          <span>Security Level: Administrator Sync</span>
-        </div>
-        
-        <script>
-          window.onload = function() {
-            setTimeout(function() {
-              window.print();
-            }, 500);
-          };
-        </script>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
-    setIsExportModalOpen(false);
-    showToast('Print-ready landscape PDF report generated!', 'success');
+          
+          <div class="footer">
+            <span>Alliance College Admissions Management Portal &copy; 2026. Confidential and Proprietary.</span>
+            <span>Roster Size: ${leadsList.length} Students Logged</span>
+          </div>
+          
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 500);
+            };
+          </script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      setIsExportModalOpen(false);
+      showToast('Print-ready landscape Student Registry PDF generated!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Error exporting student directory.', 'error');
+    }
   };
 
 
