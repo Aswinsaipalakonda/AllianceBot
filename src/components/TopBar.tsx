@@ -187,7 +187,7 @@ export function TopBar() {
           <Image src="/logo.jpg" alt="Alliance College Logo" fill className="object-cover" />
         </div>
         <div>
-          <h1 className="font-semibold text-white tracking-wide text-sm">Alliance College</h1>
+          <h1 className="font-semibold text-alliance-text tracking-wide text-sm">Alliance College</h1>
           <p className="text-xs text-alliance-muted">Admissions Team</p>
         </div>
       </div>
@@ -215,8 +215,8 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-5">
-        <div className="flex items-center gap-2 bg-[#092b1d] border border-alliance-green/30 text-alliance-green px-3 py-1.5 rounded-full text-xs font-medium">
-          <div className="w-2 h-2 rounded-full bg-alliance-green animate-pulse"></div>
+        <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
           Online
         </div>
         
@@ -226,7 +226,7 @@ export function TopBar() {
             type="button"
             onClick={() => setShowNotifications(!showNotifications)}
             suppressHydrationWarning
-            className="relative text-alliance-muted hover:text-white transition-colors cursor-pointer"
+            className="relative text-alliance-muted hover:text-alliance-text transition-colors cursor-pointer"
             aria-expanded={showNotifications}
             aria-haspopup="true"
           >
@@ -241,7 +241,7 @@ export function TopBar() {
           {showNotifications && (
             <div className="absolute left-4 right-4 top-full mt-2 md:absolute md:left-auto md:right-0 md:w-80 md:top-full md:mt-3 bg-alliance-card border border-alliance-border rounded-xl shadow-2xl py-2 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 py-2 border-b border-alliance-border flex justify-between items-center bg-alliance-dark/30">
-                <span className="text-white font-semibold text-xs uppercase tracking-wider">Recent Activity Alerts</span>
+                <span className="text-alliance-text font-bold text-xs uppercase tracking-wider">Recent Activity Alerts</span>
                 <div className="flex items-center gap-2.5">
                   {badgeCount > 0 && (
                     <button
@@ -256,7 +256,7 @@ export function TopBar() {
                     </button>
                   )}
                   {badgeCount > 0 && (
-                    <span className="text-[10px] text-alliance-green font-bold bg-[#092b1d] border border-alliance-green/20 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] text-alliance-green font-bold bg-alliance-green/10 border border-alliance-green/20 px-1.5 py-0.5 rounded">
                       {badgeCount} ACTIVE
                     </span>
                   )}
@@ -294,8 +294,8 @@ export function TopBar() {
                           {notif.type === 'escalation' && <Shield className="h-4 w-4" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-white truncate leading-snug flex items-center justify-between gap-1.5">
-                            <span className={clsx(isRead ? "text-alliance-muted font-normal" : "text-white font-bold")}>
+                          <div className="text-sm font-semibold text-alliance-text truncate leading-snug flex items-center justify-between gap-1.5">
+                            <span className={clsx(isRead ? "text-alliance-muted font-normal" : "text-alliance-text font-bold")}>
                               {notif.title}
                             </span>
                             {!isRead && (
@@ -314,7 +314,7 @@ export function TopBar() {
                                   e.stopPropagation();
                                   handleMarkAsRead(notif.id);
                                 }}
-                                className="text-[9px] text-alliance-green hover:text-white font-extrabold bg-[#00a884]/10 hover:bg-[#00a884]/20 border border-[#00a884]/25 px-2 py-0.5 rounded transition-all duration-150 cursor-pointer uppercase tracking-wider"
+                                className="text-[9px] text-alliance-green hover:text-alliance-green font-extrabold bg-[#00a884]/10 hover:bg-[#00a884]/20 border border-[#00a884]/25 px-2 py-0.5 rounded transition-all duration-150 cursor-pointer uppercase tracking-wider"
                               >
                                 Mark read
                               </button>
@@ -352,11 +352,11 @@ export function TopBar() {
           onClick={() => setShowProfile(!showProfile)}
           className="flex items-center gap-2 cursor-pointer hover:bg-alliance-dark/50 p-1.5 rounded-lg transition-colors relative"
         >
-          <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white text-sm font-bold border border-alliance-border">
+          <div className="w-8 h-8 rounded-full bg-alliance-dark flex items-center justify-center text-alliance-text text-sm font-bold border border-alliance-border">
             AK
           </div>
           <div className="hidden md:block text-left">
-            <div className="text-sm font-medium text-white leading-tight">Admin</div>
+            <div className="text-sm font-semibold text-alliance-text leading-tight">Admin</div>
             <div className="text-[10px] text-alliance-muted">Super Admin</div>
           </div>
           <ChevronDown className="h-4 w-4 text-alliance-muted" />
@@ -365,11 +365,11 @@ export function TopBar() {
           {showProfile && (
             <div className="absolute right-0 top-full mt-2 w-56 bg-alliance-card border border-alliance-border rounded-xl shadow-2xl py-2 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 py-3 border-b border-alliance-border flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-gray-600 flex items-center justify-center text-white text-sm font-bold border border-alliance-border">
+                <div className="w-9 h-9 rounded-full bg-alliance-dark flex items-center justify-center text-alliance-text text-sm font-bold border border-alliance-border">
                   AK
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-semibold text-white leading-none font-medium">Admin User</span>
+                  <span className="text-sm font-bold text-alliance-text leading-none">Admin User</span>
                   <span className="text-[10px] text-alliance-muted truncate mt-1">admin@alliance.edu</span>
                 </div>
               </div>

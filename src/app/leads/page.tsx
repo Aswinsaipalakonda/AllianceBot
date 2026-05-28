@@ -7,11 +7,11 @@ import Link from 'next/link';
 import clsx from 'clsx';
 
 const STATUS_COLORS: Record<string, string> = {
-  'New Lead': 'text-alliance-green bg-[#053c30]/50 border-alliance-green/20',
-  'Interested': 'text-[#ffd279] bg-[#493916]/50 border-[#ffd279]/20',
-  'Follow-up': 'text-blue-400 bg-blue-900/20 border-blue-400/20',
-  'Applied': 'text-purple-400 bg-purple-900/20 border-purple-400/20',
-  'Converted': 'text-emerald-400 bg-emerald-900/20 border-emerald-400/20',
+  'New Lead': 'text-alliance-green bg-alliance-green/10 border-alliance-green/20',
+  'Interested': 'text-[#b27b0b] bg-[#ffd279]/15 border-[#ffd279]/30',
+  'Follow-up': 'text-blue-600 bg-blue-500/10 border-blue-500/20',
+  'Applied': 'text-purple-600 bg-purple-500/10 border-purple-500/20',
+  'Converted': 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20',
 };
 
 export default function LeadsPage() {
@@ -186,10 +186,10 @@ function LeadsContent() {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto bg-alliance-dark pb-24 md:pb-8">
-      <div className="flex-shrink-0 px-4 md:px-8 py-8 border-b border-alliance-border/50 bg-gradient-to-b from-[#111b21] to-[#0b141a]/10">
+      <div className="flex-shrink-0 px-4 md:px-8 py-8 border-b border-alliance-border bg-alliance-card shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-alliance-text tracking-tight flex items-center gap-2">
               Leads <span className="text-alliance-green">Directory</span>
             </h1>
             <p className="text-alliance-muted mt-1 text-sm font-medium">Manage, filter, and track all student leads efficiently from Google Sheets in real-time.</p>
@@ -197,13 +197,13 @@ function LeadsContent() {
           <div className="flex flex-wrap items-center gap-3">
             <button 
               onClick={handleExportCSV}
-              className="bg-alliance-card/85 border border-alliance-border/60 text-white rounded-xl px-4 py-2.5 text-sm font-bold hover:bg-alliance-hover/60 hover:border-alliance-green/30 transition-all flex items-center gap-2 cursor-pointer shadow-md"
+              className="bg-alliance-card border border-alliance-border text-alliance-text rounded-xl px-4 py-2.5 text-sm font-bold hover:bg-alliance-hover hover:border-alliance-green/30 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
             >
               <Download className="h-4 w-4 text-alliance-green" /> Export CSV
             </button>
             <button 
               onClick={() => setIsModalOpen(true)} 
-              className="bg-alliance-green text-[#092b1d] rounded-xl px-4 py-2.5 text-sm font-black hover:bg-[#00c298] shadow-[0_4px_15px_rgba(0,168,132,0.25)] transition-all flex items-center gap-2 cursor-pointer"
+              className="bg-alliance-green text-white rounded-xl px-4 py-2.5 text-sm font-bold hover:bg-[#00a884] shadow-[0_4px_12px_rgba(0,128,105,0.15)] transition-all flex items-center gap-2 cursor-pointer"
             >
               <User className="h-4 w-4" strokeWidth={2.5} /> Add New Lead
             </button>
@@ -218,7 +218,7 @@ function LeadsContent() {
               placeholder="Search by name, ID or phone..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-alliance-card/70 border border-alliance-border/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-alliance-muted focus:outline-none focus:border-alliance-green/50 focus:ring-1 focus:ring-alliance-green/50 transition-all duration-200"
+              className="w-full bg-alliance-card border border-alliance-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-alliance-text placeholder-alliance-muted focus:outline-none focus:border-alliance-green/50 focus:ring-1 focus:ring-alliance-green/50 transition-all duration-200 shadow-sm"
             />
           </div>
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
@@ -226,7 +226,7 @@ function LeadsContent() {
             <select 
               value={filterCourse}
               onChange={(e) => setFilterCourse(e.target.value)}
-              className="bg-alliance-card/70 border border-alliance-border/60 rounded-xl px-3 py-2.5 text-sm text-white font-semibold focus:outline-none focus:border-alliance-green/50 cursor-pointer"
+              className="bg-alliance-card border border-alliance-border rounded-xl px-3 py-2.5 text-sm text-alliance-text font-semibold focus:outline-none focus:border-alliance-green/50 cursor-pointer shadow-sm"
             >
               <option value="All">All Courses</option>
               <option value="BHMCT">BHMCT</option>
@@ -241,10 +241,10 @@ function LeadsContent() {
       <div className="flex-1 p-4 md:p-8">
         
         {/* Desktop Table View */}
-        <div className="hidden md:block bg-gradient-to-br from-[#111b21] to-[#070c0e] border border-alliance-border/70 rounded-2xl overflow-hidden shadow-xl">
+        <div className="hidden md:block bg-alliance-card border border-alliance-border rounded-2xl overflow-hidden shadow-sm">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-alliance-dark/30 border-b border-alliance-border/70">
+              <tr className="bg-alliance-dark/50 border-b border-alliance-border">
                 <th className="px-6 py-4 text-xs font-bold text-alliance-muted uppercase tracking-wider">Lead ID & Name</th>
                 <th className="px-6 py-4 text-xs font-bold text-alliance-muted uppercase tracking-wider">Contact</th>
                 <th className="px-6 py-4 text-xs font-bold text-alliance-muted uppercase tracking-wider">Course</th>
@@ -256,42 +256,42 @@ function LeadsContent() {
             </thead>
             <tbody className="divide-y divide-alliance-border/40">
               {paginatedLeads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-[#122027]/40 transition-colors group">
+                <tr key={lead.id} className="hover:bg-alliance-hover/40 transition-colors group">
                   <td className="px-6 py-4.5 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-alliance-dark border border-alliance-border/60 flex items-center justify-center text-xs font-black text-white group-hover:border-alliance-green/30">
+                      <div className="w-9 h-9 rounded-xl bg-alliance-dark border border-alliance-border flex items-center justify-center text-xs font-black text-alliance-text group-hover:border-alliance-green/30 shadow-sm">
                         {lead.name.substring(0,2).toUpperCase()}
                       </div>
                       <div>
-                        <div className="text-sm font-bold text-white group-hover:text-alliance-green transition-colors duration-200">{lead.name}</div>
+                        <div className="text-sm font-bold text-alliance-text group-hover:text-alliance-green transition-colors duration-200">{lead.name}</div>
                         <div className="text-xs text-alliance-muted font-medium">{lead.id}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4.5 whitespace-nowrap text-sm text-alliance-text font-semibold">{lead.phone}</td>
-                  <td className="px-6 py-4.5 whitespace-nowrap text-sm text-[#a5b4fc] font-bold">{lead.course}</td>
+                  <td className="px-6 py-4.5 whitespace-nowrap text-sm text-alliance-green font-bold">{lead.course}</td>
                   <td className="px-6 py-4.5 whitespace-nowrap text-sm text-alliance-muted font-semibold">{lead.category}</td>
                   <td className="px-6 py-4.5 whitespace-nowrap">
-                    <span className={clsx("px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide border uppercase", STATUS_COLORS[lead.status] || 'text-white bg-gray-700')}>
+                    <span className={clsx("px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide border uppercase", STATUS_COLORS[lead.status] || 'text-alliance-text bg-gray-100')}>
                       {lead.status}
                     </span>
                   </td>
                   <td className="px-6 py-4.5 whitespace-nowrap text-sm text-alliance-muted font-bold">{lead.date}</td>
                   <td className="px-6 py-4.5 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 relative">
-                      <Link href={`/conversations?phone=${encodeURIComponent(lead.phone)}`} className="text-alliance-green hover:text-[#00c298] transition-colors" title="View Conversation">
+                      <Link href={`/conversations?phone=${encodeURIComponent(lead.phone)}`} className="text-alliance-green hover:text-[#00a884] transition-colors" title="View Conversation">
                         <ExternalLink className="h-4.5 w-4.5" />
                       </Link>
                       <div className="relative">
                         <button 
                           onClick={() => setActiveMenuId(activeMenuId === lead.id ? null : lead.id)}
-                          className="text-alliance-muted hover:text-white transition-colors cursor-pointer" 
+                          className="text-alliance-muted hover:text-alliance-text transition-colors cursor-pointer" 
                           title="More Options"
                         >
                           <MoreVertical className="h-4.5 w-4.5" />
                         </button>
                         {activeMenuId === lead.id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-alliance-card border border-alliance-border/70 rounded-xl shadow-2xl py-1.5 z-50 text-left animate-in fade-in zoom-in-95 duration-150">
+                          <div className="absolute right-0 mt-2 w-48 bg-alliance-card border border-alliance-border rounded-xl shadow-md py-1.5 z-50 text-left animate-in fade-in zoom-in-95 duration-150">
                             <Link href={`/conversations?phone=${encodeURIComponent(lead.phone)}`} className="block px-4 py-2 text-sm text-alliance-text font-bold hover:bg-alliance-hover">
                               Quick Chat Override
                             </Link>
@@ -333,48 +333,48 @@ function LeadsContent() {
           {paginatedLeads.map((lead) => (
             <div 
               key={lead.id} 
-              className="bg-gradient-to-br from-[#111b21] to-[#070c0e] border border-alliance-border/70 rounded-2xl p-5 relative overflow-hidden backdrop-blur-md transition-all duration-200"
+              className="bg-alliance-card border border-alliance-border rounded-2xl p-5 relative overflow-hidden transition-all duration-200 shadow-sm"
             >
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-alliance-dark border border-alliance-border flex items-center justify-center text-xs font-bold text-white uppercase shadow-md">
+                  <div className="w-10 h-10 rounded-xl bg-alliance-dark border border-alliance-border flex items-center justify-center text-xs font-bold text-alliance-text uppercase shadow-sm">
                     {lead.name.substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">{lead.name}</h3>
+                    <h3 className="text-sm font-bold text-alliance-text">{lead.name}</h3>
                     <p className="text-[10px] text-alliance-muted font-semibold">{lead.id}</p>
                   </div>
                 </div>
-                <span className={clsx("px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-wide uppercase border", STATUS_COLORS[lead.status] || 'text-white bg-gray-700')}>
+                <span className={clsx("px-2.5 py-0.5 rounded-full text-[9px] font-bold tracking-wide uppercase border", STATUS_COLORS[lead.status] || 'text-alliance-text bg-gray-100')}>
                   {lead.status}
                 </span>
               </div>
-              <div className="space-y-2.5 text-xs border-t border-alliance-border/50 pt-3 mt-3">
+              <div className="space-y-2.5 text-xs border-t border-alliance-border pt-3 mt-3">
                 <div className="flex justify-between">
                   <span className="text-alliance-muted font-medium">WhatsApp Contact:</span>
-                  <span className="text-white font-bold">{lead.phone}</span>
+                  <span className="text-alliance-text font-bold">{lead.phone}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-alliance-muted font-medium">Course:</span>
-                  <span className="text-[#a5b4fc] font-bold">{lead.course}</span>
+                  <span className="text-alliance-green font-bold">{lead.course}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-alliance-muted font-medium">Primary Inquiry:</span>
-                  <span className="text-white font-bold">{lead.category}</span>
+                  <span className="text-alliance-text font-bold">{lead.category}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-alliance-muted font-medium">Last Sync:</span>
                   <span className="text-alliance-muted font-bold">{lead.date}</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-alliance-border/50">
+              <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-alliance-border">
                 <Link href={`/conversations?phone=${encodeURIComponent(lead.phone)}`} className="flex items-center gap-1.5 text-xs text-alliance-green font-bold hover:underline">
                   <ExternalLink className="h-3.5 w-3.5" /> View Chat
                 </Link>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => handleCopyPhone(lead.phone)}
-                    className="px-3 py-1.5 bg-alliance-dark border border-alliance-border rounded-xl text-[10px] text-white font-bold cursor-pointer"
+                    className="px-3 py-1.5 bg-alliance-card border border-alliance-border rounded-xl text-[10px] text-alliance-text font-bold hover:bg-alliance-hover cursor-pointer"
                   >
                     Copy Phone
                   </button>
@@ -382,7 +382,7 @@ function LeadsContent() {
                     onClick={() => {
                       showToast(`Initiated Counselor Review for ${lead.name}`, 'info');
                     }}
-                    className="px-3 py-1.5 bg-alliance-dark border border-alliance-border rounded-xl text-[10px] text-white font-bold cursor-pointer"
+                    className="px-3 py-1.5 bg-alliance-card border border-alliance-border rounded-xl text-[10px] text-alliance-text font-bold hover:bg-alliance-hover cursor-pointer"
                   >
                     Trigger Review
                   </button>
@@ -391,28 +391,28 @@ function LeadsContent() {
             </div>
           ))}
           {paginatedLeads.length === 0 && (
-            <div className="py-16 text-center text-alliance-muted font-semibold bg-[#111b21]/50 border border-dashed border-alliance-border rounded-2xl">
+            <div className="py-16 text-center text-alliance-muted font-semibold bg-alliance-card/50 border border-dashed border-alliance-border rounded-2xl">
               No leads found matching your criteria.
             </div>
           )}
         </div>
- 
-        <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center justify-between text-xs font-bold text-alliance-muted bg-[#111b21]/20 p-4 border border-alliance-border/40 rounded-2xl">
-          <div>Showing <span className="font-extrabold text-white">{paginatedLeads.length}</span> of <span className="font-extrabold text-white">{filteredLeads.length}</span> results (Page {currentPage} of {totalPages})</div>
+
+        <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center justify-between text-xs font-bold text-alliance-muted bg-alliance-card p-4 border border-alliance-border rounded-2xl shadow-sm">
+          <div>Showing <span className="font-extrabold text-alliance-text">{paginatedLeads.length}</span> of <span className="font-extrabold text-alliance-text">{filteredLeads.length}</span> results (Page {currentPage} of {totalPages})</div>
           <div className="flex gap-1.5">
             <button 
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
               className="p-2 rounded-xl border border-alliance-border bg-alliance-card hover:bg-alliance-hover hover:border-alliance-green/30 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
-              <ChevronLeft className="h-4.5 w-4.5 text-white" />
+              <ChevronLeft className="h-4.5 w-4.5 text-alliance-text" />
             </button>
             <button 
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
               className="p-2 rounded-xl border border-alliance-border bg-alliance-card hover:bg-alliance-hover hover:border-alliance-green/30 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
-              <ChevronRight className="h-4.5 w-4.5 text-white" />
+              <ChevronRight className="h-4.5 w-4.5 text-alliance-text" />
             </button>
           </div>
         </div>
@@ -422,9 +422,9 @@ function LeadsContent() {
       {toast && (
         <div className={clsx(
           "fixed bottom-24 md:bottom-5 right-5 px-4 py-3.5 rounded-xl shadow-2xl text-white z-50 flex items-center gap-2.5 border transition-all duration-300 font-bold text-xs animate-in slide-in-from-bottom-5",
-          toast.type === 'success' && "bg-[#092b1d]/90 border-alliance-green text-alliance-green backdrop-blur-md shadow-[0_0_20px_rgba(0,168,132,0.2)]",
-          toast.type === 'info' && "bg-alliance-card/90 border-alliance-border text-alliance-text backdrop-blur-md",
-          toast.type === 'error' && "bg-red-950/90 border-red-500 text-red-400 backdrop-blur-md"
+          toast.type === 'success' && "bg-alliance-bubble border border-alliance-green text-[#008069] shadow-md",
+          toast.type === 'info' && "bg-alliance-card border border-alliance-border text-alliance-text shadow-md",
+          toast.type === 'error' && "bg-red-550 border border-red-200 text-red-700 shadow-md"
         )}>
           {toast.message}
         </div>
@@ -432,13 +432,13 @@ function LeadsContent() {
 
       {/* Add New Lead Modal Overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-b from-[#111b21] to-[#0b141a] border border-alliance-border rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4.5 border-b border-alliance-border flex justify-between items-center bg-[#122027]/40 shadow-sm">
-              <h3 className="text-white font-bold text-lg">Add Prospective Student Lead</h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-alliance-card border border-alliance-border rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4.5 border-b border-alliance-border flex justify-between items-center bg-alliance-dark/30 shadow-sm">
+              <h3 className="text-alliance-text font-bold text-lg">Add Prospective Student Lead</h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="text-alliance-muted hover:text-white transition-colors text-xl font-bold cursor-pointer"
+                className="text-alliance-muted hover:text-alliance-text transition-colors text-xl font-bold cursor-pointer"
               >
                 &times;
               </button>
@@ -452,7 +452,7 @@ function LeadsContent() {
                   placeholder="e.g. Rahul Sharma"
                   value={newLeadName}
                   onChange={e => setNewLeadName(e.target.value)}
-                  className="w-full bg-alliance-dark/70 border border-alliance-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-alliance-green focus:ring-1 focus:ring-alliance-green transition-all"
+                  className="w-full bg-alliance-card border border-alliance-border rounded-xl px-3.5 py-2.5 text-sm text-alliance-text placeholder-alliance-muted focus:outline-none focus:border-alliance-green focus:ring-1 focus:ring-alliance-green transition-all"
                 />
               </div>
 
@@ -464,7 +464,7 @@ function LeadsContent() {
                   placeholder="e.g. +919876543210"
                   value={newLeadPhone}
                   onChange={e => setNewLeadPhone(e.target.value)}
-                  className="w-full bg-alliance-dark/70 border border-alliance-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-alliance-green focus:ring-1 focus:ring-alliance-green transition-all"
+                  className="w-full bg-alliance-card border border-alliance-border rounded-xl px-3.5 py-2.5 text-sm text-alliance-text placeholder-alliance-muted focus:outline-none focus:border-alliance-green focus:ring-1 focus:ring-alliance-green transition-all"
                 />
               </div>
 
@@ -474,7 +474,7 @@ function LeadsContent() {
                   <select 
                     value={newLeadCourse}
                     onChange={e => setNewLeadCourse(e.target.value)}
-                    className="w-full bg-alliance-dark border border-alliance-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-alliance-green cursor-pointer"
+                    className="w-full bg-alliance-card border border-alliance-border rounded-xl px-3 py-2.5 text-sm text-alliance-text focus:outline-none focus:border-alliance-green cursor-pointer"
                   >
                     <option value="BHMCT">BHMCT</option>
                     <option value="BBA">BBA</option>
@@ -487,7 +487,7 @@ function LeadsContent() {
                   <select 
                     value={newLeadStatus}
                     onChange={e => setNewLeadStatus(e.target.value)}
-                    className="w-full bg-alliance-dark border border-alliance-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-alliance-green cursor-pointer"
+                    className="w-full bg-alliance-card border border-alliance-border rounded-xl px-3 py-2.5 text-sm text-alliance-text focus:outline-none focus:border-alliance-green cursor-pointer"
                   >
                     <option value="New Lead">New Lead</option>
                     <option value="Interested">Interested</option>
@@ -503,7 +503,7 @@ function LeadsContent() {
                 <select 
                   value={newLeadCategory}
                   onChange={e => setNewLeadCategory(e.target.value)}
-                  className="w-full bg-alliance-dark border border-alliance-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-alliance-green cursor-pointer"
+                  className="w-full bg-alliance-card border border-alliance-border rounded-xl px-3 py-2.5 text-sm text-alliance-text focus:outline-none focus:border-alliance-green cursor-pointer"
                 >
                   <option value="Course Queries">Course Queries</option>
                   <option value="Placement Queries">Placement Queries</option>
@@ -523,7 +523,7 @@ function LeadsContent() {
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 bg-alliance-green text-[#092b1d] rounded-xl text-sm font-bold hover:bg-[#00c298] disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                  className="px-5 py-2.5 bg-alliance-green text-white rounded-xl text-sm font-bold hover:bg-[#00a884] disabled:opacity-50 cursor-pointer flex items-center gap-2"
                 >
                   {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   Add Lead Row

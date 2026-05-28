@@ -132,7 +132,7 @@ export default function DashboardPage() {
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-alliance-text tracking-tight flex items-center gap-2">
             Admissions <span className="text-alliance-green">Overview</span>
           </h1>
           <p className="text-alliance-muted mt-1 text-sm font-medium">Monitor your CRM performance and lead analytics from Google Sheets in real-time.</p>
@@ -140,14 +140,14 @@ export default function DashboardPage() {
         <div className="flex flex-wrap gap-3">
           <div 
             onClick={() => setIsTimelineOpen(true)} 
-            className="bg-alliance-card/80 border border-alliance-border/60 backdrop-blur-md rounded-xl px-4 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-alliance-hover/60 hover:border-alliance-green/30 transition-all duration-200"
+            className="bg-alliance-card border border-alliance-border/80 rounded-xl px-4 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-alliance-hover/60 hover:border-alliance-green/30 transition-all duration-200 shadow-sm"
           >
             <Calendar className="h-4 w-4 text-alliance-green animate-pulse" />
             <span className="text-sm text-alliance-text font-semibold">Live CRM Timeline</span>
           </div>
           <button 
             onClick={handleExportReport} 
-            className="bg-alliance-green text-[#092b1d] rounded-xl px-4 py-2.5 flex items-center gap-2 font-bold shadow-[0_4px_20px_rgba(0,168,132,0.2)] hover:bg-[#00c298] hover:shadow-[0_4px_25px_rgba(0,168,132,0.35)] transition-all duration-300 cursor-pointer"
+            className="bg-alliance-green text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-bold shadow-[0_4px_15px_rgba(0,128,105,0.15)] hover:bg-[#00c298] hover:shadow-[0_4px_20px_rgba(0,128,105,0.25)] transition-all duration-300 cursor-pointer"
           >
             <Download className="h-4 w-4" strokeWidth={2.5} />
             Export CRM Report
@@ -159,33 +159,33 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {stats.map((stat: any, idx: number) => {
           const Icon = ICON_MAP[stat.label] || User;
-          const styles = COLOR_MAP[stat.label] || { color: 'text-white', bg: 'bg-white/10', border: 'hover:border-white/50', glow: '' };
+          const styles = COLOR_MAP[stat.label] || { color: 'text-alliance-text', bg: 'bg-[#008069]/10', border: 'hover:border-alliance-green/30', glow: '' };
           return (
             <div 
               key={idx} 
               className={clsx(
-                "bg-gradient-to-br from-[#111b21] to-[#0b141a] border border-alliance-border/70 rounded-2xl p-5 flex flex-col relative overflow-hidden backdrop-blur-md transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl cursor-pointer group",
+                "bg-alliance-card border border-alliance-border/80 rounded-2xl p-5 flex flex-col relative overflow-hidden transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg cursor-pointer group",
                 styles.border,
                 styles.glow
               )}
             >
               {/* Radial glow on card hover */}
-              <div className={clsx("absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-10 group-hover:opacity-35 transition-opacity duration-300", styles.bg)} />
+              <div className={clsx("absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-5 group-hover:opacity-15 transition-opacity duration-300", styles.bg)} />
               
               <div className="flex justify-between items-start mb-4 relative z-10">
                 <div className={clsx("p-2.5 rounded-xl transition-all duration-300 group-hover:scale-110", styles.bg)}>
                   <Icon className={clsx("h-5 w-5", styles.color)} strokeWidth={2.5} />
                 </div>
                 <div className={clsx(
-                  "text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5 backdrop-blur-md",
-                  stat.isUp ? 'bg-[#00a884]/10 text-alliance-green' : 'bg-red-500/10 text-red-400'
+                  "text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5",
+                  stat.isUp ? 'bg-alliance-green/10 text-alliance-green' : 'bg-red-500/10 text-red-500'
                 )}>
                   {stat.isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                   <span>{stat.trend}</span>
                 </div>
               </div>
               <div className="text-[11px] font-bold text-alliance-muted uppercase tracking-wider mb-1.5 relative z-10">{stat.label}</div>
-              <div className="text-2xl md:text-3xl font-extrabold text-white tracking-tight relative z-10 group-hover:text-alliance-green transition-colors duration-200">{stat.value}</div>
+              <div className="text-2xl md:text-3xl font-extrabold text-alliance-text tracking-tight relative z-10 group-hover:text-alliance-green transition-colors duration-200">{stat.value}</div>
             </div>
           );
         })}
@@ -195,7 +195,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Redesigned Dynamic Premium SVG Chart */}
         {/* Consolidated premium dynamic Bar Chart card, perfectly matching the design mock */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-[#111b21] to-[#070c0e] border border-alliance-border/70 rounded-3xl p-6 md:p-8 flex flex-col min-h-[440px] backdrop-blur-md relative overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+        <div className="lg:col-span-2 bg-alliance-card border border-alliance-border/80 rounded-3xl p-6 md:p-8 flex flex-col min-h-[440px] relative overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
           {/* Subtle neon glow backdrops */}
           <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-alliance-green/5 blur-3xl pointer-events-none" />
           
@@ -203,14 +203,14 @@ export default function DashboardPage() {
           <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4 mb-8 relative z-10">
             <div className="flex flex-col">
               <span className="text-[13px] font-bold uppercase text-alliance-muted tracking-widest">Conversation Volume</span>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-2 tracking-tight flex items-baseline gap-2">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-alliance-text mt-2 tracking-tight flex items-baseline gap-2">
                 {totalChats} <span className="text-lg font-bold text-alliance-muted">
                   Chats {activeFilter === 'weekly' ? 'in last 4 weeks' : activeFilter === 'monthly' ? 'in last 4 months' : 'in timeframe'}
                 </span>
               </h2>
               {/* Daily Average details */}
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs text-[#00a884] bg-[#00a884]/10 border border-[#00a884]/20 px-2.5 py-1 rounded-lg font-extrabold tracking-wide flex items-center gap-1">
+                <span className="text-xs text-alliance-green bg-alliance-green/10 border border-alliance-green/20 px-2.5 py-1 rounded-lg font-extrabold tracking-wide flex items-center gap-1">
                   <Zap className="h-3 w-3 text-alliance-green animate-pulse" />
                   {averageChats} {activeFilter === 'weekly' ? 'Weekly Avg' : activeFilter === 'monthly' ? 'Monthly Avg' : 'Daily Avg'}
                 </span>
@@ -220,7 +220,7 @@ export default function DashboardPage() {
             
             {/* Timeframe Filters Controls */}
             <div className="flex flex-col sm:items-end gap-3 self-stretch xl:self-auto">
-              <div className="flex flex-wrap bg-alliance-dark/80 p-1 rounded-xl border border-alliance-border/60">
+              <div className="flex flex-wrap bg-alliance-dark/40 p-1 rounded-xl border border-alliance-border">
                 {[
                   { id: 'weekly', label: 'Weekly' },
                   { id: 'monthly', label: 'Monthly' },
@@ -232,8 +232,8 @@ export default function DashboardPage() {
                     className={clsx(
                       "px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 cursor-pointer",
                       activeFilter === item.id 
-                        ? "bg-alliance-green text-[#092b1d] shadow-[0_2px_10px_rgba(0,168,132,0.2)]" 
-                        : "text-alliance-muted hover:text-white"
+                        ? "bg-alliance-green text-white shadow-[0_2px_10px_rgba(0,128,105,0.15)]" 
+                        : "text-alliance-muted hover:text-alliance-text"
                     )}
                   >
                     {item.label}
@@ -243,19 +243,19 @@ export default function DashboardPage() {
               
               {/* Custom Date Range picker */}
               {activeFilter === 'custom' && (
-                <div className="flex flex-wrap items-center gap-2 bg-[#122027]/70 border border-alliance-border/40 p-2 rounded-xl animate-in slide-in-from-top-2 duration-300">
+                <div className="flex flex-wrap items-center gap-2 bg-alliance-card border border-alliance-border p-2 rounded-xl animate-in slide-in-from-top-2 duration-300">
                   <input 
                     type="date" 
                     value={startDate} 
                     onChange={e => setStartDate(e.target.value)}
-                    className="bg-alliance-dark border border-alliance-border/60 text-xs text-white px-2 py-1 rounded outline-none focus:border-alliance-green cursor-pointer"
+                    className="bg-alliance-hover border border-alliance-border text-xs text-alliance-text px-2 py-1 rounded outline-none focus:border-alliance-green cursor-pointer"
                   />
                   <span className="text-xs text-alliance-muted font-bold">to</span>
                   <input 
                     type="date" 
                     value={endDate} 
                     onChange={e => setEndDate(e.target.value)}
-                    className="bg-alliance-dark border border-alliance-border/60 text-xs text-white px-2 py-1 rounded outline-none focus:border-alliance-green cursor-pointer"
+                    className="bg-alliance-hover border border-alliance-border text-xs text-alliance-text px-2 py-1 rounded outline-none focus:border-alliance-green cursor-pointer"
                   />
                 </div>
               )}
@@ -279,11 +279,11 @@ export default function DashboardPage() {
               
               {/* Grid Lines Overlay */}
               <div className="absolute inset-0 top-1 bottom-10 left-0 right-0 flex flex-col justify-between pointer-events-none z-0">
-                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
-                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
-                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
-                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
-                <div className="w-full border-t border-[#222e35]/30 border-dashed" />
+                <div className="w-full border-t border-alliance-border/60 border-dashed" />
+                <div className="w-full border-t border-alliance-border/60 border-dashed" />
+                <div className="w-full border-t border-alliance-border/60 border-dashed" />
+                <div className="w-full border-t border-alliance-border/60 border-dashed" />
+                <div className="w-full border-t border-alliance-border/60 border-dashed" />
               </div>
               
               {/* Bars Row */}
@@ -307,7 +307,7 @@ export default function DashboardPage() {
                           isActive ? "opacity-100 scale-100 -translate-y-1 text-white font-extrabold animate-bounce" : "opacity-0 scale-90 translate-y-2"
                         )}
                       >
-                        <span className="bg-[#111b21] border border-[#00a884]/45 px-2 py-0.5 rounded-md text-[#00a884] shadow-lg">
+                        <span className="bg-alliance-text border border-alliance-green/45 px-2 py-0.5 rounded-md text-alliance-card shadow-md">
                           {val} {val === 1 ? 'chat' : 'chats'}
                         </span>
                       </div>
@@ -317,14 +317,14 @@ export default function DashboardPage() {
                         className={clsx(
                           "w-5 sm:w-8 md:w-10 rounded-t-lg sm:rounded-t-xl transition-all duration-500 relative overflow-hidden",
                           isActive 
-                            ? "bg-gradient-to-t from-[#005c4b] via-[#00a884] to-[#25d366] shadow-[0_0_20px_rgba(0,168,132,0.45)] border border-[#25d366]/30" 
-                            : "bg-[#202c33]/45 border border-[#2d3b45]/30 hover:bg-[#00a884]/15 hover:border-[#00a884]/35"
+                            ? "bg-gradient-to-t from-[#005c4b] via-[#00a884] to-[#25d366] shadow-[0_0_20px_rgba(0,168,132,0.25)] border border-[#25d366]/30" 
+                            : "bg-slate-200/80 border border-slate-300/30 hover:bg-alliance-green/10 hover:border-alliance-green/30"
                         )}
                         style={{ height: `${Math.max(6, barHeightPercent)}%` }}
                       >
                         {/* Shimmer gradient on active bar */}
                         {isActive && (
-                          <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/15 to-transparent animate-[pulse_2s_infinite]" />
+                           <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-transparent animate-[pulse_2s_infinite]" />
                         )}
                       </div>
                     </div>
@@ -333,7 +333,7 @@ export default function DashboardPage() {
               </div>
               
               {/* X-Axis labels */}
-              <div className="h-6 mt-auto border-t border-[#222e35]/50 flex items-center text-[10px] sm:text-[11px] font-extrabold text-alliance-muted tracking-wide px-2 sm:px-4 relative z-20 pt-2 shrink-0">
+              <div className="h-6 mt-auto border-t border-alliance-border flex items-center text-[10px] sm:text-[11px] font-extrabold text-alliance-muted tracking-wide px-2 sm:px-4 relative z-20 pt-2 shrink-0">
                 {chartPoints.map((point: any, idx: number) => {
                   const isToday = point.isToday;
                   const isHovered = hoveredIdx === idx;
@@ -342,8 +342,8 @@ export default function DashboardPage() {
                       key={`axis-${point.label}-${idx}`} 
                       className={clsx(
                         "flex-1 text-center transition-all duration-200 text-[9px] xs:text-[10px] sm:text-[11px] px-1 leading-normal whitespace-normal break-words",
-                        isToday ? "text-[#25d366] font-black scale-105" : 
-                        isHovered ? "text-[#00a884]" : "text-alliance-muted"
+                        isToday ? "text-[#0f9f59] font-black scale-105" : 
+                        isHovered ? "text-alliance-green" : "text-alliance-muted"
                       )}
                     >
                       {point.label}
@@ -356,12 +356,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Live Recent Activity */}
-        <div className="bg-gradient-to-br from-[#111b21] to-[#070c0e] border border-alliance-border/70 rounded-2xl p-6 flex flex-col shadow-xl">
+        <div className="bg-alliance-card border border-alliance-border/80 rounded-2xl p-6 flex flex-col shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-white tracking-wide">Recent Leads</h2>
+            <h2 className="text-lg font-bold text-alliance-text tracking-wide">Recent Leads</h2>
             <button 
               onClick={() => router.push('/leads')} 
-              className="text-alliance-green text-xs font-bold hover:underline cursor-pointer border border-[#00a884]/20 bg-[#00a884]/5 px-3 py-1.5 rounded-xl hover:bg-[#00a884]/15 transition-all"
+              className="text-alliance-green text-xs font-bold hover:underline cursor-pointer border border-alliance-green/20 bg-alliance-green/5 px-3 py-1.5 rounded-xl hover:bg-alliance-green/15 transition-all"
             >
               View All
             </button>
@@ -372,22 +372,22 @@ export default function DashboardPage() {
               <div 
                 key={idx} 
                 onClick={() => router.push(`/conversations?phone=${encodeURIComponent(lead.phone)}`)}
-                className="flex items-center justify-between p-3 rounded-xl bg-[#122027]/40 hover:bg-[#122027]/90 transition-all duration-200 cursor-pointer border border-alliance-border/40 hover:border-alliance-green/30 group"
+                className="flex items-center justify-between p-3 rounded-xl bg-alliance-hover/30 hover:bg-alliance-hover transition-all duration-200 cursor-pointer border border-alliance-border/70 hover:border-alliance-green/30 group"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-alliance-dark flex items-center justify-center text-white border border-alliance-border/60 text-xs font-black group-hover:border-alliance-green/30 transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-alliance-dark flex items-center justify-center text-alliance-text border border-alliance-border text-xs font-black group-hover:border-alliance-green/30 transition-colors">
                     {lead.name.substring(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <div className="text-sm font-bold text-white group-hover:text-alliance-green transition-colors truncate">{lead.name}</div>
+                    <div className="text-sm font-bold text-alliance-text group-hover:text-alliance-green transition-colors truncate">{lead.name}</div>
                     <div className="text-[10px] font-semibold text-alliance-muted flex items-center gap-2 mt-0.5">
-                      <span className="text-[#a5b4fc]">{lead.course}</span>
+                      <span className="text-[#4f46e5] font-bold">{lead.course}</span>
                       <span className="w-1 h-1 rounded-full bg-alliance-border"></span>
-                      <span className="text-alliance-green uppercase font-bold text-[9px] bg-[#00a884]/10 px-1 rounded">{lead.status}</span>
+                      <span className="text-alliance-green uppercase font-bold text-[9px] bg-alliance-green/10 px-1 rounded">{lead.status}</span>
                     </div>
                   </div>
                 </div>
-                <div className="text-[10px] font-bold text-alliance-muted shrink-0 bg-alliance-dark/60 px-2 py-0.5 rounded-lg border border-alliance-border">{lead.time}</div>
+                <div className="text-[10px] font-bold text-alliance-muted shrink-0 bg-alliance-dark px-2 py-0.5 rounded-lg border border-alliance-border">{lead.time}</div>
               </div>
             ))}
             {recentLeads.length === 0 && (
@@ -403,10 +403,10 @@ export default function DashboardPage() {
       {/* Floating Toast Notification */}
       {toast && (
         <div className={clsx(
-          "fixed bottom-24 md:bottom-5 right-5 px-4 py-3.5 rounded-xl shadow-2xl text-white z-50 flex items-center gap-2.5 border transition-all duration-300 font-bold text-xs animate-in slide-in-from-bottom-5",
-          toast.type === 'success' && "bg-[#092b1d]/90 border-alliance-green text-alliance-green backdrop-blur-md shadow-[0_0_20px_rgba(0,168,132,0.2)]",
-          toast.type === 'info' && "bg-alliance-card/90 border-alliance-border text-alliance-text backdrop-blur-md",
-          toast.type === 'error' && "bg-red-950/90 border-red-500 text-red-400 backdrop-blur-md"
+          "fixed bottom-24 md:bottom-5 right-5 px-4 py-3.5 rounded-xl shadow-2xl text-alliance-text z-50 flex items-center gap-2.5 border transition-all duration-300 font-bold text-xs animate-in slide-in-from-bottom-5",
+          toast.type === 'success' && "bg-[#d9fdd3] border-alliance-green text-[#008069] backdrop-blur-md shadow-[0_4px_15px_rgba(0,128,105,0.08)]",
+          toast.type === 'info' && "bg-alliance-card border-alliance-border text-alliance-text backdrop-blur-md shadow-md",
+          toast.type === 'error' && "bg-red-50 border-red-200 text-red-700 backdrop-blur-md shadow-md"
         )}>
           {toast.message}
         </div>
@@ -414,15 +414,15 @@ export default function DashboardPage() {
 
       {/* CRM Timeline Drawer Modal */}
       {isTimelineOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-b from-[#111b21] to-[#0b141a] border border-alliance-border rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4.5 border-b border-alliance-border flex justify-between items-center bg-[#122027]/40">
-              <h3 className="text-white font-bold text-lg flex items-center gap-2">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-alliance-card border border-alliance-border rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4.5 border-b border-alliance-border flex justify-between items-center bg-alliance-hover/60">
+              <h3 className="text-alliance-text font-bold text-lg flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-alliance-green animate-pulse" /> Live Admissions Log Feed
               </h3>
               <button 
                 onClick={() => setIsTimelineOpen(false)}
-                className="text-alliance-muted hover:text-white transition-colors text-xl font-bold cursor-pointer"
+                className="text-alliance-muted hover:text-alliance-text transition-colors text-xl font-bold cursor-pointer"
               >
                 &times;
               </button>
@@ -437,18 +437,18 @@ export default function DashboardPage() {
                       setIsTimelineOpen(false);
                       router.push(`/conversations?phone=${encodeURIComponent(lead.phone)}`);
                     }}
-                    className="p-3.5 rounded-xl bg-[#122027]/30 border border-alliance-border/50 hover:border-alliance-green/30 hover:bg-[#122027]/75 cursor-pointer transition-all duration-200 flex items-start gap-3.5 group"
+                    className="p-3.5 rounded-xl bg-alliance-hover/30 border border-alliance-border/80 hover:border-alliance-green/30 hover:bg-alliance-hover cursor-pointer transition-all duration-200 flex items-start gap-3.5 group"
                   >
                     <div className="w-9 h-9 rounded-xl bg-alliance-green/10 text-alliance-green font-black text-xs flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform border border-alliance-green/10">
                       {lead.name.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-1">
-                        <h4 className="text-sm font-bold text-white group-hover:text-alliance-green transition-colors truncate">{lead.name}</h4>
-                        <span className="text-[9px] text-alliance-muted font-black whitespace-nowrap ml-2 bg-alliance-dark border border-alliance-border/45 px-2 py-0.5 rounded-md">{lead.time}</span>
+                        <h4 className="text-sm font-bold text-alliance-text group-hover:text-alliance-green transition-colors truncate">{lead.name}</h4>
+                        <span className="text-[9px] text-alliance-muted font-black whitespace-nowrap ml-2 bg-alliance-dark border border-alliance-border/70 px-2 py-0.5 rounded-md">{lead.time}</span>
                       </div>
                       <p className="text-xs text-alliance-muted leading-relaxed">
-                        Inquired for course <span className="text-[#a5b4fc] font-bold">{lead.course}</span>. System classified lead status as: <span className="px-2 py-0.5 text-[9px] font-black rounded-lg bg-[#00a884]/10 text-alliance-green border border-alliance-green/10 uppercase tracking-wide ml-1">{lead.status}</span>
+                        Inquired for course <span className="text-[#4f46e5] font-bold">{lead.course}</span>. System classified lead status as: <span className="px-2 py-0.5 text-[9px] font-black rounded-lg bg-alliance-green/10 text-alliance-green border border-alliance-green/20 uppercase tracking-wide ml-1">{lead.status}</span>
                       </p>
                     </div>
                   </div>
@@ -458,10 +458,10 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="px-6 py-4.5 border-t border-alliance-border/50 flex justify-end bg-alliance-dark/20">
+            <div className="px-6 py-4.5 border-t border-alliance-border/50 flex justify-end bg-alliance-hover/40">
               <button 
                 onClick={() => setIsTimelineOpen(false)}
-                className="px-5 py-2.5 bg-alliance-green text-[#092b1d] rounded-xl text-sm font-bold hover:bg-[#00c298] transition-colors cursor-pointer shadow-[0_4px_15px_rgba(0,168,132,0.2)]"
+                className="px-5 py-2.5 bg-alliance-green text-white rounded-xl text-sm font-bold hover:bg-[#00c298] transition-colors cursor-pointer shadow-[0_4px_12px_rgba(0,128,105,0.15)]"
               >
                 Close Logs Panel
               </button>

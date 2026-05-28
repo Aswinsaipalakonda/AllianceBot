@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-alliance-dark: #0b141a; /* Chat background */
-  --color-alliance-card: #111b21; /* Sidebars */
-  --color-alliance-border: #222d34;
-  --color-alliance-green: #00a884; /* Accent */
-  --color-alliance-bubble: #005c4b; /* Outgoing */
-  --color-alliance-bubble-user: #202c33; /* Incoming */
-  --color-alliance-text: #e9edef;
-  --color-alliance-muted: #8696a0;
-  --color-alliance-hover: #202c33;
-  --color-alliance-active: #2a3942;
+  --color-alliance-dark: #f0f2f5; /* WhatsApp light background */
+  --color-alliance-card: #ffffff; /* pure white containers */
+  --color-alliance-border: #e9edef; /* subtle light gray lines */
+  --color-alliance-green: #008069; /* accessible teal-green */
+  --color-alliance-bubble: #d9fdd3; /* outgoing green message */
+  --color-alliance-bubble-user: #ffffff; /* incoming white message */
+  --color-alliance-text: #111b21; /* dark charcoal slate text */
+  --color-alliance-muted: #667781; /* slate-gray secondary text */
+  --color-alliance-hover: #f0f2f5; /* light gray hover overlay */
+  --color-alliance-active: #e9edef; /* light gray active overlay */
 }
 
 body {
@@ -30,10 +30,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a3d46;
+  background: #ccd0d5;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3e5a68;
+  background: #a6abb2;
 }

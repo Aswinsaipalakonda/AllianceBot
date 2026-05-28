@@ -33,7 +33,7 @@ function MobileBottomBar() {
               "p-2 rounded-xl transition-all duration-200 flex items-center justify-center relative",
               isActive 
                 ? "text-alliance-green bg-[#00a884]/10 shadow-[0_0_10px_rgba(0,168,132,0.1)] scale-110" 
-                : "text-alliance-muted hover:text-white"
+                : "text-alliance-muted hover:text-alliance-text"
             )}>
               <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
               {isActive && (
@@ -61,13 +61,13 @@ export function GlobalSidebar() {
               <div className={clsx(
                 "p-3 rounded-xl transition-all duration-200 flex items-center justify-center cursor-pointer",
                 isActive 
-                  ? "bg-alliance-green text-[#092b1d] shadow-[0_0_15px_rgba(0,168,132,0.4)] scale-105" 
-                  : "text-alliance-muted hover:bg-alliance-hover hover:text-white"
+                  ? "bg-alliance-green text-white shadow-[0_4px_15px_rgba(0,128,105,0.2)] scale-105" 
+                  : "text-alliance-muted hover:bg-alliance-hover hover:text-alliance-text"
               )}>
                 <item.icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 2} />
               </div>
               {/* Tooltip */}
-              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-alliance-dark text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-alliance-border z-50">
+              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-alliance-card text-alliance-text text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-alliance-border z-50 shadow-sm">
                 {item.name}
               </div>
             </Link>

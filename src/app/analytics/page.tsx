@@ -167,7 +167,7 @@ export default function AnalyticsPage() {
             </span>
             <span className="text-[11px] font-bold tracking-wider text-alliance-green uppercase">Live Google Sheets Feed</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-alliance-text tracking-tight flex items-center gap-2">
             CRM <span className="text-alliance-green">Analytics</span>
           </h1>
           <p className="text-alliance-muted mt-1 text-sm font-medium">Real-time interest splits, conversation categories, and conversion ratio tracking.</p>
@@ -176,7 +176,7 @@ export default function AnalyticsPage() {
         {/* Filter and Actions Controls */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Simulated Time Range Selector */}
-          <div className="bg-[#111b21] border border-alliance-border p-1 rounded-xl flex items-center gap-1">
+          <div className="bg-alliance-card border border-alliance-border p-1 rounded-xl flex items-center gap-1 shadow-sm">
             {(['all', '30d', '7d'] as const).map((f) => (
               <button
                 key={f}
@@ -184,8 +184,8 @@ export default function AnalyticsPage() {
                 className={clsx(
                   "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer",
                   activeFilter === f
-                    ? "bg-alliance-green text-[#0b141a] font-bold shadow-[0_2px_8px_rgba(0,168,132,0.3)]"
-                    : "text-alliance-muted hover:text-white hover:bg-alliance-hover"
+                    ? "bg-alliance-green text-white font-bold shadow-[0_2px_8px_rgba(0,128,105,0.15)]"
+                    : "text-alliance-muted hover:text-alliance-text hover:bg-alliance-hover"
                 )}
               >
                 {f === 'all' ? 'All Time' : f === '30d' ? 'Last 30 Days' : 'Last 7 Days'}
@@ -195,7 +195,7 @@ export default function AnalyticsPage() {
 
           <button
             onClick={fetchAnalytics}
-            className="bg-alliance-card/85 border border-alliance-border rounded-xl px-4 py-2 flex items-center gap-2 text-sm text-alliance-text hover:bg-alliance-hover hover:border-alliance-green/30 transition-all cursor-pointer backdrop-blur-md"
+            className="bg-alliance-card border border-alliance-border rounded-xl px-4 py-2 flex items-center gap-2 text-sm text-alliance-text hover:bg-alliance-hover hover:border-alliance-green/30 transition-all cursor-pointer shadow-sm"
           >
             <RefreshCw className="h-4 w-4 text-alliance-muted animate-spin-slow" />
             <span className="font-semibold hidden sm:inline">Synced {syncTime || 'Just Now'}</span>
@@ -218,7 +218,7 @@ export default function AnalyticsPage() {
               link.click();
               document.body.removeChild(link);
             }}
-            className="bg-gradient-to-r from-[#00a884] to-[#00c298] text-[#111b21] rounded-xl px-4 py-2 flex items-center gap-2 text-sm font-bold shadow-[0_4px_15px_rgba(0,168,132,0.25)] hover:shadow-[0_4px_20px_rgba(0,168,132,0.4)] transition-all cursor-pointer"
+            className="bg-alliance-green text-white rounded-xl px-4 py-2 flex items-center gap-2 text-sm font-bold shadow-[0_4px_12px_rgba(0,128,105,0.15)] hover:bg-[#00a884] transition-all cursor-pointer"
           >
             <Download className="h-4 w-4" strokeWidth={2.5} />
             <span className="hidden sm:inline">Export Report</span>
@@ -230,23 +230,23 @@ export default function AnalyticsPage() {
       {/* KPI Cards Section */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Total CRM Leads', value: totalLeads, icon: Users, color: 'text-alliance-green', bg: 'bg-alliance-green/10', border: 'hover:border-alliance-green/30', glow: 'shadow-[0_0_20px_rgba(0,168,132,0.02)]' },
-          { label: 'Form Applications', value: applications, icon: FileText, color: 'text-[#53bdeb]', bg: 'bg-[#53bdeb]/10', border: 'hover:border-[#53bdeb]/30', glow: 'shadow-[0_0_20px_rgba(83,189,235,0.02)]' },
-          { label: 'Confirmed Admissions', value: confirmedAdmissions, icon: CheckCircle2, color: 'text-[#ffd279]', bg: 'bg-[#ffd279]/10', border: 'hover:border-[#ffd279]/30', glow: 'shadow-[0_0_20px_rgba(255,210,121,0.02)]' },
-          { label: 'Conversion Ratio', value: `${conversionRate}%`, icon: TrendingUp, color: 'text-alliance-green', bg: 'bg-alliance-green/15', border: 'hover:border-alliance-green/45', glow: 'shadow-[0_0_25px_rgba(0,168,132,0.05)]' },
+          { label: 'Total CRM Leads', value: totalLeads, icon: Users, color: 'text-alliance-green', bg: 'bg-alliance-green/10', border: 'hover:border-alliance-green/30', glow: 'shadow-[0_4px_12px_rgba(0,128,105,0.03)]' },
+          { label: 'Form Applications', value: applications, icon: FileText, color: 'text-[#008069]', bg: 'bg-alliance-green/10', border: 'hover:border-alliance-green/30', glow: 'shadow-[0_4px_12px_rgba(0,128,105,0.03)]' },
+          { label: 'Confirmed Admissions', value: confirmedAdmissions, icon: CheckCircle2, color: 'text-[#b27b0b]', bg: 'bg-[#ffd279]/15', border: 'hover:border-[#ffd279]/30', glow: 'shadow-[0_4px_12px_rgba(255,210,121,0.03)]' },
+          { label: 'Conversion Ratio', value: `${conversionRate}%`, icon: TrendingUp, color: 'text-alliance-green', bg: 'bg-alliance-green/15', border: 'hover:border-alliance-green/45', glow: 'shadow-[0_4px_15px_rgba(0,128,105,0.05)]' },
         ].map((item, idx) => {
           const Icon = item.icon;
           return (
             <div 
               key={idx}
               className={clsx(
-                "bg-gradient-to-br from-[#111b21] to-[#0b141a] border border-alliance-border/70 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden backdrop-blur-md transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group cursor-pointer",
+                "bg-alliance-card border border-alliance-border rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md group cursor-pointer shadow-sm",
                 item.border,
                 item.glow
               )}
             >
               {/* Decorative radial overlay */}
-              <div className={clsx("absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-5 group-hover:opacity-20 transition-opacity duration-300", item.bg)} />
+              <div className={clsx("absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-10 group-hover:opacity-30 transition-opacity duration-300", item.bg)} />
               
               <div className="flex justify-between items-start mb-4">
                 <div className={clsx("p-2.5 rounded-xl transition-all duration-300 group-hover:scale-110", item.bg)}>
@@ -259,7 +259,7 @@ export default function AnalyticsPage() {
               </div>
               <div>
                 <div className="text-[11px] text-alliance-muted font-bold uppercase tracking-wider">{item.label}</div>
-                <div className="text-2xl font-black text-white mt-1 group-hover:text-alliance-green transition-colors">{item.value}</div>
+                <div className="text-2xl font-black text-alliance-text mt-1 group-hover:text-alliance-green transition-colors">{item.value}</div>
               </div>
             </div>
           );
@@ -270,13 +270,13 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Course Preferences: Glowing Capsule Bar Chart */}
-        <div className="bg-gradient-to-br from-[#111b21] to-[#0b141a] border border-alliance-border/70 rounded-2xl p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden backdrop-blur-md">
+        <div className="bg-alliance-card border border-alliance-border rounded-2xl p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden shadow-sm">
           {/* Subtle grid elements */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(34,46,53,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(34,46,53,0.1)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
           
           <div>
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+              <h2 className="text-lg font-bold text-alliance-text tracking-wide flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-alliance-green" />
                 Course Interest Breakdown
               </h2>
@@ -289,12 +289,12 @@ export default function AnalyticsPage() {
           <div className="flex-1 flex flex-col justify-end relative z-10">
             {/* Guide Grid Lines */}
             <div className="absolute inset-x-0 bottom-12 top-4 flex flex-col justify-between pointer-events-none opacity-40">
-              <div className="border-t border-dashed border-[#222e35] w-full" />
-              <div className="border-t border-dashed border-[#222e35] w-full" />
-              <div className="border-t border-dashed border-[#222e35] w-full" />
+              <div className="border-t border-dashed border-alliance-border w-full" />
+              <div className="border-t border-dashed border-alliance-border w-full" />
+              <div className="border-t border-dashed border-alliance-border w-full" />
             </div>
 
-            <div className="w-full h-48 flex items-end justify-around border-b border-[#222e35] pb-2 px-2 gap-4 relative">
+            <div className="w-full h-48 flex items-end justify-around border-b border-alliance-border pb-2 px-2 gap-4 relative">
               {courseKeys.map((c) => {
                 const count = courses[c.key] || 0;
                 const percent = getBarHeightPercent(count);
@@ -310,7 +310,7 @@ export default function AnalyticsPage() {
                     {/* Tooltip bubble always aligned nicely */}
                     <div 
                       className={clsx(
-                        "absolute -top-12 bg-[#1f2c34] border border-alliance-border rounded-xl px-2.5 py-1.5 text-center transition-all duration-300 shadow-2xl z-20 pointer-events-none flex flex-col items-center gap-0.5",
+                        "absolute -top-12 bg-[#111b21] border border-alliance-border rounded-xl px-2.5 py-1.5 text-center transition-all duration-300 shadow-2xl z-20 pointer-events-none flex flex-col items-center gap-0.5",
                         isHovered ? "opacity-100 scale-100 -translate-y-2" : "opacity-0 scale-75 translate-y-0"
                       )}
                     >
@@ -319,11 +319,11 @@ export default function AnalyticsPage() {
                         {totalCourseQueries > 0 ? ((count / totalCourseQueries) * 100).toFixed(0) : 0}% Share
                       </span>
                       {/* Triangle pointer */}
-                      <div className="w-2.5 h-2.5 bg-[#1f2c34] border-r border-b border-alliance-border rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
+                      <div className="w-2.5 h-2.5 bg-[#111b21] border-r border-b border-alliance-border rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
                     </div>
 
                     {/* Capsule track */}
-                    <div className="w-8 sm:w-10 bg-[#111b21] border border-alliance-border/40 h-36 rounded-full flex items-end relative overflow-hidden cursor-pointer">
+                    <div className="w-8 sm:w-10 bg-[#ccd0d5]/30 border border-alliance-border h-36 rounded-full flex items-end relative overflow-hidden cursor-pointer">
                       {/* Interactive glowing bar */}
                       <div 
                         className={clsx(
@@ -356,28 +356,28 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Interactive Course detail display panel */}
-          <div className="mt-6 bg-[#0b141a]/60 border border-alliance-border/50 rounded-xl p-4 flex items-center gap-4 transition-all duration-300 relative overflow-hidden min-h-[92px]">
+          <div className="mt-6 bg-alliance-dark/60 border border-alliance-border rounded-xl p-4 flex items-center gap-4 transition-all duration-300 relative overflow-hidden min-h-[92px]">
             <div className={clsx(
               "absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b",
               activeCourseDetail.colorFrom,
               activeCourseDetail.colorTo
             )} />
-            <div className={clsx("p-3 rounded-xl bg-alliance-dark text-white flex-shrink-0 flex items-center justify-center")}>
+            <div className={clsx("p-3 rounded-xl bg-alliance-card text-alliance-text flex-shrink-0 flex items-center justify-center border border-alliance-border shadow-sm")}>
               <activeCourseDetail.icon className="h-5 w-5 text-alliance-green" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-white tracking-wide uppercase">{activeCourseDetail.fullName}</h4>
+              <h4 className="text-xs font-bold text-alliance-text tracking-wide uppercase">{activeCourseDetail.fullName}</h4>
               <p className="text-[11px] text-alliance-muted font-medium mt-1 leading-relaxed">{activeCourseDetail.desc}</p>
             </div>
           </div>
         </div>
 
         {/* Query Categories: High-Fidelity Interactive Donut Chart */}
-        <div className="bg-gradient-to-br from-[#111b21] to-[#0b141a] border border-alliance-border/70 rounded-2xl p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden backdrop-blur-md">
+        <div className="bg-alliance-card border border-alliance-border rounded-2xl p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden shadow-sm">
           
           <div>
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+              <h2 className="text-lg font-bold text-alliance-text tracking-wide flex items-center gap-2">
                 <PieChart className="h-4 w-4 text-alliance-green" />
                 Inquiry Channels Analysis
               </h2>
@@ -391,7 +391,7 @@ export default function AnalyticsPage() {
             <div className="w-48 h-48 relative flex-shrink-0 flex items-center justify-center group/donut">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                 {/* Background empty track */}
-                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#1f2c34" strokeWidth="2.5" />
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#ccd0d5" strokeWidth="2.5" />
                 
                 {segments.map((seg) => {
                   const isHovered = hoveredCategory === seg.key;
@@ -423,7 +423,7 @@ export default function AnalyticsPage() {
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 {hoveredCategory ? (
                   <>
-                    <span className="text-2xl font-black text-white animate-fade-in-quick">
+                    <span className="text-2xl font-black text-alliance-text animate-fade-in-quick">
                       {categories[hoveredCategory] || 0}
                     </span>
                     <span className="text-[9px] text-alliance-green font-extrabold uppercase tracking-wider text-center px-2 truncate max-w-[120px]">
@@ -432,7 +432,7 @@ export default function AnalyticsPage() {
                   </>
                 ) : (
                   <>
-                    <span className="text-2xl font-black text-white">{totalCategoryQueries}</span>
+                    <span className="text-2xl font-black text-alliance-text">{totalCategoryQueries}</span>
                     <span className="text-[9px] text-alliance-muted font-bold uppercase tracking-wider">Total Queries</span>
                   </>
                 )}
@@ -451,8 +451,8 @@ export default function AnalyticsPage() {
                     className={clsx(
                       "flex flex-col p-2.5 rounded-xl border transition-all duration-200 cursor-pointer relative overflow-hidden group",
                       isHovered 
-                        ? "bg-alliance-hover/80 border-alliance-green/40 shadow-md"
-                        : "bg-[#0b141a]/40 border-alliance-border/30 hover:border-alliance-border/70"
+                        ? "bg-alliance-hover/80 border-alliance-green/40 shadow-sm"
+                        : "bg-alliance-dark/30 border border-alliance-border hover:border-alliance-border/70"
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -463,7 +463,7 @@ export default function AnalyticsPage() {
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-black text-white">{seg.val}</span>
+                        <span className="text-xs font-black text-alliance-text">{seg.val}</span>
                         <span className="text-[10px] font-semibold text-alliance-muted">({seg.percent.toFixed(0)}%)</span>
                       </div>
                     </div>
