@@ -208,9 +208,6 @@ export function TopBar() {
             suppressHydrationWarning
             className="block w-full pl-10 pr-12 py-2 bg-alliance-dark border border-alliance-border rounded-lg text-sm text-alliance-text placeholder-alliance-muted focus:outline-none focus:border-alliance-green focus:ring-1 focus:ring-alliance-green transition-all"
           />
-          <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
-            <kbd className="hidden sm:inline-block border border-alliance-border bg-alliance-dark rounded px-1.5 text-[10px] font-mono text-alliance-muted">⌘ K</kbd>
-          </div>
         </form>
       </div>
 

@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<'weekly' | 'monthly' | 'custom'>('weekly');
@@ -68,10 +69,12 @@ export default function DashboardPage() {
     }
   }, [activeFilter, startDate, endDate]);
 
-  const handleExportReport = () => {
+  const handleExportCSV = () => {
     if (!data) return;
+    
+    // Prefix phone numbers with a tab character to force Excel to treat them strictly as text, preventing scientific notation
     const statsText = data.stats.map((s: any) => `"${s.label}","${s.value}","${s.trend}"`).join('\n');
-    const activityText = data.recentActivity.map((r: any) => `"${r.name}","${r.phone}","${r.course}","${r.status}","${r.time}"`).join('\n');
+    const activityText = data.recentActivity.map((r: any) => `"${r.name}","\t${r.phone}","${r.course}","${r.status}","${r.time}"`).join('\n');
     
     const headers = 'Alliance College Admissions Report\n\nMetric,Current Value,Week-over-Week Trend\n' + statsText + 
       '\n\nRecent Activity Leads\nName,Phone,Course,Lead Status,Time Logged\n' + activityText;
@@ -84,8 +87,405 @@ export default function DashboardPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('Analytical CSV report downloaded!', 'success');
+    setIsExportModalOpen(false);
+    showToast('Analytical CSV spreadsheet downloaded!', 'success');
   };
+
+  const handleExportPDF = () => {
+    if (!data) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      showToast('Pop-up blocked! Please allow pop-ups to print PDF.', 'error');
+      return;
+    }
+    
+    const dateStr = new Date().toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const statsHTML = data.stats.map((s: any) => `
+      <div class="kpi-card">
+        <div class="kpi-label">${s.label}</div>
+        <div class="kpi-value">${s.value}</div>
+        <div class="kpi-trend ${s.isUp ? 'up' : 'down'}">
+          ${s.isUp ? '▲' : '▼'} ${s.trend} week-over-week
+        </div>
+      </div>
+    `).join('');
+    
+    const leadsHTML = data.recentActivity.map((r: any, idx: number) => `
+      <tr class="${idx % 2 === 0 ? 'even' : 'odd'}">
+        <td style="font-weight: 700; color: #111b21;">${r.name}</td>
+        <td style="font-family: monospace; letter-spacing: 0.5px;">${r.phone}</td>
+        <td><span class="course-badge">${r.course}</span></td>
+        <td><span class="status-badge status-${r.status.toLowerCase().replace(/\s+/g, '-')}">${r.status}</span></td>
+        <td style="color: #667781; font-size: 11px;">${r.time}</td>
+      </tr>
+    `).join('');
+    
+    const coursesMap = data.courses || { BHMCT: 0, BBA: 0, DHM: 0, Undecided: 0 };
+    const totalCourses = Object.values(coursesMap).reduce((a: any, b: any) => a + b, 0) as number || 1;
+    const coursesHTML = [
+      { label: 'BHMCT Culinary Arts', value: coursesMap.BHMCT || 0, color: '#008069' },
+      { label: 'BBA Corporate Systems', value: coursesMap.BBA || 0, color: '#1b80a4' },
+      { label: 'DHM Hospitality Diploma', value: coursesMap.DHM || 0, color: '#c59129' },
+      { label: 'Consultations Needed', value: coursesMap.Undecided || 0, color: '#9f1239' }
+    ].map(c => {
+      const pct = ((c.value / totalCourses) * 100).toFixed(0);
+      return `
+        <div class="course-row">
+          <div class="course-info">
+            <span class="course-name">${c.label}</span>
+            <span class="course-count">${pct}% (${c.value})</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-fill" style="width: ${pct}%; background-color: ${c.color};"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Alliance College - Admissions CRM Report</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+          
+          @media print {
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+              background-color: #ffffff !important;
+            }
+            @page {
+              size: A4 landscape;
+              margin: 12mm 15mm;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+          
+          body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #ffffff;
+            color: #111b21;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+          }
+          
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e9edef;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+          }
+          
+          .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          
+          .title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #111b21;
+            margin: 0;
+            letter-spacing: -0.5px;
+          }
+          
+          .subtitle {
+            font-size: 13px;
+            color: #667781;
+            margin: 3px 0 0 0;
+            font-weight: 500;
+          }
+          
+          .meta-info {
+            text-align: right;
+            font-size: 12px;
+            color: #667781;
+            font-weight: 500;
+          }
+          
+          .grid-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+          }
+          
+          .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #667781;
+            margin-top: 0;
+            margin-bottom: 12px;
+          }
+          
+          .kpis-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+          }
+          
+          .kpi-card {
+            border: 1px solid #e9edef;
+            border-radius: 12px;
+            padding: 14px;
+            background-color: #f8f9fa;
+          }
+          
+          .kpi-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #667781;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+          }
+          
+          .kpi-value {
+            font-size: 22px;
+            font-weight: 900;
+            color: #111b21;
+            letter-spacing: -0.5px;
+          }
+          
+          .kpi-trend {
+            font-size: 9px;
+            font-weight: 700;
+            margin-top: 4px;
+            display: inline-flex;
+            align-items: center;
+          }
+          
+          .kpi-trend.up {
+            color: #008069;
+          }
+          
+          .kpi-trend.down {
+            color: #e11d48;
+          }
+          
+          .table-container {
+            border: 1px solid #e9edef;
+            border-radius: 12px;
+            overflow: hidden;
+          }
+          
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 12.5px;
+          }
+          
+          th {
+            background-color: #f0f2f5;
+            color: #111b21;
+            font-weight: 700;
+            padding: 10px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e9edef;
+          }
+          
+          td {
+            padding: 11px 14px;
+            border-bottom: 1px solid #e9edef;
+            color: #3b4a54;
+          }
+          
+          tr.even {
+            background-color: #ffffff;
+          }
+          
+          tr.odd {
+            background-color: #f8f9fa;
+          }
+          
+          .course-badge {
+            background-color: #f0f2f5;
+            color: #111b21;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+          }
+          
+          .status-badge {
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+          }
+          
+          .status-interested { background-color: rgba(255, 210, 121, 0.2); color: #b27b0b; }
+          .status-follow-up { background-color: rgba(59, 130, 246, 0.15); color: #1d4ed8; }
+          .status-new-lead { background-color: rgba(0, 128, 105, 0.15); color: #008069; }
+          
+          .courses-container {
+            border: 1px solid #e9edef;
+            border-radius: 12px;
+            padding: 18px;
+            background-color: #ffffff;
+          }
+          
+          .course-row {
+            margin-bottom: 12px;
+          }
+          
+          .course-row:last-child {
+            margin-bottom: 0;
+          }
+          
+          .course-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            font-weight: 700;
+            margin-bottom: 4px;
+          }
+          
+          .course-name {
+            color: #111b21;
+          }
+          
+          .course-count {
+            color: #667781;
+          }
+          
+          .progress-bg {
+            height: 6px;
+            background-color: #f0f2f5;
+            border-radius: 3px;
+            overflow: hidden;
+          }
+          
+          .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+          }
+          
+          .footer {
+            margin-top: 30px;
+            border-top: 1px solid #e9edef;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #8696a0;
+            font-weight: 500;
+          }
+          
+          .print-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #008069;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 128, 105, 0.2);
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+          }
+          
+          .print-btn:hover {
+            background-color: #00a884;
+            transform: translateY(-1px);
+          }
+        </style>
+      </head>
+      <body>
+        <button class="print-btn no-print" onclick="window.print()">Print / Save PDF</button>
+        
+        <div class="header">
+          <div class="logo-container">
+            <div style="font-weight: 900; font-size: 26px; color: #008069; letter-spacing: -1px;">A</div>
+            <div>
+              <h1 class="title">Alliance College</h1>
+              <p class="subtitle">Admissions Command Deck Summary</p>
+            </div>
+          </div>
+          <div class="meta-info">
+            <div style="font-weight: 700; color: #111b21;">OFFICIAL CRM SUMMARY REPORT</div>
+            <div>Generated: ${dateStr} at ${timeStr}</div>
+          </div>
+        </div>
+        
+        <div class="section-title">Key Performance Indicators</div>
+        <div class="kpis-grid">
+          ${statsHTML}
+        </div>
+        
+        <div class="grid-container">
+          <div>
+            <div class="section-title">Recent Student Leads Activity</div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 25%;">Student Name</th>
+                    <th style="width: 22%;">Phone Number</th>
+                    <th style="width: 23%;">Inquired Course</th>
+                    <th style="width: 15%;">Lead Status</th>
+                    <th style="width: 15%;">Time Logged</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${leadsHTML}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div>
+            <div class="section-title">Course Preference Share</div>
+            <div class="courses-container">
+              ${coursesHTML}
+            </div>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <span>Alliance College Admissions Management Portal &copy; 2026. Confidential and Proprietary.</span>
+          <span>Security Level: Administrator Sync</span>
+        </div>
+        
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 500);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setIsExportModalOpen(false);
+    showToast('Print-ready landscape PDF report generated!', 'success');
+  };
+
 
   if (loading) {
     return (
@@ -165,7 +565,7 @@ export default function DashboardPage() {
             <span>CRM Logs timeline</span>
           </button>
           <button 
-            onClick={handleExportReport} 
+            onClick={() => setIsExportModalOpen(true)} 
             className="bg-alliance-green text-white rounded-xl px-5 py-2.5 flex items-center gap-2 font-bold shadow-[0_4px_12px_rgba(0,128,105,0.15)] hover:bg-[#00a884] transition-all cursor-pointer text-sm"
           >
             <Download className="h-4 w-4" strokeWidth={2.5} />
@@ -282,8 +682,9 @@ export default function DashboardPage() {
           </div>
           
           {/* Equalizer bar chart */}
-          <div className="flex-1 flex gap-2.5 mt-2 relative min-h-[200px] w-full">
-            <div className="flex flex-col justify-between h-44 text-[10px] font-black text-alliance-muted/40 uppercase tracking-widest w-8 pb-6 shrink-0 text-right pr-2 select-none">
+          <div className="flex-1 flex gap-2.5 mt-2 relative min-h-[220px] w-full">
+            {/* Y-axis Labels */}
+            <div className="flex flex-col justify-between h-44 text-[10px] font-black text-alliance-muted/40 uppercase tracking-widest w-8 pb-6 shrink-0 text-right pr-2 select-none font-mono">
               <span>{maxVal}</span>
               <span>{Math.round(maxVal * 0.75)}</span>
               <span>{Math.round(maxVal * 0.5)}</span>
@@ -291,16 +692,19 @@ export default function DashboardPage() {
               <span>0</span>
             </div>
             
+            {/* Chart Grid and Bar Canvas */}
             <div className="flex-1 flex flex-col justify-between relative h-full min-w-0">
-              <div className="absolute inset-0 top-1 bottom-10 left-0 right-0 flex flex-col justify-between pointer-events-none opacity-40">
-                <div className="w-full border-t border-alliance-border/60 border-dashed" />
-                <div className="w-full border-t border-alliance-border/60 border-dashed" />
-                <div className="w-full border-t border-alliance-border/60 border-dashed" />
-                <div className="w-full border-t border-alliance-border/60 border-dashed" />
-                <div className="w-full border-t border-alliance-border/60 border-dashed" />
+              {/* Subtle Dashed Gridlines */}
+              <div className="absolute inset-0 top-4 bottom-10 left-0 right-0 flex flex-col justify-between pointer-events-none opacity-25">
+                <div className="w-full border-t border-alliance-border/80 border-dashed" />
+                <div className="w-full border-t border-alliance-border/80 border-dashed" />
+                <div className="w-full border-t border-alliance-border/80 border-dashed" />
+                <div className="w-full border-t border-alliance-border/80 border-dashed" />
+                <div className="w-full border-t border-alliance-border/80 border-dashed" />
               </div>
               
-              <div className="absolute inset-0 top-1 bottom-10 left-2 right-2 sm:left-4 sm:right-4 flex justify-between items-end">
+              {/* Columns container */}
+              <div className="absolute inset-0 top-4 bottom-10 left-2 right-2 sm:left-4 sm:right-4 flex justify-between items-end">
                 {chartPoints.map((point: any, idx: number) => {
                   const val = point.value;
                   const isActive = hoveredIdx === idx || (hoveredIdx === null && point.isToday);
@@ -313,28 +717,48 @@ export default function DashboardPage() {
                       onMouseLeave={() => setHoveredIdx(null)}
                       className="flex flex-col items-center justify-end h-full flex-1 group cursor-pointer relative"
                     >
+                      {/* Column background hover highlight track */}
+                      <div className={clsx(
+                        "absolute inset-x-0 -bottom-8 -top-8 rounded-2xl transition-all duration-300 pointer-events-none -z-10",
+                        hoveredIdx === idx ? "bg-alliance-green/[0.03]" : "bg-transparent"
+                      )} />
+
+                      {/* Premium Floating dynamic tooltip */}
                       <div 
                         className={clsx(
-                          "absolute -top-7 text-xs font-black text-center whitespace-nowrap transition-all duration-300 pointer-events-none select-none z-30",
-                          isActive ? "opacity-100 scale-100 -translate-y-1 animate-bounce" : "opacity-0 scale-90 translate-y-2"
+                          "absolute -top-12 text-xs font-black text-center whitespace-nowrap transition-all duration-300 pointer-events-none select-none z-30",
+                          hoveredIdx === idx ? "opacity-100 scale-100 -translate-y-1" : "opacity-0 scale-95 translate-y-2"
                         )}
                       >
-                        <span className="bg-[#111b21] border border-alliance-border/60 px-2.5 py-0.5 rounded-lg text-white shadow-md font-bold text-[10px]">
-                          {val} {val === 1 ? 'chat' : 'chats'}
-                        </span>
+                        <div className="bg-[#111b21] border border-alliance-border/60 px-3 py-1.5 rounded-xl text-white shadow-[0_4px_16px_rgba(0,0,0,0.15)] flex flex-col gap-0.5">
+                          <span className="font-extrabold text-[10.5px] tracking-tight">{val} {val === 1 ? 'chat' : 'chats'}</span>
+                          <span className="text-[8.5px] font-bold text-[#8696a0] tracking-wide uppercase">{point.detailLabel || point.label}</span>
+                        </div>
                       </div>
                       
+                      {/* Direct Numeric Label - ALWAYS visible, reinforces readability */}
+                      <span className={clsx(
+                        "text-[11px] font-mono tracking-tighter mb-2 transition-all duration-300 select-none z-20 font-black",
+                        isActive ? "text-alliance-green scale-110 font-black" : "text-alliance-muted/50"
+                      )}>
+                        {val}
+                      </span>
+                      
+                      {/* Equalizer Bar capsule */}
                       <div 
                         className={clsx(
-                          "w-4 sm:w-8 rounded-t-lg transition-all duration-500 relative overflow-hidden",
+                          "w-5 sm:w-10 rounded-t-xl transition-all duration-500 relative overflow-hidden",
                           isActive 
-                            ? "bg-gradient-to-t from-alliance-green to-[#25d366] shadow-[0_0_12px_rgba(0,128,105,0.25)] border border-[#25d366]/20" 
-                            : "bg-[#ccd0d5]/40 border border-alliance-border hover:bg-alliance-green/10 hover:border-alliance-green/30"
+                            ? "bg-gradient-to-t from-alliance-green to-[#25d366] shadow-[0_4px_16px_rgba(0,128,105,0.2)] border border-[#25d366]/30" 
+                            : "bg-[#008069]/10 border border-[#e9edef] hover:bg-[#008069]/20 hover:border-[#008069]/30"
                         )}
-                        style={{ height: `${Math.max(6, barHeightPercent)}%` }}
+                        style={{ height: `${Math.max(8, barHeightPercent)}%` }}
                       >
-                        {isActive && (
-                           <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/15 to-transparent animate-[pulse_2.5s_infinite]" />
+                        {isActive ? (
+                          <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent animate-[pulse_2.5s_infinite]" />
+                        ) : (
+                          /* Subtle baseline indicator for inactive columns to anchor them visually */
+                          <div className="absolute inset-x-0 bottom-0 h-1 bg-alliance-green/20 rounded-full" />
                         )}
                       </div>
                     </div>
@@ -342,12 +766,13 @@ export default function DashboardPage() {
                 })}
               </div>
               
-              <div className="h-6 mt-auto border-t border-alliance-border flex items-center text-[10px] font-extrabold text-alliance-muted tracking-widest uppercase px-2 sm:px-4 relative pt-2 shrink-0">
+              {/* X-axis Labels */}
+              <div className="h-6 mt-auto border-t border-alliance-border flex items-center text-[10px] font-extrabold text-alliance-muted tracking-widest uppercase px-2 sm:px-4 relative pt-2 shrink-0 select-none">
                 {chartPoints.map((point: any, idx: number) => (
                   <div 
                     key={`axis-${point.label}-${idx}`} 
                     className={clsx(
-                      "flex-1 text-center transition-all duration-200 text-[10px]",
+                      "flex-1 text-center transition-all duration-200 text-[10px] font-bold",
                       point.isToday ? "text-alliance-green font-black scale-105" : 
                       hoveredIdx === idx ? "text-alliance-green" : "text-alliance-muted"
                     )}
@@ -591,6 +1016,72 @@ export default function DashboardPage() {
                 className="px-5 py-2.5 bg-alliance-green text-white rounded-xl text-sm font-bold hover:bg-[#00c298] transition-colors cursor-pointer shadow-[0_4px_12px_rgba(0,128,105,0.15)]"
               >
                 Close Logs Panel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. EXPORT OPTIONS FORMAT SELECTION MODAL */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-alliance-card border border-alliance-border rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4.5 border-b border-alliance-border flex justify-between items-center bg-alliance-dark/40 shadow-sm">
+              <h3 className="text-alliance-text font-bold text-lg flex items-center gap-2.5">
+                <Download className="h-5 w-5 text-alliance-green animate-pulse" /> Export CRM Report
+              </h3>
+              <button 
+                onClick={() => setIsExportModalOpen(false)}
+                className="text-alliance-muted hover:text-alliance-text transition-colors text-xl font-bold cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <p className="text-xs text-alliance-muted leading-relaxed">
+                Choose your preferred file layout to download current statistics, student inquiry registers, and lead preference distributions.
+              </p>
+              
+              {/* Option 1: Excel CSV */}
+              <button 
+                onClick={handleExportCSV}
+                className="flex items-start gap-4 p-4 rounded-xl border border-alliance-green bg-[#008069]/5 hover:bg-[#008069]/10 transition-all text-left w-full cursor-pointer group shadow-sm"
+              >
+                <div className="p-2.5 rounded-xl bg-alliance-green/10 text-alliance-green border border-alliance-green/20 group-hover:scale-105 transition-transform flex-shrink-0 mt-0.5">
+                  <FileText className="h-5 w-5" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-extrabold text-alliance-text group-hover:text-alliance-green transition-colors">Excel / CSV Spreadsheet</h4>
+                  <p className="text-[11px] text-alliance-muted mt-1 leading-normal font-medium">
+                    Optimized for data tables and calculations in Excel or Sheets. Phone columns are pre-formatted to prevent scientific notation.
+                  </p>
+                </div>
+              </button>
+              
+              {/* Option 2: PDF Document */}
+              <button 
+                onClick={handleExportPDF}
+                className="flex items-start gap-4 p-4 rounded-xl border border-alliance-border bg-alliance-dark hover:border-alliance-green/30 hover:bg-alliance-hover transition-all text-left w-full cursor-pointer group shadow-sm"
+              >
+                <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/10 group-hover:scale-105 transition-transform flex-shrink-0 mt-0.5">
+                  <Activity className="h-5 w-5" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-extrabold text-alliance-text group-hover:text-alliance-green transition-colors">PDF Document (Print Ready)</h4>
+                  <p className="text-[11px] text-alliance-muted mt-1 leading-normal font-medium">
+                    Perfect landscape layout to save or print. Contains clean tabular metrics, course shares, and lead cards styled specifically for A4 paper sizes.
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            <div className="px-6 py-4.5 border-t border-alliance-border flex justify-end bg-alliance-dark/30 shadow-inner">
+              <button 
+                onClick={() => setIsExportModalOpen(false)}
+                className="px-5 py-2.5 bg-alliance-hover text-alliance-text border border-alliance-border rounded-xl text-sm font-bold hover:bg-alliance-active transition-colors cursor-pointer"
+              >
+                Cancel
               </button>
             </div>
           </div>
