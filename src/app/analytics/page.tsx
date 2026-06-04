@@ -55,7 +55,7 @@ export default function AnalyticsPage() {
   const categories = data?.categories || { 'Course Queries': 0, 'Placement Queries': 0, 'Scholarship Queries': 0, 'Human Followups': 0 };
 
   const totalCourseQueries = (Object.values(courses) as number[]).reduce((a: number, b: number) => a + b, 0);
-  const totalCategoryQueries = Math.max((Object.values(categories) as number[]).reduce((a: number, b: number) => a + b, 0), 1);
+  const totalCategoryQueries = (Object.values(categories) as number[]).reduce((a: number, b: number) => a + b, 0);
 
   // Core KPI values
   const totalLeads = data?.stats?.find((s: any) => s.label === 'Total Leads')?.value || '0';
