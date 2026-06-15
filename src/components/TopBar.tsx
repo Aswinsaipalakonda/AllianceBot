@@ -350,10 +350,10 @@ export function TopBar() {
           className="flex items-center gap-2 cursor-pointer hover:bg-alliance-dark/50 p-1.5 rounded-lg transition-colors relative"
         >
           <div className="w-8 h-8 rounded-full bg-alliance-dark flex items-center justify-center text-alliance-text text-sm font-bold border border-alliance-border">
-            AK
+            D
           </div>
           <div className="hidden md:block text-left">
-            <div className="text-sm font-semibold text-alliance-text leading-tight">Admin</div>
+            <div className="text-sm font-semibold text-alliance-text leading-tight">Director</div>
             <div className="text-[10px] text-alliance-muted">Super Admin</div>
           </div>
           <ChevronDown className="h-4 w-4 text-alliance-muted" />
@@ -363,11 +363,11 @@ export function TopBar() {
             <div className="absolute right-0 top-full mt-2 w-56 bg-alliance-card border border-alliance-border rounded-xl shadow-2xl py-2 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 py-3 border-b border-alliance-border flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-full bg-alliance-dark flex items-center justify-center text-alliance-text text-sm font-bold border border-alliance-border">
-                  AK
+                  D
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-bold text-alliance-text leading-none">Admin User</span>
-                  <span className="text-[10px] text-alliance-muted truncate mt-1">admin@alliance.edu</span>
+                  <span className="text-sm font-bold text-alliance-text leading-none">Director</span>
+                  <span className="text-[10px] text-alliance-muted truncate mt-1">director@alliance.org</span>
                 </div>
               </div>
               
@@ -384,10 +384,22 @@ export function TopBar() {
 
               <div className="border-t border-alliance-border/50 pt-1.5 mt-1">
                 <button 
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
                     setShowProfile(false);
-                    showToast('Logged out of Admissions session successfully.');
+                    try {
+                      const res = await fetch('/api/auth/logout', { method: 'POST' });
+                      if (res.ok) {
+                        showToast('Logged out of Admissions session successfully.');
+                        router.replace('/login');
+                        router.refresh();
+                      } else {
+                        showToast('Logout failed. Please try again.');
+                      }
+                    } catch (err) {
+                      console.error('Logout failed:', err);
+                      showToast('Connection error during logout.');
+                    }
                   }}
                   className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-alliance-hover flex items-center gap-2 transition-colors cursor-pointer"
                 >
