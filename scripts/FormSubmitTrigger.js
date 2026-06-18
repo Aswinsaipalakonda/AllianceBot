@@ -18,8 +18,8 @@
  *    - Click "Save" and authorize any permissions if prompted.
  */
 
-// Replace this with your actual deployed Vercel domain (e.g. https://alliance-bot.vercel.app)
-const VERCEL_DOMAIN = "YOUR_BOT_DOMAIN_URL";
+// Replace this with your actual deployed domain (e.g. https://alliance.thehps.in)
+const VERCEL_DOMAIN = "https://alliance.thehps.in";
 
 function onFormSubmitTrigger(e) {
   try {
