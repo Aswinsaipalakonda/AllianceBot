@@ -51,6 +51,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, logo.jpg, icon.jpg, brochure files
      */
-    '/((?!_next/static|_next/image|favicon.ico|logo.jpg|icon.jpg|Alliance College_Brochure_V5.pdf).*)',
+    '/((?!_next/static|_next/image|favicon.ico|logo.jpg|icon.jpg|bba.jpeg|hotel.jpeg|Alliance College_Brochure_V5.pdf).*)',
   ],
 };

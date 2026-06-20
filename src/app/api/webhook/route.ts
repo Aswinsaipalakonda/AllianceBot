@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
 
         // --- AUTOMATED AI MODE / PROGRAMMATIC OVERRIDE ACTIVE ---
         let recentHistory: { role: 'user' | 'model'; parts: string[] }[] = [];
-        if (!isOverride) {
+        if (!isOverride && existingLead) {
           try {
             const rawHistory = await getConversationHistory(studentPhone);
             recentHistory = rawHistory.slice(-6).map((msg: any) => ({
@@ -214,15 +214,24 @@ export async function POST(req: NextRequest) {
             console.warn("Failed to load history context for Gemini webhook:", histErr.message);
           }
         } else {
-          console.log(`Intercepted programmatic override: "${messageText}". Bypassing history retrieval.`);
+          console.log(`Intercepted programmatic override or brand new user. Bypassing history retrieval.`);
         }
 
         // 3. Process Gemini Classification & Conversational Reply with history
         const { replyText, suggestedButtons, category, course, status, sendCareersImages, sendCourseImage } = await classifyMessageAndRespond(messageText, recentHistory) as any;
 
         // A. IMMEDIATELY send WhatsApp message back to minimize user delay
+        const getBaseUrl = () => {
+          const proto = req.headers.get('x-forwarded-proto') || 'https';
+          const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
+          if (host && !host.includes('localhost') && !host.includes('127.0.0.1') && !host.includes('3003')) {
+            return `${proto}://${host}`;
+          }
+          return 'https://alliance.thehps.in';
+        };
+        const baseUrl = getBaseUrl();
+
         if (sendCareersImages) {
-          const baseUrl = new URL(req.url).origin;
           // Send the text introduction first
           await sendWhatsAppMessage(studentPhone, replyText);
           // Then send BBA careers image
@@ -232,7 +241,6 @@ export async function POST(req: NextRequest) {
           // Then send the interactive buttons with a clear prompt to ensure they always transmit and display
           await sendWhatsAppMessage(studentPhone, "Would you like to start your application process or explore further?", suggestedButtons);
         } else if (sendCourseImage) {
-          const baseUrl = new URL(req.url).origin;
           const imgName = sendCourseImage === 'bba' ? 'bba.jpeg' : 'hotel.jpeg';
           // Send a single WhatsApp message with image header, rich text body, and action buttons
           await sendWhatsAppMessage(studentPhone, replyText, suggestedButtons, `${baseUrl}/${imgName}`);

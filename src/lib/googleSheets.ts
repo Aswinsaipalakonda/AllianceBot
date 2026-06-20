@@ -4,6 +4,13 @@ export function normalizePhone(phone: string): string {
   return String(phone).replace(/\D/g, '');
 }
 
+function safeValue(val: any): any {
+  if (typeof val === 'string' && (val.startsWith('+') || val.startsWith('=') || val.startsWith('-'))) {
+    return `'${val}`;
+  }
+  return val;
+}
+
 function getSheetsClient() {
   let privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
   if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
@@ -42,7 +49,16 @@ export async function appendToSheet(sheetName: string, rows: any[][]) {
   }
 }
 
+let cachedLeads: any[] | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL = 10000; // 10 seconds cache TTL
+
 export async function getLeads() {
+  const now = Date.now();
+  if (cachedLeads && (now - cacheTimestamp < CACHE_TTL)) {
+    console.log('Returning cached leads list');
+    return cachedLeads;
+  }
   try {
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
@@ -54,7 +70,11 @@ export async function getLeads() {
     });
 
     const rows = response.data.values || [];
-    if (rows.length <= 1) return [];
+    if (rows.length <= 1) {
+      cachedLeads = [];
+      cacheTimestamp = now;
+      return [];
+    }
 
     const headers = rows[0];
     const leads = [];
@@ -70,13 +90,15 @@ export async function getLeads() {
         course: row[3] || 'Undecided',
         status: row[4] || 'New Lead',
         category: row[5] || 'Course Queries',
-        lastMessage: row[6] || '',
+        lastMessage: (row[6] || '').startsWith("'") ? row[6].substring(1) : (row[6] || ''),
         aiEnabled: row[7] !== undefined && String(row[7]).toLowerCase() === 'false' ? false : true,
         date: row[0] ? row[0].split(',')[0] : new Date().toLocaleDateString(),
         timestamp: row[0] || '',
       });
     }
 
+    cachedLeads = leads;
+    cacheTimestamp = now;
     return leads;
   } catch (error: any) {
     console.error('Error fetching leads from Google Sheets:', error.message);
@@ -127,15 +149,18 @@ export async function updateOrAddLead(
         range: `${sheetName}!A${rowIndex}:H${rowIndex}`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
-          values: [[timestamp, name, phone, course, status, category, lastMessage, finalAIStatus]],
+          values: [[timestamp, name, phone, course, status, category, safeValue(lastMessage), finalAIStatus]],
         },
       });
       console.log(`Updated lead for ${name} at row ${rowIndex} (AI Status: ${finalAIStatus})`);
     } else {
       // Append new lead with default or forced AI Auto Reply status
-      await appendToSheet(sheetName, [[timestamp, name, phone, course, status, category, lastMessage, finalAIStatus]]);
+      await appendToSheet(sheetName, [[timestamp, name, phone, course, status, category, safeValue(lastMessage), finalAIStatus]]);
       console.log(`Added new lead for ${name} (AI Status: ${finalAIStatus})`);
     }
+
+    // Invalidate leads cache
+    cachedLeads = null;
   } catch (error: any) {
     console.error('Error updating/adding lead:', error.message);
   }
@@ -172,6 +197,9 @@ export async function toggleAIAutoReply(phone: string, enabled: boolean) {
         },
       });
       console.log(`Successfully toggled AI to ${enabled} for phone ${phone}`);
+      
+      // Invalidate leads cache
+      cachedLeads = null;
       return true;
     }
 
@@ -245,7 +273,7 @@ export async function logChatMessage(
     const timestamp = new Date().toISOString(); // standard UTC ISO format
     const buttonsStr = buttons.join(', ');
     
-    const row = [timestamp, phone, name, sender, text, buttonsStr, category, course];
+    const row = [timestamp, phone, name, sender, safeValue(text), safeValue(buttonsStr), category, course];
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: 'Chat Log!A:H',
@@ -289,8 +317,14 @@ export async function getConversationHistory(phone: string) {
       
       const ts = row[0] || '';
       const sender = row[3] || 'user';
-      const text = row[4] || '';
-      const buttonsStr = row[5] || '';
+      let text = row[4] || '';
+      if (text.startsWith("'")) {
+        text = text.substring(1);
+      }
+      let buttonsStr = row[5] || '';
+      if (buttonsStr.startsWith("'")) {
+        buttonsStr = buttonsStr.substring(1);
+      }
       
       let buttons: string[] = [];
       if (buttonsStr) {
@@ -365,7 +399,7 @@ export async function logCounselorReply(phone: string, counselorName: string, me
         range: `Admissions Leads!A${rowIndex}:H${rowIndex}`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
-          values: [[timestamp, currentName, phone, currentCourse, 'Follow-up', currentCategory, message, currentAIStatus]],
+          values: [[timestamp, currentName, phone, currentCourse, 'Follow-up', currentCategory, safeValue(message), currentAIStatus]],
         },
       });
       console.log(`Updated last message for ${currentName} to: "${message}"`);

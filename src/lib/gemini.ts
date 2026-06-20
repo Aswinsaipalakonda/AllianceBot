@@ -242,6 +242,25 @@ export async function classifyMessageAndRespond(
     // ==========================================
     // 0. Programmatic Conversational Overrides
     // ==========================================
+    if (
+      lowerMsg === 'hi' || 
+      lowerMsg === 'hii' || 
+      lowerMsg === 'hiii' || 
+      lowerMsg === 'hey' || 
+      lowerMsg === 'hello' || 
+      lowerMsg === 'greetings' || 
+      lowerMsg === 'good morning' || 
+      lowerMsg === 'good afternoon'
+    ) {
+      return {
+        replyText: "Welcome to *Alliance College of Hotel Management* (affiliated to Andhra University)! 🎓👋\n\nSo glad you reached out! I'm here to help you with anything you need—from course durations and placements to scholarships and hostel facilities. 😊\n\nWhat would you like to explore first?",
+        suggestedButtons: ["Explore Courses", "Placements Info", "Scholarships"],
+        category: "Course Queries",
+        course: "Undecided",
+        status: "New Lead"
+      };
+    }
+
     if (lowerMsg === 'talk to counselor' || lowerMsg === 'talk to us' || lowerMsg === 'counselor') {
       return {
         replyText: "Hey there! I would be absolutely delighted to connect you directly with our friendly admissions panel. 📞✨\n\nPlease feel free to call us directly during working hours (9:00 AM - 5:00 PM) or write to us. Would you like to review our courses or start your application process?",
