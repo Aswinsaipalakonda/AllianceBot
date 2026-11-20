@@ -1,7 +1,7 @@
 # 🎓 AllianceBot — AI Admissions & CRM Intelligence Platform
 
 <p align="center">
-  <img src="public/logo.png" alt="AllianceBot Logo" width="120" height="120" onerror="this.style.display='none'" />
+  <img src="public/logo.jpg" alt="AllianceBot Logo" width="120" height="120" onerror="this.style.display='none'" />
 </p>
 
 <p align="center">
